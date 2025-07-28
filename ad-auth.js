@@ -1,5 +1,5 @@
 // ad-auth.js
-import { auth, signInWithEmailAndPassword } from "../js/firebase.js";
+import { auth, signInWithEmailAndPassword } from "firebase.js";
 
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.querySelector(".login-card");
@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Optional: Check if email belongs to an admin (hardcoded or role-based check)
       // Redirect to admin dashboard
-      window.location.href = "../admin/dashboard.html";
+      window.location.href = "dashboard.html";
     } catch (error) {
       console.error("Login Error:", error.message);
       alert("Invalid credentials or network issue.");
