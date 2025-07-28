@@ -1,5 +1,5 @@
 // ad-dashboard.js
-import { db } from "../js/firebase.js";
+import { db } from "firebase.js";
 import { get, ref, remove, update } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-database.js";
 
 // DOM Elements
