@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Dashboard</title>
+  <link rel="stylesheet" href="../css/admin-style.css" />
+  <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.8/css/line.css">
+</head>
+<body class="admin-dashboard-body">
+
+  <!-- Header -->
+  <header class="admin-header">
+    <img src="../assets/logo.png" alt="Logo" class="logo" />
+    <h2>Admin Dashboard</h2>
+    
+    <div class="icons">
+      <i class="uil uil-bell" id="bell-btn"></i>
+    </div>
+  </header>
+
+  <!-- Stats Section -->
+  <section class="stats-cards">
+    <div class="stat-card" id="totalCustomers">
+      <h3>Total Customers</h3>
+      <p>0</p>
+    </div>
+    <div class="stat-card" id="totalMerchants">
+      <h3>Total Merchants</h3>
+      <p>0</p>
+    </div>
+  </section>
+
+  <!-- User Table Section -->
+  <section class="user-table-section">
+    <h2>User Overview</h2>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="userTableBody">
+          <!-- Users will be loaded here dynamically -->
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Footer Navigation -->
+  <footer class="footer-nav">
+    <div class="nav-item">
+      <i class="uil uil-bars"></i>
+      <span>Menu</span>
+    </div>
+    <div class="nav-item">
+      <i class="uil uil-comment-question"></i>
+      <span>Complaints</span>
+    </div>
+    <div class="nav-item active" onclick="location.href='merchant/dashboard.html'">
+      <i class="uil uil-home"></i>
+      <span>Home</span>
+    </div>
+    <div class="nav-item">
+      <i class="uil uil-clock"></i>
+      <span>Pending</span>
+    </div>
+    <div class="nav-item">
+      <i class="uil uil-microphone"></i>
+      <span>Announce</span>
+    </div>
+  </footer>
+
+  <script type="module" src="../js/firebase.js"></script>
+  <script type="module" src="../js/ad-dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Merchant Login / Sign Up</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="login-body">
+
+  <div class="login-container">
+    <div class="login-card" id="authCard">
+      <h2 class="login-title" id="formTitle">Merchant Login</h2>
+
+      <form id="authForm">
+        <!-- Login Fields -->
+        <div class="form-group" id="emailField">
+          <label>Email Address</label>
+          <input type="email" placeholder="Enter email" required />
+        </div>
+
+        <div class="form-group" id="passwordField">
+          <label>Password</label>
+          <input type="password" placeholder="Enter password" required />
+        </div>
+
+        <!-- Sign Up Fields -->
+        <div id="signupFields" style="display: none;">
+          <div class="form-group">
+            <label>Name</label>
+            <input type="text" placeholder="Full Name" />
+          </div>
+
+          <div class="form-group">
+            <label>Username</label>
+            <input type="text" placeholder="Preferred Username" />
+          </div>
+
+          <div class="form-group">
+            <label>Matric Number</label>
+            <input type="text" placeholder="e.g. CSC/20/1234" />
+          </div>
+
+          <div class="form-group">
+            <label>Room & Location</label>
+            <input type="text" placeholder="e.g. Hall 3, Room 203" />
+          </div>
+
+          <div class="form-group">
+            <label>Department - Level</label>
+            <input type="text" placeholder="e.g. Computer Science - 200L" />
+          </div>
+
+          <div class="form-group">
+            <label>Phone Number</label>
+            <input type="tel" placeholder="e.g. 08012345678" />
+          </div>
+
+          <div class="form-group">
+            <label>Confirm Password</label>
+            <input type="password" placeholder="Re-enter password" />
+          </div>
+          
+          <div class="form-group">
+            <label>Token</label>
+            <input type="text" placeholder="Enter token provided by Admin" />
+          </div>
+        </div>
+        
+        <div class="terms">
+          <input type="checkbox" id="termsCheck" required />
+          <label for="termsCheck">
+            I agree to the 
+            <a href="terms.html" target="_blank">Terms</a> and <a href="rules.html" target="_blank">Policies</a>
+          </label>
+        </div>
+
+        <button type="submit" class="login-btn" id="submitBtn">Login</button>
+
+        <div class="forgot-link">
+          <a href="#">Forgot password?</a>
+        </div>
+
+        <div class="forgot-link">
+          <a href="#" id="toggleForm">Don't have an account? Sign up</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const toggleForm = document.getElementById('toggleForm');
+    const formTitle = document.getElementById('formTitle');
+    const signupFields = document.getElementById('signupFields');
+    const submitBtn = document.getElementById('submitBtn');
+
+    let signupMode = false;
+
+    toggleForm.addEventListener('click', (e) => {
+      e.preventDefault();
+      signupMode = !signupMode;
+
+      if (signupMode) {
+        signupFields.style.display = 'block';
+        formTitle.innerText = 'Merchant Sign Up';
+        submitBtn.innerText = 'Sign Up';
+        toggleForm.innerText = 'Already have an account? Log in';
+      } else {
+        signupFields.style.display = 'none';
+        formTitle.innerText = 'Merchant Login';
+        submitBtn.innerText = 'Login';
+        toggleForm.innerText = "Don't have an account? Sign up";
+      }
+    });
+  </script>
+
+  <script type="module" src="../js/firebase.js"></script>
+  <script type="module" src="../js/merch-auth.js"></script>
+</body>
+</html>
