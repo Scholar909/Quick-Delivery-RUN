@@ -16,7 +16,8 @@ import {
     setDoc,
     serverTimestamp,
     Timestamp,
-    getDoc
+    getDoc,
+    GeoPoint
 } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
 
 // Forms & elements
@@ -56,7 +57,7 @@ async function requestLocationAndStore(uid, form) {
                     const lng = pos.coords.longitude;
 
                     await updateDoc(doc(db, "merchants", uid), {
-                        location: new firebase.firestore.GeoPoint(lat, lng),
+                        location: new GeoPoint(lat, lng),
                         locationUpdatedAt: serverTimestamp()
                     });
 
