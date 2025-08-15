@@ -167,7 +167,7 @@
       { attribution: 'Tiles &copy; Esri', maxZoom: 19 }
     );
 
-    map = L.map('map', { center: [campusLat, campusLng], zoom: 16, layers: [lightLayer] });
+    map = L.map('map', { center: [campusLat, campusLng], zoom: 16, layers: [lightLayer], maxZoom: 19 });
     L.control.layers({ "Light": lightLayer, "Satellite": satelliteLayer }).addTo(map);
     setTimeout(() => map.invalidateSize(), 100);
   }
