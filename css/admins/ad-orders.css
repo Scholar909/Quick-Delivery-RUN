@@ -1,0 +1,139 @@
+/* === ad-orders.css === */
+
+/* Reset & Base */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+body {
+  background: linear-gradient(to bottom right, #0f4e75, #000000);
+  min-height: 100vh;
+  color: white;
+  padding-bottom: 80px;
+}
+
+/* === Glassy === */
+.glassy {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* === Header === */
+.header {
+  padding: 1.5rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  text-align: center;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+/* === Tabs === */
+.tabs {
+  display: flex;
+  justify-content: space-around;
+  margin: 1.5rem 1rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.tab {
+  flex: 1;
+  min-width: 100px;
+  padding: 0.7rem;
+  background: rgba(255, 255, 255, 0.06);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.tab:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.tab.active {
+  background: #0f4e75;
+}
+
+/* === Orders Content === */
+.orders-content {
+  padding: 0 1rem;
+}
+
+/* === Order Sections === */
+.order-section {
+  display: none;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.order-section.active {
+  display: flex;
+}
+
+/* === Order Cards === */
+.order-card {
+  padding: 1rem 1.2rem;
+  border-left: 5px solid #0f4e75;
+}
+
+.order-card h4 {
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.order-card p {
+  font-size: 0.95rem;
+  margin-bottom: 0.3rem;
+}
+
+.order-card .timestamp {
+  font-size: 0.85rem;
+  color: #ccc;
+  margin-top: 0.5rem;
+}
+
+/* === Footer Navigation === */
+.footer-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(15px);
+  display: flex;
+  justify-content: space-around;
+  padding: 0.7rem 0;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.footer-nav a {
+  text-decoration: none;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #ccc;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.nav-item i {
+  font-size: 1.3rem;
+  margin-bottom: 2px;
+}
+
+.nav-item:hover,
+.nav-item.active {
+  color: white;
+}

@@ -1,0 +1,167 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+body {
+  background: linear-gradient(to bottom right, #0f4e75, #000000);
+  min-height: 100vh;
+  color: white;
+  padding-bottom: 80px;
+}
+
+/* === Header === */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  background-color: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.header .welcome h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.header .welcome p {
+  font-size: 0.9rem;
+  color: #ccc;
+  margin-top: 5px;
+}
+
+.icons {
+  display: flex;
+  gap: 1rem;
+}
+
+.icons i {
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: white;
+  transition: color 0.2s ease;
+}
+
+.icons i:hover {
+  color: #ccc;
+}
+
+/* === Stats Cards === */
+.stats-section {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin: 2rem 1rem;
+  flex-wrap: wrap;
+}
+
+.stat-card {
+  flex: 1;
+  min-width: 150px;
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  padding: 1.5rem;
+  text-align: center;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+.stat-card h3 {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.stat-card p {
+  font-size: 1.3rem;
+  font-weight: bold;
+}
+
+/* === Announcement === */
+.announcement {
+  margin: 2rem 1rem;
+}
+
+.announcement h3 {
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+}
+
+.announcement-card {
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(12px);
+  border-radius: 15px;
+  padding: 1rem;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+  min-height: 80px;
+  position: relative;
+}
+
+.announcement-card span {
+  position: absolute;
+  bottom: 10px;
+  right: 15px;
+  font-size: 0.8rem;
+  color: #ccc;
+}
+
+/* === Rules Section === */
+.rules-section {
+  margin: 2rem 1rem;
+}
+
+.rules-section h3 {
+  font-size: 1.2rem;
+  margin-bottom: 0.8rem;
+}
+
+.rules-section pre {
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(12px);
+  border-radius: 10px;
+  padding: 1rem;
+  white-space: pre-wrap;
+  line-height: 1.4;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+/* === Footer Navigation === */
+.footer-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(15px);
+  display: flex;
+  justify-content: space-around;
+  padding: 0.7rem 0;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.footer-nav a{
+  text-decoration: none;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #ccc;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.nav-item i {
+  font-size: 1.3rem;
+  margin-bottom: 2px;
+}
+
+.nav-item:hover,
+.nav-item.active {
+  color: white;
+}

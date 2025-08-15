@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Redeemer's University Merchant Map</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    body, html {
+      margin: 0;
+      height: 100%;
+      font-family: Arial, sans-serif;
+    }
+    #map {
+      height: 100%;
+      width: 100%;
+    }
+    #loadingOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.95);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: #333;
+    }
+    .popup-content {
+      text-align: center;
+    }
+    .popup-content img {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      margin-bottom: 5px;
+      object-fit: cover;
+    }
+  </style>
+</head>
+<body>
+
+<div id="loadingOverlay">
+  <div>📍 Please enable your location to appear on the live map...</div>
+  <div style="margin-top:10px; font-size:14px; color:#777;">
+    This page will load once location is granted.
+  </div>
+</div>
+
+<div id="map" style="display:none;"></div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script type="module">
+  import { db, auth } from '../js/firebase.js';
+  import { collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
+  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
+
+  // Campus center coords
+  const campusLat = 7.7416; 
+  const campusLng = 4.4432;
+
+  // Store merchant markers
+  const merchantMarkers = {};
+
+  let map;
+
+  // Wait for location permission before loading map
+  function requestLocationAccess() {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser.");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        document.getElementById("loadingOverlay").style.display = "none";
+        document.getElementById("map").style.display = "block";
+
+        initMap();
+        startMerchantListener();
+        startLiveTracking(pos.coords.latitude, pos.coords.longitude);
+      },
+      (err) => {
+        alert("⚠️ Location access is required to use this page. Please enable it and refresh.");
+        console.error(err);
+      },
+      { enableHighAccuracy: true }
+    );
+  }
+
+  // Initialize map
+  function initMap() {
+    map = L.map('map').setView([campusLat, campusLng], 16);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+  }
+
+  // Listen to all merchants' positions in real-time
+  function startMerchantListener() {
+    onSnapshot(collection(db, "merchants"), (snapshot) => {
+      snapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        if (!data.lat || !data.lng) return;
+
+        const popupHTML = `
+          <div class="popup-content">
+            <img src="${data.profileImage || 'https://via.placeholder.com/60'}" />
+            <div><strong>${data.fullname || 'Unknown'}</strong></div>
+          </div>
+        `;
+
+        if (merchantMarkers[docSnap.id]) {
+          merchantMarkers[docSnap.id].setLatLng([data.lat, data.lng])
+            .setPopupContent(popupHTML);
+        } else {
+          const marker = L.marker([data.lat, data.lng]).addTo(map)
+            .bindPopup(popupHTML);
+          merchantMarkers[docSnap.id] = marker;
+        }
+      });
+    });
+  }
+
+  // Track current logged-in merchant's location
+  function startLiveTracking(initialLat, initialLng) {
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // Initial position save
+        updateDoc(doc(db, "merchants", user.uid), {
+          lat: initialLat,
+          lng: initialLng
+        });
+
+        // Watch for movement
+        navigator.geolocation.watchPosition(
+          async (pos) => {
+            const { latitude, longitude } = pos.coords;
+            await updateDoc(doc(db, "merchants", user.uid), {
+              lat: latitude,
+              lng: longitude
+            });
+          },
+          (err) => console.error("Live location error:", err),
+          { enableHighAccuracy: true }
+        );
+      }
+    });
+  }
+
+  // Start process
+  requestLocationAccess();
+</script>
+
+</body>
+</html>

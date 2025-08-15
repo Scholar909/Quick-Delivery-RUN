@@ -1,0 +1,380 @@
+Website Overview Start, all icons used in this website is from unicons, including the bottom navigation icons like home and the rest.
+
+Index Page: Acts as the about/landing page, explaining the website. Not now.
+
+Sign-In Button: Directs customers to log in.
+
+Separate login/sign-up pages for Admin and Merchant (to avoid customer misuse), do it last, after all other pages.
+
+Admin Section in simple structured form:
+For Admin
+
+Admin Dashboard
+Top header
+
+Logo of the business
+Bell logo to its right to signify new unread complaints available.
+
+Section count
+Two side-by-side card grids:
+
+Total Customer Count
+
+Total Merchant Count
+
+Table Section
+
+Headings:
+
+Username (from user profile, if none then registered name)
+
+Email
+
+Status (Customer or Merchant)
+
+Actions:
+
+Message: Page to Send alert/notification to user
+
+View: Shows user’s full profile info
+
+Block/Unblock: Restricts access or reactivates it
+
+Delete: Permanently deletes user account from Firebase
+
+
+---
+
+Navigation (Footer with 5 Columns)(persist on all pages of all user types)
+
+1. Menu Bar: Slides out a drawer with navigation options
+
+
+2. Complaints
+
+
+3. Home
+
+
+4. Orders
+
+
+5. Announcements
+...........................
+
+
+
+
+---
+
+Admin Pages & Their Functions
+
+1. Complaints Page:
+
+
+
+View and reply to message complaints from Customers & Merchants. Each new complaints should be a rectangular card that has a reply button. If merchant send co plaint to admin from calendar page, admin will alsk see it and if admin replies, merchsnt will Receive response in complaints page. as soon as in a complaint page, and arrow icon like this < will appear at right edge of screen in a semicicle for pulling. if pulled out, all sent messages and repkies will be there. like when admin receives a complaint, the count on the semicircle arrow icon will increase and when the arrow ucon is dragged towards tge left, it reveils a page modal like a drawer, if tgere is a complaint from someone, itll be there in a row to tge left witg Username(role:merchant or customer) - Message Title and date. when the row card is clicked, it reveils tge message in tge card and when clicked againg hides it. when admin click reply on tge row card after expanding it, tge arrow drawer will close and tge form at the front page will be filled with senders details authomatically and awaiting title and message before sending. after admin replies, in tge arrow drawer, it will be paired with tge message that was replied, so a green dot will appear on tge replied card and when clicked will reveil full meesage with another row card to tge left which is tge admins reply card and when that one is clicked it will show full admin message. when someone sends a message, tgey see it to tge right of there screen in tye arrow drawer and when they receive a message it goes to tye left. so if admin replies a message with two replies, when that message row card us clicked, its full message will show, below it will be tge admins first message and below tgat will be tge second message and when clucked again, Everything hides. even for other roles, when they send a message, the sent message will save in tge arrow drawer just like admin page, in there oage, tge sent message will be to the right and tge received will be to the left. but they cant reply complaint though. onky admin can reply complaint
+
+2. Announcements Page:
+
+
+
+Post messages targeted to Customers dashboard (max four for slideshow) and/or Merchants dashboard(for announcements). On this page there'll be two sections side by side(horizontal scroll like tabs), first one for Merchants and Second for Customers. Under customers, there'll be an add button, once clicked a smooth input and text area and post button will appear, the input is for the header and text area for contents, it's a form with a post button. Maximum of four forms can be added cause it will show as a slideshow on customers dashboard. Once it's been added, below the form will be have rectangular card grids with the header name on it, each can be edited or deleted using the for when clicked. Under Merchants area, also an add button that smoothly brings out a form with header input and content text area and post button. Same like customers, once posted then below the form will have rectangular card grids with header name and date posted. Once clicked can be edited or deleted, and whatever posted will replace the previous message on the merchants dashboard with the date posted or edited to show that it's a new message.
+
+3. Orders Page (with horizontal scroll: like tabs): Pending: Orders awaiting successful delivery by merchants.
+
+
+
+Completed: Successfully delivered orders
+
+Declined: Rejected due to timing(closed) or other issues(like not available or error)
+
+4. Menu List Page:
+Add button at the top to bring out form to add food or items according to the restaurant below will be a search input by all either category, food name or restaurant. And look, the form should be like this, when add button at the top right is clicked, the form should have,
+Restaurant name( if new name is typed in input, it will save to the select option above so that another time, i can just click from tge Restaurant select option and enter details and save)
+Food/Item Name
+Food/Item Category(drop-down with food, drink and snack as options)
+Food/Item Price
+The Save button. 
+
+Of course the saved can be edited or deleted using the buttons 
+
+Each Displays food items per restaurants on cards in alphabetical order of Restaurants name.
+
+So when the item is added, the card with the Restaurant Name at the top heading will appear with item cards having name to the left, price to the center and toggle functionality to the right(I want a real toggle capsule, smooth movement from right to left). If a new item under a different restaurant is added then a new card will appear, but if a new item under the same restaurant is added then it will add to the already available restaurants card and arrange in alphabetical order. Everything here in all the pages of all the user types are to be in alphabetical order or arranged as latest from the top where needed. The card display of the restaurant and items will also look like that on merchants menu page and merchants can only toggle off and on of a product/item, they cannot edit the name or price of the food. While on customers menu page, the card display will be the same,  but without the toggle, so name will be to the left and price to the right.
+
+Admin & Merchant can toggle available/unavailable of the food and items using toggle items.
+
+Customers can only click available items
+
+5. Calendar Page:
+
+
+
+View/edit each Merchant’s working & off times
+
+6. Assign Orders Page:
+
+
+
+Admin sees customer orders here
+
+Can choose to Assign or Decline the order. If assign clicked then pop up modal of available working merchants will be visible, once they're name is clicked it will show a count(total orders they have on hand) on there name until the merchant has clicked completed from there side or declined.
+
+7. Send Alerts/Message Page:
+
+
+
+Opens when “Message” is clicked from the dashboard table
+
+Used to send messages to Customers or Merchants by email or username to there alert/notification page.
+
+This is all for now. So right now, dashboard for all sections have been made and the menu list for all sections have been made. Only that there Js are yet to be made, so what should we make next. Lead the way and don't get confused, if you have questions ask. I want to be done with almost all the html files and Js structures today
+
+......
+Merchant Section:
+
+Merchant Dashboard
+
+Top header:
+
+Bell Icon(top right):
+Shows admin messages or alerts with notification count, when clicked takes to alert page.
+
+Profile Icon(side of bell icon), directs to profile page.
+
+Top Section(A card)
+Welcome Message:
+
+If merchant sets a username: “Welcome, [Username]”
+
+If not: “Welcome, Merchant”
+
+Working Status:
+
+Shows: “Working Today” or “Free Day”
+
+Main Body
+Two Card Grids (Side by Side):
+
+1. Completed Orders Total Count
+
+
+2. Calendar – Shows today’s shift time (e.g., 10 a.m. – 3 p.m. or free)
+
+
+
+Announcement Display:
+One large card
+Shows most recent admin announcement with time
+
+Rules & Regulations Section:
+Write-up styled using PRE tag.
+
+Footer Navigation Bar(persist on all pages)
+
+1. Menu Bar – Opens side drawer nav
+
+
+2. Complaints
+
+
+3. Home
+
+
+4. Pending Orders
+
+
+5. Order History
+
+
+
+
+---
+
+Merchant Pages & Features
+
+1. Orders Page (Tabs: Pending | Completed | Declined)
+
+
+
+Receive Order Flow:
+
+Admin assigns order → Merchant has 5 mins to decline on pending.
+
+If not declined, declined button on the order disappeas → Auto saves to Pending
+
+Order card saves Approved Time, and order id as Name on Card.
+
+When completed, merchant clicks “Completed” on the card → Time gets recorded
+
+If declined → Goes to Declined Tab
+
+2. Order History
+
+
+
+Shows card with order id and date/time:
+
+All completed orders
+Order duration (from approval to completion)
+
+Customer details (e.g., room number)
+
+Works like a transaction log
+
+3. Menu List Page
+
+
+
+Toggle each item as Available (clickable by customer) or Unavailable (greyed out), will load from admin, not editable. Only the availability can be changed.
+
+Profile Page
+Add username and any required details
+
+4. Calendar Page
+Displays full calendar with shift set by admin(try to integrate or import a calendar like Google calendar that can be edited and events can be saved on it and marked with colors),
+
+
+
+Calendar Complaints card below calendar.
+Option to send calendar-related complaints to admin
+
+5. Complaints Page
+Submit issues or updates (e.g., can’t work on a certain day), sent complaints save in the arrow drawer as described in admin complaints page.
+
+
+
+6. Receive Alerts Page (Bell Icon)
+Shows all messages or alerts from admin as card, click to view full contents on a pop up modal.
+
+
+
+Finally next is the customer section, so wait. I said wait
+
+Customer Section:
+
+Customer Dashboard
+Header Area
+
+Bell Icon(has span to signify new alerts)(Top right):
+-Shows admin messages or alerts on a page when clicked.
+
+Profile icon(side of bell icon)
+-wheb clicked directs to profile page to update or add extra changeable data.
+
+Welcome Message:
+
+If username is set: "Welcome, [Username]"
+
+If not: "Welcome, Customer"
+
+Main Dashboard Body
+
+Horizontal Slideshow like carousels (Max 4 slides) can also be slid manually or auto scroll after set time:
+
+Pulled from admin's announcement posts
+
+Restaurant Grid:
+
+6 small boxes (2 rows, 3 columns)
+
+Each shows one of the six restaurants available in school. When clicked can be taken to select food to place order under that restaurant.
+
+
+---
+
+Footer Navigation Bar(persist on all pages)
+
+1. Menu Bar – Opens side drawer with nav items
+
+
+2. Complaints – Send reports (e.g., about a merchant) to admin
+
+
+3. Home – home page
+
+
+4. Pending Orders – Shows orders waiting to be delivered and the merchants username delivering it on a clickable card that brings out a pop up modal with order details.
+
+
+5. Transaction History – Full log of past orders and payments.
+
+
+
+
+---
+
+Customer Pages & Features
+
+Complaints Page
+Customers can submit issues or reports to admin and receive reply from admin. ehen message is sent, it appears in the arrow drawer as explained in admin complaints page.
+
+...
+Pending/Delivered Orders Page(like tabs, horizontal scroll)
+
+View orders:
+
+Pending(span total): Admin has approved, awaiting delivery, rectangular cards showing placed orders like transaction history. When clicked can show order placed on a page, the sum and the name of merchant taking the order.
+
+Delivered: Order completed.
+
+Declined: Refunded after declined.
+
+Transaction History Page
+Each transaction shown in a rectangular card. Like Opay.
+
+When clicked:
+Opens receipt with items, prices, fees, time, etc.
+
+Profile Page
+Set username and other optional details
+
+Menu List Page
+View list of foods and their prices from each restaurant on cards, Food availably can be toggled on and off using a toggle cspsule. Loads from admin saved menu list. Restaurants load dynamically from what admin saved.
+When the restaurant is selected. Then the restaurant card and it's menu list will be visible. Based on whether it's available or unavailable in admin section, the customer side will be clickable or unclickable, so if admin toggles something off, it will be greyed and unclickable in customer side.
+
+If something is clickable on customers side. if a food is clicked under a specific restaurant. A floating ball at bottom right of screen edge will show that when clicked will bring out a floating modern blur and smooth form modal. The form modal will show a checkbox(Add pack/takeaway) and below the clicked products, it's amount (default is 1) and price will be shown like a table. The amount can be edited using + or - which will be at its side like this (- [amount] +). Then a bottom marking below all the products clicked and total. So example form will be like this. let it be spacious and beautiful. below is just an example.
+
+Cancel x at top right corner
+[] Add pack/take-away (to the left side) - NGN200
+Restaurants Name
+Food name.   Amount.   Price
+Food1         - [1] +      200
+Water1.      - [2] +.     600
+
+
+---
+
+Delivery charge.       300(constant can't be changed)
+Total.                        1100
+
+Pay Now(button)(full width) directs to pay with auto pay like pay stack. Will be added later
+
+If pack was checked then total will be 1300.
+
+One cannot order from two restaurants at the same time
+
+Menu list page secind explanation:
+Drop-down to choose restaurant
+Shows foods available under selected restaurant
+
+When food is clicked:
+
+A floating cart (ball) appears at bottom of screen
+
+Items selected get added to this cart
+
+Clicking the cart shows all selected items on a pop up modal
+
+Food name to left, amount in middle can be added or reduced like this [- (amount) +], then total to right(amount * good price).  Example. Rice is 200 Naira, 2 spoons will be the amount and can be increased or reduced, default is 1, then total will be amount time 200 Naira. Sum total below all the bought goods will be sum of the totals of all the amount * price of each food.
+
+x Option to remove items by side of product total.
+
+Shows total of all foods total below.
+
+"Pay Now" button at the bottom, directs to pay with pay stack autopay options. No manual transfer.
+
+Note: You can only order from one restaurant at a time, if you want to order from another restaurant it will be another order.
+
+I'm already done with the html and css of all pages. Now I want to deal with the Js of all. The main Js file with all the firebase import and export is ../Js/firebase.js. So on every other Js files, we'll just be importing from the Js file path above. So I'll send you a html and you'll create the Js for that html based on the overview functionalities above

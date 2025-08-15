@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Merchant Login / Sign Up</title>
+  <link rel="stylesheet" href="css/auth.css" />
+</head>
+<body class="login-body">
+
+  <!-- Rotating Circle -->
+  <div class="background">
+    <div class="rotating-circle">
+      <img src="IMG-20250807-WA0001.jpg" alt="circle" />
+    </div>
+  </div>
+
+  <!-- Form Card -->
+  <div class="login-container">
+    <div class="login-card">
+
+      <!-- Login Form -->
+      <form id="loginForm" class="form active">
+        <h2 class="login-title">Login</h2>
+
+        <div class="form-group">
+          <label for="login-email">Email</label>
+          <input type="email" id="login-email" placeholder="Enter your email" required />
+        </div>
+
+        <div class="form-group">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" placeholder="Enter your password" required />
+        </div>
+
+        <button type="submit" class="login-btn">Login</button>
+
+        <div class="forgot-link">
+          <p>Don't have an account? <a href="#" class="toggle-link" data-toggle="signup">Sign Up</a></p>
+        </div>
+      </form>
+
+      <!-- Sign Up Form -->
+      <form id="signupForm" class="form">
+        <h2 class="login-title">Sign Up</h2>
+
+        <div class="form-group">
+          <label for="signup-fullname">Full Name</label>
+          <input type="text" id="signup-fullname" placeholder="Enter full name" required />
+        </div>
+
+        <div class="form-group">
+          <label for="signup-username">Username</label>
+          <input type="text" id="signup-username" placeholder="Choose a username" required />
+        </div>
+
+        <div class="form-group">
+          <label for="gender">Gender</label>
+          <select id="gender" required>
+            <option value="">Choose Gender</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="signup-email">Email</label>
+          <input type="email" id="signup-email" placeholder="Enter email" required />
+        </div>
+
+        <div class="form-group">
+          <label for="signup-matric">Matric Number</label>
+          <input type="text" id="signup-matric" placeholder="e.g., CSC/2021/001" required />
+        </div>
+
+        <div class="form-group">
+          <label for="signup-room">Room Number</label>
+          <input type="text" id="signup-room" placeholder="Room number" required />
+        </div>
+
+        <div class="form-group">
+          <label for="signup-password">Password</label>
+          <input type="password" id="signup-password" placeholder="Create password" required />
+        </div>
+
+        <div class="form-group">
+          <label for="signup-confirm">Confirm Password</label>
+          <input type="password" id="signup-confirm" placeholder="Confirm password" required />
+        </div>
+
+        <div class="form-group">
+          <label for="signup-phone">Phone Number</label>
+          <input type="tel" id="signup-phone" placeholder="Phone number" required />
+        </div>
+
+        <div class="form-group">
+          <label for="signup-token">Token (from admin)</label>
+          <input type="text" id="signup-token" placeholder="Token code" required />
+        </div>
+
+        <div class="terms">
+          <input type="checkbox" id="signup-terms" required />
+          <span>I agree to the <a href="first-terms.html">Terms & Conditions</a> and <a href="sec-policy.html">Policy</a></span>
+        </div>
+
+        <button type="submit" class="login-btn">Sign Up</button>
+
+        <div class="forgot-link">
+          <p>Already have an account? <a href="#" class="toggle-link" data-toggle="login">Login</a></p>
+        </div>
+      </form>
+
+    </div>
+  </div>
+  
+<script>
+const loginForm = document.getElementById("loginForm");
+const signupForm = document.getElementById("signupForm");
+const toggleLinks = document.querySelectorAll(".toggle-link");
+
+toggleLinks.forEach(link => {
+  link.addEventListener("click", (e) => {
+    e.preventDefault();
+    const target = link.dataset.toggle;
+    if (target === "signup") {
+      loginForm.classList.remove("active");
+      setTimeout(() => signupForm.classList.add("active"), 300);
+    } else {
+      signupForm.classList.remove("active");
+      setTimeout(() => loginForm.classList.add("active"), 300);
+    }
+  });
+});
+</script>
+
+<script type="module" src="js/merch-auth.js"></script>
+</body>
+</html>

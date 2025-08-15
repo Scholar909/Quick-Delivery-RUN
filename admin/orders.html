@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Orders</title>
+  <link rel="stylesheet" href="../css/admins/ad-orders.css" />
+  <link rel="stylesheet" href="../css/drawer.css">
+  <link href="https://unicons.iconscout.com/release/v4.0.8/css/line.css" rel="stylesheet"/>
+</head>
+<body data-role="admin">
+
+  <!-- Header -->
+  <header class="header glassy">
+    <h2>Orders</h2>
+  </header>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('pending')">Pending</button>
+    <button class="tab" onclick="switchTab('completed')">Completed</button>
+    <button class="tab" onclick="switchTab('declined')">Declined</button>
+  </div>
+
+  <!-- Content -->
+  <main class="orders-content">
+
+    <!-- Pending -->
+    <section id="pending" class="order-section active">
+      <div class="order-card glassy"><!--clickeable to view full receipt-->
+        <h4>Order #1340</h4>
+        <p><strong>Customer:</strong> john_doe</p>
+        <p><strong>Restaurant:</strong> Foodies Hub</p>
+        <p><strong>Details:</strong> Rice x2, Chicken x1</p>
+        <p><strong>Total:</strong> NGN 1,200</p>
+        <p><strong>Merchant:</strong> john_kai</p>
+        <p class="timestamp">Jul 29, 2025 - 10:15 AM</p>
+      </div>
+      <!-- More pending orders... -->
+    </section>
+
+    <!-- Completed -->
+    <section id="completed" class="order-section">
+      <div class="order-card glassy">
+        <h4>Order #1337</h4>
+        <p><strong>Customer:</strong> jane_smith</p>
+        <p><strong>Restaurant:</strong> Green Bowl</p>
+        <p><strong>Details:</strong> Salad x1, Juice x2</p>
+        <p><strong>Merchant:</strong> john_swizz</p>
+        <p class="timestamp">Jul 28, 2025 - 4:40 PM</p>
+      </div>
+    </section>
+
+    <!-- Declined -->
+    <section id="declined" class="order-section">
+      <div class="order-card glassy">
+        <h4>Order #1335</h4>
+        <p><strong>Customer:</strong> emeka02</p>
+        <p><strong>Restaurant:</strong> Quick Bites</p>
+        <p><strong>Details:</strong> Fries x1, Coke x1</p>
+        <p><strong>Merchant:</strong> chuks</p>
+        <p class="timestamp">Jul 28, 2025 - 2:10 PM</p>
+      </div>
+    </section>
+
+  </main>
+  
+<div class="drawer glassy">
+  <div class="drawer-header">
+    <h3>Admin Menu</h3>
+    <i class="uil uil-times close-drawer"></i>
+  </div>
+  <ul class="drawer-links">
+    <li><a href="dashboard.html"><i class="uil uil-apps"></i> Dashboard</a></li>
+    <li><a href="announcements.html"><i class="uil uil-megaphone"></i> Announcement</a></li>
+    <li><a href="order.html"><i class="uil uil-utensils"></i> Order </a></li>
+    <li><a href="assign-orders.html"><i class="uil uil-exchange"></i> Assign Order</a></li>
+    <li><a href="alerts.html"><i class="uil uil-envelope-add"></i> Message</a></li>
+    <li><a href="menu.html"><i class="uil uil-restaurant"></i> Food/Restaurant Menu</a></li>
+    <li><a href="complaints.html"><i class="uil uil-exclamation"></i> Complaints</a></li>
+    <li><a href="calendar.html"><i class="uil uil-calendar-alt"></i> Merchant Shift</a></li>
+    <li><a href="map.html"><i class="uil uil-map"></i>Merchants Location</a></li>
+    <li><a href="extra-merch-receipt-restaurant.html"><i class="uil uil-users-alt"></i>Extra Receipt Merchants</a></li>
+    <li><a href="get-token.html"><i class="uil uil-key-skeleton"></i> Merchant Token</a></li>
+  </ul>
+  <div class="logout-section">
+    <a href="../admin-login.html" class="logout-btn"><i class="uil uil-signout"></i> Logout</a>
+  </div>
+</div>
+
+  <!-- Footer Navigation -->
+  <footer class="footer-nav">
+    <div class="nav-item">
+      <i class="uil uil-bars"></i>
+      <span>Menu</span>
+    </div>
+    <a href="complaints.html"><div class="nav-item">
+      <i class="uil uil-comment-question"></i>
+      <span>Complaints</span>
+    </div></a>
+    <a href="dashboard.html"><div class="nav-item active">
+      <i class="uil uil-home"></i>
+      <span>Home</span>
+    </div></a>
+    <a href="assign-orders.html"><div class="nav-item">
+      <i class="uil uil-clock"></i>
+      <span>Pending</span>
+    </div></a>
+    <a href="announcements.html"><div class="nav-item">
+      <i class="uil uil-microphone"></i>
+      <span>Announce</span>
+    </div></a>
+  </footer>
+
+<script src="../js/drawer.js"></script>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Merchant Alerts</title>
+  <link rel="stylesheet" href="../css/merchants/merch-alerts.css" />
+  <link rel="stylesheet" href="../css/drawer.css">
+  <link href="https://unicons.iconscout.com/release/v4.0.8/css/line.css" rel="stylesheet"/>
+</head>
+<body data-role="merchant">
+
+  <!-- Header -->
+  <header class="header">
+    <h2>Alerts</h2>
+  </header>
+
+  <!-- Alert Cards -->
+  <section class="alerts-container">
+    <div class="alert-card">
+      <i class="uil uil-megaphone icon"></i>
+      <div class="content">
+        <h4>Order Update</h4>
+        <p>Your order #245 has been dispatched and is on its way!</p>
+        <span>Just now</span>
+      </div>
+    </div>
+
+    <div class="alert-card">
+      <i class="uil uil-envelope-heart icon"></i>
+      <div class="content">
+        <h4>Admin Message</h4>
+        <p>Thank you for your feedback! We’ll keep improving.</p>
+        <span>1 hour ago</span>
+      </div>
+    </div>
+
+    <div class="alert-card">
+      <i class="uil uil-percentage icon"></i>
+      <div class="content">
+        <h4>Promo Alert</h4>
+        <p>Get 10% off all orders this weekend. Use code: WEEKEND10</p>
+        <span>Yesterday</span>
+      </div>
+    </div>
+  </section>
+  
+<div class="drawer glassy">
+  <div class="drawer-header">
+    <h3>Merchants Menu</h3>
+    <i class="uil uil-times close-drawer"></i>
+  </div>
+  <ul class="drawer-links">
+    <li><a href="dashboard.html"><i class="uil uil-apps"></i> Dashboard </a></li>
+    <li><a href="profile.html"><i class="uil uil-user"></i> Profile</a></li>
+    <li><a href="calendar.html"><i class="uil uil-calendar-alt"></i> Calendar</a></li>
+    <li><a href="accept-decline-orders.html"><i class="uil uil-store"></i> Accept/Decline Orders</a></li>
+    <li><a href="menu.html"><i class="uil uil-utensils"></i> Menu Update</a></li>
+    <li><a href="orders.html"><i class="uil uil-clipboard-alt"></i> Order Status</a></li>
+    <li><a href="alerts.html"><i class="uil uil-envelope"></i> Alerts</a></li>
+    <li><a href="complaints.html"><i class="uil uil-exclamation"></i> Complaints</a></li>
+    <li><a href="history.html"><i class="uil uil-receipt"></i> Order History</a></li>
+  </ul>
+  <div class="logout-section">
+    <a href="../merch-auth.html" class="logout-btn"><i class="uil uil-signout"></i> Logout</a>
+  </div>
+</div>
+
+  <!-- Footer Navigation -->
+  <footer class="footer-nav">
+    <div class="nav-item">
+      <i class="uil uil-bars"></i>
+      <span>Menu</span>
+    </div>
+    <a href="complaints.html"><div class="nav-item">
+      <i class="uil uil-comment-question"></i>
+      <span>Complaints</span>
+    </div></a>
+    <a href="dashboard.html"><div class="nav-item active">
+      <i class="uil uil-home"></i>
+      <span>Home</span>
+    </div></a>
+    <a href="orders.html"><div class="nav-item">
+      <i class="uil uil-clock"></i>
+      <span>Pending</span>
+    </div></a>
+    <a href="history.html"><div class="nav-item">
+      <i class="uil uil-receipt"></i>
+      <span>History</span>
+    </div></a>
+  </footer>
+<script src="../js/drawer.js"></script>
+<script type="module" src="../js/merchant/merch-alerts.js"></script>
+</body>
+</html>

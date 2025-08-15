@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Dashboard</title>
+  <link rel="stylesheet" href="../css/admins/admin-style.css" />
+  <link rel="stylesheet" href="../css/drawer.css">
+  <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.8/css/line.css">
+</head>
+<body class="admin-dashboard-body" data-role="admin">
+
+  <!-- Header -->
+  <header class="admin-header">
+    <h2>Admin Dashboard</h2>
+  </header>
+
+  <!-- Stats Section -->
+  <section class="stats-cards">
+    <div class="stat-card" id="totalCustomers">
+      <h3>Total Customers</h3>
+      <p>0</p>
+    </div>
+    <div class="stat-card" id="totalMerchants">
+      <h3>Total Merchants</h3>
+      <p>0</p>
+    </div>
+  </section>
+
+  <!-- User Table Section -->
+  <section class="user-table-section">
+    <h2>User Overview</h2>
+    <input type="text" id="searchAll" placeholder="Search by All...">
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="userTableBody">
+          <!-- Users will be loaded here dynamically -->
+        </tbody>
+      </table>
+    </div>
+  </section>
+  
+<div class="drawer glassy">
+  <div class="drawer-header">
+    <h3>Admin Menu</h3>
+    <i class="uil uil-times close-drawer"></i>
+  </div>
+  <ul class="drawer-links">
+    <li><a href="dashboard.html"><i class="uil uil-apps"></i> Dashboard</a></li>
+    <li><a href="announcements.html"><i class="uil uil-megaphone"></i> Announcement</a></li>
+    <li><a href="order.html"><i class="uil uil-utensils"></i> Order </a></li>
+    <li><a href="assign-orders.html"><i class="uil uil-exchange"></i> Assign Order</a></li>
+    <li><a href="alerts.html"><i class="uil uil-envelope-add"></i> Message</a></li>
+    <li><a href="menu.html"><i class="uil uil-restaurant"></i> Food/Restaurant Menu</a></li>
+    <li><a href="complaints.html"><i class="uil uil-exclamation"></i> Complaints</a></li>
+    <li><a href="calendar.html"><i class="uil uil-calendar-alt"></i> Merchant Shift</a></li>
+    <li><a href="map.html"><i class="uil uil-map"></i>Merchants Location</a></li>
+    <li><a href="extra-merch-receipt-restaurant.html"><i class="uil uil-users-alt"></i>Extra Receipt Merchants</a></li>
+    <li><a href="get-token.html"><i class="uil uil-key-skeleton"></i> Merchant Token</a></li>
+  </ul>
+  <div class="logout-section">
+    <a href="../admin-login.html" class="logout-btn"><i class="uil uil-signout"></i> Logout</a>
+  </div>
+</div>
+
+  <!-- Footer Navigation -->
+  <footer class="footer-nav">
+    <div class="nav-item">
+      <i class="uil uil-bars"></i>
+      <span>Menu</span>
+    </div>
+    <a href="complaints.html"><div class="nav-item">
+      <i class="uil uil-comment-question"></i>
+      <span>Complaints</span>
+    </div></a>
+    <a href="dashboard.html"><div class="nav-item active">
+      <i class="uil uil-home"></i>
+      <span>Home</span>
+    </div></a>
+    <a href="assign-orders.html"><div class="nav-item">
+      <i class="uil uil-clock"></i>
+      <span>Pending</span>
+    </div></a>
+    <a href="announcements.html"><div class="nav-item">
+      <i class="uil uil-microphone"></i>
+      <span>Announce</span>
+    </div></a>
+  </footer>
+  
+  <script src="../js/drawer.js"></script>
+  <script type="module" src="../js/admin/ad-dashboard.js"></script>
+</body>
+</html>
