@@ -92,13 +92,19 @@
   }
 
   // Initialize map
-  function initMap() {
-    map = L.map('map').setView([campusLat, campusLng], 16);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
-  }
+function initMap() {
+  map = L.map('map').setView([campusLat, campusLng], 16);
 
+  // Replace OSM tiles with Carto Positron
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
+    subdomains: 'abcd',
+    maxZoom: 19
+  }).addTo(map);
+
+  // Force map to recalc size in case container was hidden
+  setTimeout(() => map.invalidateSize(), 100);
+}
   // Listen to all merchants' positions in real-time
   function startMerchantListener() {
     onSnapshot(collection(db, "merchants"), (snapshot) => {
