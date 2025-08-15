@@ -9,11 +9,72 @@
       margin: 0;
       height: 100%;
       font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
     }
+
+    /* Map container with border */
+    #mapContainer {
+      flex: 1;
+      margin: 10px;
+      border: 2px solid #0f4e75;
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+    }
+
     #map {
       height: 100%;
       width: 100%;
     }
+
+    /* Bottom merchant footer box */
+    #merchantFooter {
+      height: 100px;
+      background: #f5f5f5;
+      border-top: 2px solid #0f4e75;
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      overflow-x: auto;
+      gap: 10px;
+    }
+
+    .merchant-card {
+      flex: 0 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      transition: transform 0.2s, border 0.2s;
+      border: 2px solid transparent;
+      border-radius: 5px;
+      padding: 2px;
+    }
+    .merchant-card:hover {
+      transform: scale(1.1);
+    }
+    .merchant-card img {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-bottom: 5px;
+    }
+    .merchant-card span {
+      font-size: 12px;
+      text-align: center;
+      max-width: 60px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Highlight your own card */
+    .my-card {
+      border-color: #0f4e75;
+    }
+
     #loadingOverlay {
       position: fixed;
       top: 0;
@@ -29,6 +90,7 @@
       font-size: 18px;
       color: #333;
     }
+
     .popup-content {
       text-align: center;
     }
@@ -50,7 +112,11 @@
   </div>
 </div>
 
-<div id="map" style="display:none;"></div>
+<div id="mapContainer">
+  <div id="map"></div>
+</div>
+
+<div id="merchantFooter"></div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script type="module">
@@ -61,69 +127,54 @@
   const campusLat = 7.7416;
   const campusLng = 4.4432;
 
-  const merchantMarkers = {};
   let map;
+  const merchantMarkers = {};
+  const myMarker = { marker: null, name: "Me" };
+  const footer = document.getElementById("merchantFooter");
 
-  // Wait for location permission before loading map
+  let myUid = null;
+
   function requestLocationAccess() {
     if (!navigator.geolocation) {
-      alert("Geolocation is not supported by your browser.");
+      alert("Geolocation not supported by browser.");
       return;
     }
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         document.getElementById("loadingOverlay").style.display = "none";
-        document.getElementById("map").style.display = "block";
-
         initMap();
-        startMerchantListener();
         startLiveTracking(pos.coords.latitude, pos.coords.longitude);
+        startMerchantListener();
       },
       (err) => {
-        alert("⚠️ Location access is required to use this page. Please enable it and refresh.");
+        alert("Location required to use this page.");
         console.error(err);
       },
       { enableHighAccuracy: true }
     );
   }
 
-  // Initialize map with layer options
   function initMap() {
     const lightLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
+      attribution: '&copy; OSM &copy; CARTO',
       subdomains: 'abcd',
       maxZoom: 19
     });
 
     const satelliteLayer = L.tileLayer(
       'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-      {
-        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics, and others',
-        maxZoom: 19
-      }
+      { attribution: 'Tiles &copy; Esri', maxZoom: 19 }
     );
 
-    map = L.map('map', {
-      center: [campusLat, campusLng],
-      zoom: 16,
-      layers: [lightLayer] // default layer
-    });
-
-    // Layer switch control
-    const baseMaps = {
-      "Light Map": lightLayer,
-      "Satellite": satelliteLayer
-    };
-    L.control.layers(baseMaps).addTo(map);
-
-    // Force Leaflet to recalc size in case container was hidden
+    map = L.map('map', { center: [campusLat, campusLng], zoom: 16, layers: [lightLayer] });
+    L.control.layers({ "Light": lightLayer, "Satellite": satelliteLayer }).addTo(map);
     setTimeout(() => map.invalidateSize(), 100);
   }
 
-  // Listen to all merchants' positions in real-time
   function startMerchantListener() {
     onSnapshot(collection(db, "merchants"), (snapshot) => {
+      footer.innerHTML = ""; // clear footer
       snapshot.forEach(docSnap => {
         const data = docSnap.data();
         if (!data.lat || !data.lng) return;
@@ -135,6 +186,7 @@
           </div>
         `;
 
+        // Map marker
         if (merchantMarkers[docSnap.id]) {
           merchantMarkers[docSnap.id].setLatLng([data.lat, data.lng])
             .setPopupContent(popupHTML);
@@ -143,39 +195,73 @@
             .bindPopup(popupHTML);
           merchantMarkers[docSnap.id] = marker;
         }
+
+        // Footer card
+        const card = document.createElement("div");
+        card.classList.add("merchant-card");
+        if (docSnap.id === myUid) card.classList.add("my-card");
+
+        card.innerHTML = `
+          <img src="${data.profileImage || 'https://via.placeholder.com/50'}" />
+          <span>${data.fullname || "Unknown"}</span>
+        `;
+        card.onclick = () => {
+          map.setView([data.lat, data.lng], 18);
+          merchantMarkers[docSnap.id].openPopup();
+        };
+        footer.appendChild(card);
       });
-    });
-  }
 
-  // Track current logged-in merchant's location
-  function startLiveTracking(initialLat, initialLng) {
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        // Initial position save
-        updateDoc(doc(db, "merchants", user.uid), {
-          lat: initialLat,
-          lng: initialLng
-        });
-
-        // Watch for movement
-        navigator.geolocation.watchPosition(
-          async (pos) => {
-            const { latitude, longitude } = pos.coords;
-            await updateDoc(doc(db, "merchants", user.uid), {
-              lat: latitude,
-              lng: longitude
-            });
-          },
-          (err) => console.error("Live location error:", err),
-          { enableHighAccuracy: true }
-        );
+      // Insert my own card first
+      if (myMarker.marker && myUid) {
+        const myCard = document.createElement("div");
+        myCard.classList.add("merchant-card", "my-card");
+        myCard.innerHTML = `
+          <img src="https://cdn-icons-png.flaticon.com/512/149/149060.png" />
+          <span>${myMarker.name}</span>
+        `;
+        myCard.onclick = () => {
+          map.setView(myMarker.marker.getLatLng(), 18);
+          myMarker.marker.openPopup();
+        };
+        footer.prepend(myCard);
       }
     });
   }
 
-  // Start everything
+  function startLiveTracking(lat, lng) {
+    onAuthStateChanged(auth, (user) => {
+      if (user) myUid = user.uid;
+
+      const updateMyLocation = async (latitude, longitude) => {
+        if (user) {
+          await updateDoc(doc(db, "merchants", user.uid), { lat: latitude, lng: longitude });
+        }
+
+        if (!myMarker.marker) {
+          const redIcon = L.icon({
+            iconUrl: 'https://cdn-icons-png.flaticon.com/512/149/149060.png',
+            iconSize: [35, 35],
+            iconAnchor: [17, 35]
+          });
+          myMarker.marker = L.marker([latitude, longitude], { icon: redIcon }).addTo(map)
+            .bindPopup(myMarker.name);
+        } else {
+          myMarker.marker.setLatLng([latitude, longitude]);
+        }
+      };
+
+      updateMyLocation(lat, lng);
+
+      navigator.geolocation.watchPosition(
+        (pos) => updateMyLocation(pos.coords.latitude, pos.coords.longitude),
+        (err) => console.error("Live location error:", err),
+        { enableHighAccuracy: true }
+      );
+    });
+  }
+
   requestLocationAccess();
 </script>
-
 </body>
 </html>
