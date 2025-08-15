@@ -58,13 +58,10 @@
   import { collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
   import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
 
-  // Campus center coords
-  const campusLat = 7.7416; 
+  const campusLat = 7.7416;
   const campusLng = 4.4432;
 
-  // Store merchant markers
   const merchantMarkers = {};
-
   let map;
 
   // Wait for location permission before loading map
@@ -91,20 +88,39 @@
     );
   }
 
-  // Initialize map
-function initMap() {
-  map = L.map('map').setView([campusLat, campusLng], 16);
+  // Initialize map with layer options
+  function initMap() {
+    const lightLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
+      subdomains: 'abcd',
+      maxZoom: 19
+    });
 
-  // Replace OSM tiles with Carto Positron
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
-    subdomains: 'abcd',
-    maxZoom: 19
-  }).addTo(map);
+    const satelliteLayer = L.tileLayer(
+      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      {
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics, and others',
+        maxZoom: 19
+      }
+    );
 
-  // Force map to recalc size in case container was hidden
-  setTimeout(() => map.invalidateSize(), 100);
-}
+    map = L.map('map', {
+      center: [campusLat, campusLng],
+      zoom: 16,
+      layers: [lightLayer] // default layer
+    });
+
+    // Layer switch control
+    const baseMaps = {
+      "Light Map": lightLayer,
+      "Satellite": satelliteLayer
+    };
+    L.control.layers(baseMaps).addTo(map);
+
+    // Force Leaflet to recalc size in case container was hidden
+    setTimeout(() => map.invalidateSize(), 100);
+  }
+
   // Listen to all merchants' positions in real-time
   function startMerchantListener() {
     onSnapshot(collection(db, "merchants"), (snapshot) => {
@@ -157,7 +173,7 @@ function initMap() {
     });
   }
 
-  // Start process
+  // Start everything
   requestLocationAccess();
 </script>
 
