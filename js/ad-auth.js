@@ -1,5 +1,5 @@
 // ad-auth.js
-import { auth } from '../js/firebase.js';
+import { auth } from './firebase.js';
 import {
   signInWithEmailAndPassword
 } from 'https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js';
