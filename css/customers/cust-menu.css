@@ -159,6 +159,10 @@ body.complaints-body {
   border-top: 1px solid rgba(255,255,255,0.1);
 }
 
+.footer-nav a {
+  text-decoration: none;
+}
+
 .nav-item {
   display: flex;
   flex-direction: column;
