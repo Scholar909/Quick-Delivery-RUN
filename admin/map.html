@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html>
+<!DOCTYPE html><html>
 <head>
   <meta charset="utf-8">
   <title>Redeemer's University Merchant Map</title>
@@ -20,130 +19,148 @@
       overflow: hidden;
       position: relative;
     }
-    #map { height: 100%; width: 100%; }
+    #map { height: 100%; width: 100%; }#merchantFooter, #restaurantFooter {
+  height: 120px;
+  background: #f5f5f5;
+  border-top: 2px solid #0f4e75;
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  overflow-x: auto;
+  gap: 10px;
+  position: relative;
+}
+.merchant-card {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.2s, border 0.2s;
+  border: 2px solid transparent;
+  border-radius: 5px;
+  padding: 2px;
+}
+.merchant-card:hover { transform: scale(1.1); }
+.merchant-card img {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 5px;
+}
+.merchant-card span {
+  font-size: 12px;
+  text-align: center;
+  max-width: 60px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.my-card { border-color: #0f4e75; }
 
-    /* Footer styles */
-    #merchantFooter, #restaurantFooter {
-      height: 120px;
-      background: #f5f5f5;
-      border-top: 2px solid #0f4e75;
-      display: flex;
-      align-items: center;
-      padding: 10px;
-      overflow-x: auto;
-      gap: 10px;
-      position: relative;
-    }
+#loadingOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.95);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: #333;
+}
 
-    .merchant-card {
-      flex: 0 0 auto;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      cursor: pointer;
-      transition: transform 0.2s, border 0.2s;
-      border: 2px solid transparent;
-      border-radius: 5px;
-      padding: 2px;
-    }
-    .merchant-card:hover { transform: scale(1.1); }
-    .merchant-card img {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      object-fit: cover;
-      margin-bottom: 5px;
-    }
-    .merchant-card span {
-      font-size: 12px;
-      text-align: center;
-      max-width: 60px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .my-card { border-color: #0f4e75; }
+.popup-content { text-align: center; }
+.popup-content img {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  margin-bottom: 5px;
+  object-fit: cover;
+}
 
-    #loadingOverlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      height: 100%;
-      width: 100%;
-      background: rgba(255, 255, 255, 0.95);
-      z-index: 9999;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      color: #333;
-    }
+/* Floating buttons */
+#addRestaurantBtn {
+  position: absolute;
+  bottom: 130px;
+  right: 20px;
+  background: #0f4e75;
+  color: white;
+  font-size: 24px;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2000;
+}
+#confirmBtn {
+  position: absolute;
+  bottom: 130px;
+  right: 80px;
+  background: green;
+  color: white;
+  font-size: 20px;
+  border-radius: 50%;
+  width: 45px;
+  height: 45px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2000;
+}
 
-    .popup-content { text-align: center; }
-    .popup-content img {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      margin-bottom: 5px;
-      object-fit: cover;
-    }
+/* Dropdown overlay */
+#restaurantSelectOverlay {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  border: 2px solid #0f4e75;
+  border-radius: 8px;
+  padding: 20px;
+  z-index: 3000;
+  display: none;
+}
+#restaurantSelectOverlay select {
+  padding: 5px;
+  font-size: 14px;
+}
+#restaurantSelectOverlay button {
+  margin-left: 10px;
+  padding: 5px 10px;
+  font-size: 14px;
+  cursor: pointer;
+}
 
-    /* Floating buttons */
-    #addRestaurantBtn {
-      position: absolute;
-      bottom: 130px;
-      right: 20px;
-      background: #0f4e75;
-      color: white;
-      font-size: 24px;
-      border-radius: 50%;
-      width: 50px;
-      height: 50px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      z-index: 2000;
-    }
-    #confirmBtn {
-      position: absolute;
-      bottom: 130px;
-      right: 80px;
-      background: green;
-      color: white;
-      font-size: 20px;
-      border-radius: 50%;
-      width: 45px;
-      height: 45px;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      z-index: 2000;
-    }
   </style>
 </head>
 <body>
   <div id="loadingOverlay">
     <div>📍 Please enable your location to appear on the live map...</div>
     <div style="margin-top:10px; font-size:14px; color:#777;">This page will load once location is granted.</div>
-  </div>
-
-  <div id="mapContainer">
+  </div>  <div id="mapContainer">
     <div id="map"></div>
     <div id="addRestaurantBtn">+</div>
     <div id="confirmBtn">✓</div>
-  </div>
-
-  <div id="merchantFooter"></div>
-  <div id="restaurantFooter"></div>
-
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script type="module">
+  </div>  <div id="merchantFooter"></div>
+  <div id="restaurantFooter"></div>  <!-- Dropdown overlay -->  <div id="restaurantSelectOverlay">
+    <label for="restaurantSelect">Choose restaurant: </label>
+    <select id="restaurantSelect"></select>
+    <button id="restaurantSelectConfirm">OK</button>
+  </div>  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>  <script type="module">
     import { db, auth } from '../js/firebase.js';
     import {
-      collection, onSnapshot, doc, updateDoc, setDoc
+      collection, onSnapshot, doc, updateDoc, setDoc, getDocs
     } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
 
@@ -157,6 +174,37 @@
 
     let myUid = null;
     let tempRestaurantMarker = null;
+    let restaurantOptions = [];
+    let pendingSaveCoords = null;
+    let pendingEditId = null;
+
+    async function loadRestaurantOptions() {
+      restaurantOptions = [];
+      const snap = await getDocs(collection(db, "restaurants"));
+      snap.forEach(d => {
+        const data = d.data();
+        if (data.name) restaurantOptions.push(data.name);
+      });
+    }
+
+    function openRestaurantSelectOverlay(callback, currentName = null) {
+      const overlay = document.getElementById("restaurantSelectOverlay");
+      const select = document.getElementById("restaurantSelect");
+      select.innerHTML = "";
+      restaurantOptions.forEach(name => {
+        const opt = document.createElement("option");
+        opt.value = name;
+        opt.textContent = name;
+        if (currentName && currentName === name) opt.selected = true;
+        select.appendChild(opt);
+      });
+      overlay.style.display = "block";
+      document.getElementById("restaurantSelectConfirm").onclick = () => {
+        overlay.style.display = "none";
+        const chosen = select.value;
+        callback(chosen);
+      };
+    }
 
     function requestLocationAccess() {
       if (!navigator.geolocation) {
@@ -170,6 +218,7 @@
           startLiveTracking(pos.coords.latitude, pos.coords.longitude);
           startMerchantListener();
           startRestaurantListener();
+          loadRestaurantOptions();
         },
         (err) => {
           alert("Location required.");
@@ -188,16 +237,13 @@
       setTimeout(() => map.invalidateSize(), 100);
     }
 
-    // Distance function (Haversine formula)
     function calculateDistance(lat1, lng1, lat2, lng2) {
-      const R = 6371e3; // meters
+      const R = 6371e3;
       const φ1 = lat1 * Math.PI/180;
       const φ2 = lat2 * Math.PI/180;
       const Δφ = (lat2-lat1) * Math.PI/180;
       const Δλ = (lng2-lng1) * Math.PI/180;
-      const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-                Math.cos(φ1) * Math.cos(φ2) *
-                Math.sin(Δλ/2) * Math.sin(Δλ/2);
+      const a = Math.sin(Δφ/2)**2 + Math.cos(φ1)*Math.cos(φ2)*Math.sin(Δλ/2)**2;
       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
       const d = R * c;
       return { km: (d/1000).toFixed(2), m: d.toFixed(1) };
@@ -223,7 +269,6 @@
           const latlng = marker.getLatLng();
           allRestaurants[id] = { lat: latlng.lat, lng: latlng.lng, name: marker.options.title };
         }
-
         snapshot.forEach(docSnap => {
           const data = docSnap.data();
           if (!data.lat || !data.lng) return;
@@ -242,8 +287,6 @@
             merchantMarkers[docSnap.id].openPopup();
           };
           merchantFooter.appendChild(card);
-
-          // Save distances
           saveMerchantRestaurantDistances(docSnap.id, data, allRestaurants);
         });
       });
@@ -295,7 +338,6 @@
       });
     }
 
-    // Add restaurant buttons
     const addBtn = document.getElementById("addRestaurantBtn");
     const confirmBtn = document.getElementById("confirmBtn");
 
@@ -309,23 +351,26 @@
     confirmBtn.onclick = async () => {
       if (!tempRestaurantMarker) return;
       const { lat, lng } = tempRestaurantMarker.getLatLng();
-      const name = prompt("Enter restaurant name:");
-      if (!name) return;
-      const newDoc = doc(collection(db, "restaurantLocations"));
-      await setDoc(newDoc, { name, lat, lng });
-      confirmBtn.style.display = "none";
-      tempRestaurantMarker.remove();
-      tempRestaurantMarker = null;
+      pendingSaveCoords = { lat, lng };
+      openRestaurantSelectOverlay(async (chosen) => {
+        if (!chosen) return;
+        const newDoc = doc(collection(db, "restaurantLocations"));
+        await setDoc(newDoc, { name: chosen, lat, lng });
+        confirmBtn.style.display = "none";
+        tempRestaurantMarker.remove();
+        tempRestaurantMarker = null;
+        pendingSaveCoords = null;
+      });
     };
 
     async function selectRestaurantName(docId, data) {
-      const newName = prompt("Change Restaurant Name:", data.name);
-      if (newName && newName !== data.name) {
-        await updateDoc(doc(db, "restaurantLocations", docId), { name: newName });
-      }
+      openRestaurantSelectOverlay(async (chosen) => {
+        if (chosen && chosen !== data.name) {
+          await updateDoc(doc(db, "restaurantLocations", docId), { name: chosen });
+        }
+      }, data.name);
     }
 
     requestLocationAccess();
-  </script>
-</body>
+  </script></body>
 </html>
