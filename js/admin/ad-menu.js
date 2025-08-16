@@ -25,6 +25,8 @@ const itemPriceInput = document.getElementById('itemPrice');
 
 let editingItemId = null;
 let allFoodItems = [];
+let restaurantsLoaded = false;
+let latestRestaurantNames = [];
 
 // 🔹 Load saved state from localStorage
 const savedSearch = localStorage.getItem('adminMenuSearch') || '';
@@ -41,20 +43,48 @@ addBtn.addEventListener('click', () => {
 
 // 🔹 Real-time listener for restaurants + menu
 const listenToRestaurantsAndItems = () => {
-  // Restaurants dropdown updates only once at start
   const restaurantRef = collection(db, 'restaurants');
   onSnapshot(restaurantRef, (snapshot) => {
-    const restaurantOptions = snapshot.docs.map(doc => doc.data().name).sort();
-    restaurantSelect.innerHTML = `<option value="">-- Select Restaurant --</option>`;
-    restaurantOptions.forEach(name => {
-      const option = document.createElement('option');
-      option.value = name;
-      option.textContent = name;
-      restaurantSelect.appendChild(option);
+    // Base names from restaurants collection
+    const namesFromRestaurants = snapshot.docs
+      .map(d => (d.data()?.name ?? '').toString().trim())
+      .filter(n => n.length > 0);
+
+    // Base names from foodItems (in case restaurant wasn’t added separately)
+    const foodRef = collection(db, 'foodItems');
+    onSnapshot(foodRef, (foodSnap) => {
+      const namesFromFood = foodSnap.docs
+        .map(d => (d.data()?.restaurantName ?? '').toString().trim())
+        .filter(n => n.length > 0);
+
+      // Combine both
+      const names = [...namesFromRestaurants, ...namesFromFood];
+
+      // De-dupe & sort
+      latestRestaurantNames = Array.from(new Set(names)).sort((a, b) => a.localeCompare(b));
+
+      // Preserve current selection if possible
+      const prev = restaurantSelect.value;
+
+      // Rebuild options
+      restaurantSelect.innerHTML = `<option value="">-- Select Restaurant --</option>`;
+      latestRestaurantNames.forEach(name => {
+        const option = document.createElement('option');
+        option.value = name;
+        option.textContent = name;
+        restaurantSelect.appendChild(option);
+      });
+
+      // Try to restore selection
+      if (prev && latestRestaurantNames.includes(prev)) {
+        restaurantSelect.value = prev;
+      }
+
+      restaurantsLoaded = true;
     });
   });
 
-  // Food items listen in real time
+  // Food items listen in real time (for menu display)
   const foodRef = collection(db, 'foodItems');
   const q = query(foodRef, orderBy('restaurantName'));
   onSnapshot(q, (snapshot) => {
@@ -146,10 +176,15 @@ searchInput.addEventListener('input', () => {
 menuForm.addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  const restaurantName = restaurantSelect.value || restaurantNameInput.value;
-  const itemName = itemNameInput.value;
+  const restaurantName = restaurantSelect.value || restaurantNameInput.value.trim();
+  const itemName = itemNameInput.value.trim();
   const itemCategory = itemCategorySelect.value;
   const itemPrice = parseFloat(itemPriceInput.value);
+
+  if (!restaurantName) {
+    alert('Please choose a restaurant (or type a new one).');
+    return;
+  }
 
   try {
     if (editingItemId) {
@@ -183,14 +218,29 @@ foodItemsContainer.addEventListener('click', async (e) => {
     const foodDoc = await getDoc(doc(db, 'foodItems', id));
     if (foodDoc.exists()) {
       const data = foodDoc.data();
-      restaurantSelect.value = data.restaurantName;
-      itemNameInput.value = data.name;
-      itemCategorySelect.value = data.category;
-      itemPriceInput.value = data.price;
+
+      if (!restaurantsLoaded && data.restaurantName) {
+        const exists = Array.from(restaurantSelect.options).some(
+          opt => opt.value === data.restaurantName
+        );
+        if (!exists) {
+          const temp = document.createElement('option');
+          temp.value = data.restaurantName;
+          temp.textContent = data.restaurantName;
+          restaurantSelect.appendChild(temp);
+        }
+      }
+
+      restaurantSelect.value = data.restaurantName || '';
+      itemNameInput.value = data.name || '';
+      itemCategorySelect.value = data.category || '';
+      itemPriceInput.value = data.price ?? '';
+
       addFormSection.classList.remove('hidden');
       editingItemId = id;
     }
   }
+
   if (e.target.classList.contains('delete-btn')) {
     const id = e.target.dataset.id;
     if (confirm('Delete this food item?')) {
@@ -199,7 +249,7 @@ foodItemsContainer.addEventListener('click', async (e) => {
   }
 });
 
-// Availability toggle — updates for both admin & merchant
+// Availability toggle
 foodItemsContainer.addEventListener('change', async (e) => {
   if (e.target.type === 'checkbox' && e.target.dataset.id) {
     const id = e.target.dataset.id;
