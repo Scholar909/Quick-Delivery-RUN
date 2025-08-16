@@ -12,8 +12,6 @@
       display: flex;
       flex-direction: column;
     }
-
-    /* Map container with border */
     #mapContainer {
       flex: 1;
       margin: 10px;
@@ -22,15 +20,11 @@
       overflow: hidden;
       position: relative;
     }
+    #map { height: 100%; width: 100%; }
 
-    #map {
-      height: 100%;
-      width: 100%;
-    }
-
-    /* Bottom merchant footer box */
-    #merchantFooter {
-      height: 100px;
+    /* Footer styles */
+    #merchantFooter, #restaurantFooter {
+      height: 120px;
       background: #f5f5f5;
       border-top: 2px solid #0f4e75;
       display: flex;
@@ -38,6 +32,7 @@
       padding: 10px;
       overflow-x: auto;
       gap: 10px;
+      position: relative;
     }
 
     .merchant-card {
@@ -51,9 +46,7 @@
       border-radius: 5px;
       padding: 2px;
     }
-    .merchant-card:hover {
-      transform: scale(1.1);
-    }
+    .merchant-card:hover { transform: scale(1.1); }
     .merchant-card img {
       width: 50px;
       height: 50px;
@@ -69,11 +62,7 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
-
-    /* Highlight your own card */
-    .my-card {
-      border-color: #0f4e75;
-    }
+    .my-card { border-color: #0f4e75; }
 
     #loadingOverlay {
       position: fixed;
@@ -91,9 +80,7 @@
       color: #333;
     }
 
-    .popup-content {
-      text-align: center;
-    }
+    .popup-content { text-align: center; }
     .popup-content img {
       width: 60px;
       height: 60px;
@@ -101,167 +88,244 @@
       margin-bottom: 5px;
       object-fit: cover;
     }
+
+    /* Floating buttons */
+    #addRestaurantBtn {
+      position: absolute;
+      bottom: 130px;
+      right: 20px;
+      background: #0f4e75;
+      color: white;
+      font-size: 24px;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 2000;
+    }
+    #confirmBtn {
+      position: absolute;
+      bottom: 130px;
+      right: 80px;
+      background: green;
+      color: white;
+      font-size: 20px;
+      border-radius: 50%;
+      width: 45px;
+      height: 45px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 2000;
+    }
   </style>
 </head>
 <body>
-
-<div id="loadingOverlay">
-  <div>📍 Please enable your location to appear on the live map...</div>
-  <div style="margin-top:10px; font-size:14px; color:#777;">
-    This page will load once location is granted.
+  <div id="loadingOverlay">
+    <div>📍 Please enable your location to appear on the live map...</div>
+    <div style="margin-top:10px; font-size:14px; color:#777;">This page will load once location is granted.</div>
   </div>
-</div>
 
-<div id="mapContainer">
-  <div id="map"></div>
-</div>
+  <div id="mapContainer">
+    <div id="map"></div>
+    <div id="addRestaurantBtn">+</div>
+    <div id="confirmBtn">✓</div>
+  </div>
 
-<div id="merchantFooter"></div>
+  <div id="merchantFooter"></div>
+  <div id="restaurantFooter"></div>
 
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<script type="module">
-  import { db, auth } from '../js/firebase.js';
-  import { collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
-  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script type="module">
+    import { db, auth } from '../js/firebase.js';
+    import {
+      collection, onSnapshot, doc, updateDoc, setDoc
+    } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
 
-  const campusLat = 7.7416;
-  const campusLng = 4.4432;
+    const campusLat = 7.7416, campusLng = 4.4432;
+    let map;
+    const merchantMarkers = {};
+    const restaurantMarkers = {};
+    const myMarker = { marker: null, name: "Me" };
+    const merchantFooter = document.getElementById("merchantFooter");
+    const restaurantFooter = document.getElementById("restaurantFooter");
 
-  let map;
-  const merchantMarkers = {};
-  const myMarker = { marker: null, name: "Me" };
-  const footer = document.getElementById("merchantFooter");
+    let myUid = null;
+    let tempRestaurantMarker = null;
 
-  let myUid = null;
-
-  function requestLocationAccess() {
-    if (!navigator.geolocation) {
-      alert("Geolocation not supported by browser.");
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        document.getElementById("loadingOverlay").style.display = "none";
-        initMap();
-        startLiveTracking(pos.coords.latitude, pos.coords.longitude);
-        startMerchantListener();
-      },
-      (err) => {
-        alert("Location required to use this page.");
-        console.error(err);
-      },
-      { enableHighAccuracy: true }
-    );
-  }
-
-  function initMap() {
-    const lightLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; OSM &copy; CARTO',
-      subdomains: 'abcd',
-      maxZoom: 19
-    });
-
-    const satelliteLayer = L.tileLayer(
-      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-      { attribution: 'Tiles &copy; Esri', maxZoom: 19 }
-    );
-
-    map = L.map('map', { center: [campusLat, campusLng], zoom: 16, layers: [lightLayer] });
-    L.control.layers({ "Light": lightLayer, "Satellite": satelliteLayer }).addTo(map);
-    setTimeout(() => map.invalidateSize(), 100);
-  }
-
-  function startMerchantListener() {
-    onSnapshot(collection(db, "merchants"), (snapshot) => {
-      footer.innerHTML = ""; // clear footer
-      snapshot.forEach(docSnap => {
-        const data = docSnap.data();
-        if (!data.lat || !data.lng) return;
-
-        const popupHTML = `
-          <div class="popup-content">
-            <img src="${data.profileImage || 'https://via.placeholder.com/60'}" />
-            <div><strong>${data.fullname || 'Unknown'}</strong></div>
-          </div>
-        `;
-
-        // Map marker
-        if (merchantMarkers[docSnap.id]) {
-          merchantMarkers[docSnap.id].setLatLng([data.lat, data.lng])
-            .setPopupContent(popupHTML);
-        } else {
-          const marker = L.marker([data.lat, data.lng]).addTo(map)
-            .bindPopup(popupHTML);
-          merchantMarkers[docSnap.id] = marker;
-        }
-
-        // Footer card
-        const card = document.createElement("div");
-        card.classList.add("merchant-card");
-        if (docSnap.id === myUid) card.classList.add("my-card");
-
-        card.innerHTML = `
-          <img src="${data.profileImage || 'https://via.placeholder.com/50'}" />
-          <span>${data.fullname || "Unknown"}</span>
-        `;
-        card.onclick = () => {
-          map.setView([data.lat, data.lng], 18);
-          merchantMarkers[docSnap.id].openPopup();
-        };
-        footer.appendChild(card);
-      });
-
-      // Insert my own card first
-      if (myMarker.marker && myUid) {
-        const myCard = document.createElement("div");
-        myCard.classList.add("merchant-card", "my-card");
-        myCard.innerHTML = `
-          <img src="https://cdn-icons-png.flaticon.com/512/149/149060.png" />
-          <span>${myMarker.name}</span>
-        `;
-        myCard.onclick = () => {
-          map.setView(myMarker.marker.getLatLng(), 18);
-          myMarker.marker.openPopup();
-        };
-        footer.prepend(myCard);
+    function requestLocationAccess() {
+      if (!navigator.geolocation) {
+        alert("Geolocation not supported.");
+        return;
       }
-    });
-  }
-
-  function startLiveTracking(lat, lng) {
-    onAuthStateChanged(auth, (user) => {
-      if (user) myUid = user.uid;
-
-      const updateMyLocation = async (latitude, longitude) => {
-        if (user) {
-          await updateDoc(doc(db, "merchants", user.uid), { lat: latitude, lng: longitude });
-        }
-
-        if (!myMarker.marker) {
-          const redIcon = L.icon({
-            iconUrl: 'https://cdn-icons-png.flaticon.com/512/149/149060.png',
-            iconSize: [35, 35],
-            iconAnchor: [17, 35]
-          });
-          myMarker.marker = L.marker([latitude, longitude], { icon: redIcon }).addTo(map)
-            .bindPopup(myMarker.name);
-        } else {
-          myMarker.marker.setLatLng([latitude, longitude]);
-        }
-      };
-
-      updateMyLocation(lat, lng);
-
-      navigator.geolocation.watchPosition(
-        (pos) => updateMyLocation(pos.coords.latitude, pos.coords.longitude),
-        (err) => console.error("Live location error:", err),
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          document.getElementById("loadingOverlay").style.display = "none";
+          initMap();
+          startLiveTracking(pos.coords.latitude, pos.coords.longitude);
+          startMerchantListener();
+          startRestaurantListener();
+        },
+        (err) => {
+          alert("Location required.");
+          console.error(err);
+        },
         { enableHighAccuracy: true }
       );
-    });
-  }
+    }
 
-  requestLocationAccess();
-</script>
+    function initMap() {
+      const lightLayer = L.tileLayer(
+        'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+        { attribution: '© OSM © CARTO', subdomains: 'abcd', maxZoom: 19 }
+      );
+      map = L.map('map', { center: [campusLat, campusLng], zoom: 16, layers: [lightLayer] });
+      setTimeout(() => map.invalidateSize(), 100);
+    }
+
+    // Distance function (Haversine formula)
+    function calculateDistance(lat1, lng1, lat2, lng2) {
+      const R = 6371e3; // meters
+      const φ1 = lat1 * Math.PI/180;
+      const φ2 = lat2 * Math.PI/180;
+      const Δφ = (lat2-lat1) * Math.PI/180;
+      const Δλ = (lng2-lng1) * Math.PI/180;
+      const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+                Math.cos(φ1) * Math.cos(φ2) *
+                Math.sin(Δλ/2) * Math.sin(Δλ/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      const d = R * c;
+      return { km: (d/1000).toFixed(2), m: d.toFixed(1) };
+    }
+
+    async function saveMerchantRestaurantDistances(merchantId, merchantData, restaurants) {
+      for (const [resId, resData] of Object.entries(restaurants)) {
+        const dist = calculateDistance(merchantData.lat, merchantData.lng, resData.lat, resData.lng);
+        await setDoc(doc(db, "merchantRestaurantDistances", `${merchantId}_${resId}`), {
+          merchantId, restaurantId: resId,
+          merchantName: merchantData.fullname || "Merchant",
+          restaurantName: resData.name,
+          distanceKm: dist.km, distanceM: dist.m
+        });
+      }
+    }
+
+    function startMerchantListener() {
+      onSnapshot(collection(db, "merchants"), (snapshot) => {
+        merchantFooter.innerHTML = "";
+        const allRestaurants = {};
+        for (const [id, marker] of Object.entries(restaurantMarkers)) {
+          const latlng = marker.getLatLng();
+          allRestaurants[id] = { lat: latlng.lat, lng: latlng.lng, name: marker.options.title };
+        }
+
+        snapshot.forEach(docSnap => {
+          const data = docSnap.data();
+          if (!data.lat || !data.lng) return;
+          const popupHTML = `<div class="popup-content"><strong>${data.fullname}</strong></div>`;
+          if (merchantMarkers[docSnap.id]) {
+            merchantMarkers[docSnap.id].setLatLng([data.lat, data.lng]).setPopupContent(popupHTML);
+          } else {
+            merchantMarkers[docSnap.id] = L.marker([data.lat, data.lng]).addTo(map).bindPopup(popupHTML);
+          }
+          const card = document.createElement("div");
+          card.classList.add("merchant-card");
+          if (docSnap.id === myUid) card.classList.add("my-card");
+          card.innerHTML = `<img src="${data.profileImage || 'https://via.placeholder.com/50'}"/><span>${data.fullname}</span>`;
+          card.onclick = () => {
+            map.setView([data.lat, data.lng], 18);
+            merchantMarkers[docSnap.id].openPopup();
+          };
+          merchantFooter.appendChild(card);
+
+          // Save distances
+          saveMerchantRestaurantDistances(docSnap.id, data, allRestaurants);
+        });
+      });
+    }
+
+    function startRestaurantListener() {
+      onSnapshot(collection(db, "restaurantLocations"), (snapshot) => {
+        restaurantFooter.innerHTML = "";
+        snapshot.forEach(docSnap => {
+          const data = docSnap.data();
+          if (!data.lat || !data.lng || !data.name) return;
+          const popupHTML = `<div><strong>${data.name}</strong></div>`;
+          if (restaurantMarkers[docSnap.id]) {
+            restaurantMarkers[docSnap.id].setLatLng([data.lat, data.lng]).setPopupContent(popupHTML);
+          } else {
+            const icon = L.icon({ iconUrl: 'https://cdn-icons-png.flaticon.com/512/3075/3075977.png', iconSize: [30,30] });
+            restaurantMarkers[docSnap.id] = L.marker([data.lat, data.lng], { icon, title: data.name })
+              .addTo(map).bindPopup(popupHTML);
+            restaurantMarkers[docSnap.id].on("click", () => selectRestaurantName(docSnap.id, data));
+          }
+          const card = document.createElement("div");
+          card.classList.add("merchant-card");
+          card.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/512/3075/3075977.png"/><span>${data.name}</span>`;
+          card.onclick = () => {
+            map.setView([data.lat, data.lng], 18);
+            restaurantMarkers[docSnap.id].openPopup();
+          };
+          restaurantFooter.appendChild(card);
+        });
+      });
+    }
+
+    function startLiveTracking(lat, lng) {
+      onAuthStateChanged(auth, (user) => {
+        if (user) myUid = user.uid;
+        const updateMyLocation = async (latitude, longitude) => {
+          if (user) await updateDoc(doc(db, "merchants", user.uid), { lat: latitude, lng: longitude });
+          if (!myMarker.marker) {
+            const redIcon = L.icon({ iconUrl: 'https://cdn-icons-png.flaticon.com/512/149/149060.png', iconSize: [35,35], iconAnchor: [17,35] });
+            myMarker.marker = L.marker([latitude, longitude], { icon: redIcon }).addTo(map).bindPopup(myMarker.name);
+          } else { myMarker.marker.setLatLng([latitude, longitude]); }
+        };
+        updateMyLocation(lat, lng);
+        navigator.geolocation.watchPosition(
+          (pos) => updateMyLocation(pos.coords.latitude, pos.coords.longitude),
+          (err) => console.error("Live location error:", err),
+          { enableHighAccuracy: true }
+        );
+      });
+    }
+
+    // Add restaurant buttons
+    const addBtn = document.getElementById("addRestaurantBtn");
+    const confirmBtn = document.getElementById("confirmBtn");
+
+    addBtn.onclick = () => {
+      if (tempRestaurantMarker) return;
+      const icon = L.icon({ iconUrl: 'https://cdn-icons-png.flaticon.com/512/3075/3075977.png', iconSize: [30,30] });
+      tempRestaurantMarker = L.marker(map.getCenter(), { icon, draggable: true }).addTo(map);
+      confirmBtn.style.display = "flex";
+    };
+
+    confirmBtn.onclick = async () => {
+      if (!tempRestaurantMarker) return;
+      const { lat, lng } = tempRestaurantMarker.getLatLng();
+      const name = prompt("Enter restaurant name:");
+      if (!name) return;
+      const newDoc = doc(collection(db, "restaurantLocations"));
+      await setDoc(newDoc, { name, lat, lng });
+      confirmBtn.style.display = "none";
+      tempRestaurantMarker.remove();
+      tempRestaurantMarker = null;
+    };
+
+    async function selectRestaurantName(docId, data) {
+      const newName = prompt("Change Restaurant Name:", data.name);
+      if (newName && newName !== data.name) {
+        await updateDoc(doc(db, "restaurantLocations", docId), { name: newName });
+      }
+    }
+
+    requestLocationAccess();
+  </script>
 </body>
 </html>
