@@ -211,7 +211,7 @@ signupForm.addEventListener("submit", async (e) => {
             room: "",
             roomLocation: "",
             accountDetails: "",
-            profileImage,
+            profileImage: "",
             role: "merchant",
             createdAt: serverTimestamp(),
             active: true
