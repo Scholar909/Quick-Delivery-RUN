@@ -155,7 +155,7 @@ signupForm.addEventListener("submit", async (e) => {
       room: "",
       roomLocation: "",
       phone,
-      profileImage,
+      profileImage: "",
       role: "customer",
       createdAt: serverTimestamp(),
       active: true
