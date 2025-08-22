@@ -20,6 +20,11 @@ import {
     GeoPoint
 } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
 
+import { setPersistence, browserLocalPersistence } 
+  from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
+
+await setPersistence(auth, browserLocalPersistence);
+
 // Forms & elements
 const loginForm = document.getElementById("loginForm");
 const signupForm = document.getElementById("signupForm");
@@ -87,12 +92,6 @@ loginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     showMessage(loginForm, "");
 
-    try {
-      await signOut(auth);
-    } catch (err) {
-      console.warn("No session to clear", err);
-    }
-
     const email = loginForm["login-email"].value.trim();
     const password = loginForm["login-password"].value;
 
@@ -127,7 +126,7 @@ loginForm.addEventListener("submit", async (e) => {
         showMessage(loginForm, "Login successful! Getting location...", "success");
         await requestLocationAndStore(user.uid, loginForm);
 
-        window.location.href = "./merchant/dashboard.html";
+        window.location.href = "/merchant/dashboard.html";
 
     } catch (error) {
         console.error("Login error:", error);
@@ -234,7 +233,7 @@ signupForm.addEventListener("submit", async (e) => {
         await requestLocationAndStore(user.uid, signupForm);
 
         signupForm.reset();
-        window.location.href = "./merchant/dashboard.html";
+        window.location.href = "/merchant/dashboard.html";
 
     } catch (error) {
         console.error("Signup error:", error);
