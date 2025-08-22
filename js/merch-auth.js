@@ -20,8 +20,8 @@ import {
     GeoPoint
 } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
 
-import { setPersistence, browserLocalPersistence } 
-  from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
+import { setPersistence, browserLocalPersistence }
+    from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
 
 await setPersistence(auth, browserLocalPersistence);
 
@@ -96,8 +96,15 @@ loginForm.addEventListener("submit", async (e) => {
     const password = loginForm["login-password"].value;
 
     try {
+        // 🔑 Ensure old sessions are cleared completely
+        await signOut(auth);
+        localStorage.clear();
+        sessionStorage.clear();
+
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
+
+        console.log("✅ Fresh login as merchant:", user.uid, user.email);
 
         const merchantDocRef = doc(db, "merchants", user.uid);
         const merchantDocSnap = await getDoc(merchantDocRef);
