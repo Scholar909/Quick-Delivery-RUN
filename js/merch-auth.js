@@ -126,7 +126,7 @@ loginForm.addEventListener("submit", async (e) => {
         showMessage(loginForm, "Login successful! Getting location...", "success");
         await requestLocationAndStore(user.uid, loginForm);
 
-        window.location.href = "/merchant/dashboard.html";
+        window.location.href = "./merchant/dashboard.html";
 
     } catch (error) {
         console.error("Login error:", error);
@@ -233,7 +233,7 @@ signupForm.addEventListener("submit", async (e) => {
         await requestLocationAndStore(user.uid, signupForm);
 
         signupForm.reset();
-        window.location.href = "/merchant/dashboard.html";
+        window.location.href = "./merchant/dashboard.html";
 
     } catch (error) {
         console.error("Signup error:", error);
