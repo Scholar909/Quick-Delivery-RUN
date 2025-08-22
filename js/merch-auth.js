@@ -87,6 +87,12 @@ loginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     showMessage(loginForm, "");
 
+    try {
+      await signOut(auth);
+    } catch (err) {
+      console.warn("No session to clear", err);
+    }
+
     const email = loginForm["login-email"].value.trim();
     const password = loginForm["login-password"].value;
 
