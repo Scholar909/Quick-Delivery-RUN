@@ -1,0 +1,123 @@
+/* Reset / base (matches your reference style) */
+:root{
+  --theme:#0f4e75;
+  --glass: rgba(255,255,255,0.08);
+  --fg:#e9eef3;
+  --muted:#a9b4bf;
+  --danger:#e74c3c;
+  --ok:#22c55e;
+  --warn:#f59e0b;
+  --neutral:#6b7280;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu;
+  background: radial-gradient(1200px 800px at 10% -10%, rgba(15,78,117,.3), transparent),
+              linear-gradient(180deg, #0a0f14 0%, #10171c 100%);
+  color:var(--fg);
+}
+
+/* Header */
+.header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 20px;
+  backdrop-filter: blur(10px);
+  background: rgba(255,255,255,0.06);
+  border-bottom:1px solid rgba(255,255,255,0.08);
+}
+.header h2{margin:0;font-weight:700}
+.header .back-link{
+  color:var(--fg);text-decoration:none;display:inline-flex;gap:8px;align-items:center;
+  padding:8px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.15)
+}
+.header .back-link:hover{border-color:var(--theme);color:var(--theme)}
+
+/* Layout */
+.page{padding:20px;display:grid;place-items:start center}
+.glassy{
+  width:min(900px,100%);
+  background:var(--glass);
+  backdrop-filter: blur(14px);
+  box-shadow:0 10px 30px rgba(0,0,0,.35);
+  border-radius:18px;
+  padding:22px;
+  border:1px solid rgba(255,255,255,.12);
+}
+
+/* Loader */
+.loading{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 12px;margin-bottom:12px;
+  color:var(--muted)
+}
+.loading .uil{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Receipt formatting per Notes.txt */
+.restaurant{
+  text-align:center;font-weight:800;font-size:1.25rem;margin:6px 0 16px 0
+}
+.top-line,.sub-line,.times{
+  display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;
+}
+.top-line p,.sub-line p,.times p{margin:.2rem 0}
+
+.table-wrap{margin-top:12px;border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,.1)}
+.items-table{width:100%;border-collapse:collapse}
+.items-table thead th{
+  text-align:left;padding:12px 14px;background:rgba(255,255,255,.06);font-weight:700
+}
+.items-table th.left{text-align:left}
+.items-table th.center{text-align:center}
+.items-table th.right{text-align:right}
+
+.items-table tbody td{
+  padding:12px 14px;border-top:1px solid rgba(255,255,255,.06)
+}
+.items-table td:nth-child(1){text-align:left}
+.items-table td:nth-child(2){text-align:center}
+.items-table td:nth-child(3){text-align:right}
+
+/* "Pack" row and bottom margins handled by JS by just adding rows */
+
+.charges{margin:16px 0 8px 0}
+.charges p{
+  display:flex;align-items:center;justify-content:space-between;
+  margin:8px 0
+}
+.charges .sep{
+  height:1px;background:rgba(255,255,255,.12);margin:10px 0
+}
+.charges .total{
+  font-weight:800;font-size:1.15rem;color:var(--fg)
+}
+
+/* Status badge centered */
+.status-wrap{
+  display:grid;place-items:center;margin:18px 0 6px 0
+}
+.status-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:8px 14px;border-radius:999px;
+  font-weight:700;letter-spacing:.2px;
+  border:1px solid rgba(255,255,255,.14)
+}
+.status-pending{color:#b45309;background: rgba(245,158,11,.15);border-color: rgba(245,158,11,.35)}
+.status-completed{color:#166534;background: rgba(34,197,94,.15);border-color: rgba(34,197,94,.35)}
+.status-declined{color:#7f1d1d;background: rgba(231,76,60,.15);border-color: rgba(231,76,60,.35)}
+.status-unsuccessful{color:#374151;background: rgba(107,114,128,.18);border-color: rgba(107,114,128,.35)}
+
+/* Actions */
+.actions{
+  display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:12px
+}
+.btn{
+  background:var(--theme);border:none;color:white;padding:10px 14px;border-radius:12px;
+  display:inline-flex;gap:8px;align-items:center;cursor:pointer;transition:.2s transform ease,.2s opacity ease
+}
+.btn:hover{transform:translateY(-1px)}
+.btn.ghost{background:transparent;border:1px solid rgba(255,255,255,.18);color:var(--fg)}
+.btn.ghost:hover{border-color:var(--theme);color:var(--theme)}

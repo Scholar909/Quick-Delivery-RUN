@@ -12,6 +12,7 @@ import {
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js';
 
 document.addEventListener("DOMContentLoaded", () => {
+  const completedCountEl = document.getElementById("completed-count");
   const announcementCard = document.getElementById("announcement-card");
   const announceTime = document.getElementById("announce-time");
   const shiftTimeEl = document.getElementById("shift-time");
@@ -87,7 +88,42 @@ document.addEventListener("DOMContentLoaded", () => {
       if (e.target === modalOverlay) modalOverlay.remove();
     });
   }
-
+  
+  
+  async function loadCompletedOrders(merchantId) {
+    try {
+      // Direct completions (delivered by this merchant to room directly)
+      const qDirect = query(
+        collection(db, "orders"),
+        where("assignedMerchantId", "==", merchantId),
+        where("orderStatus", "==", "delivered"),
+        where("deliveredTo", "==", "Room directly")
+      );
+      const directSnap = await getDocs(qDirect);
+      const directCount = directSnap.size;
+  
+      // Indirect completions (this merchant dropped at Potters Lodge,
+      // and hostel merchant later delivered → so they appear in fromMerchantId)
+      const qPotters = query(
+        collection(db, "orders"),
+        where("fromMerchantId", "==", merchantId),
+        where("orderStatus", "==", "delivered"),
+        where("deliveredTo", ">=", "Potters lodge") // string match safeguard
+      );
+      const pottersSnap = await getDocs(qPotters);
+      const pottersCount = pottersSnap.size;
+  
+      // Display both counts with colors
+      completedCountEl.innerHTML = `
+        <span style="color:limegreen;font-weight:bold;">${directCount}</span> +
+        <span style="color:orange;font-weight:bold;">${pottersCount}</span>
+      `;
+    } catch (err) {
+      console.error("Error loading completed orders:", err);
+      completedCountEl.textContent = "—";
+    }
+  }
+  
   // ------------------------
   // Load Merchant Announcement
   // ------------------------
@@ -212,9 +248,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if (user) {
       loadMerchantAnnouncement();
       loadTodayShift(user.uid);
+      loadCompletedOrders(user.uid);
     } else {
       shiftTimeEl.textContent = "Not logged in";
       statusMsgEl.textContent = "";
+      completedCountEl.textContent = "0";
     }
   });
 });

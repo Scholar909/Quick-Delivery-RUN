@@ -26,8 +26,22 @@
       <div class="order-total">Total: ₦1,200</div>
       <div class="order-time">Placed: 10:30 AM</div>
       <div class="actions">
-        <button class="assign-btn">Assign</button><!--once assign button is clicked, a color mark will mark to that order-card at the left side of the assign button in the card, signifying that someone is dealing with this order incase more than one person is logged in as admin-->
-        <button class="decline-btn">Decline</button><!-- always call customer to confirm explain why order wss declined before declining -->
+        <button class="assign-btn">Assign to merchant</button>
+        <button class="decline-btn">Decline</button>
+      </div>
+    </div>
+    
+    <div class="order-card glassy">
+      <div class="order-id">Order #12345</div>
+      <div class="order-owner">Customer: Emeka978</div><!--username-->
+      <div class="order-location">Location: Numbets</div>
+      <div class="order-summary">Order: 2x Rice, 1x Chicken</div>
+      <div class="order-total">Total: ₦1,200</div>
+      <div class="order-time">Placed: 10:30 AM</div>
+      <div class="delivered-to">potters lodge {gender} hostel.</div>
+      <div class="explanation">Whatever description was inputted by the merchant.</div>
+      <div class="actions">
+        <button class="assign-btn">Assign to hostel merchant</button>
       </div>
     </div>
 
@@ -53,6 +67,24 @@
     </div>
   </div>
   
+    <div class="modal-overlay hidden">
+    <div class="modal glassy">
+      <h3>Select Hostel Merchant</h3>
+      <div class="hostel-merchant-list">
+        <div class="hostel-merchant-item">
+          <span>Merchant A</span>
+          <span class="order-count">Orders: 3</span>
+        </div>
+        <div class="hostel-merchant-item">
+          <span>Merchant B</span>
+          <span class="order-count">Orders: 1</span>
+        </div>
+        <!-- More merchants -->
+      </div>
+      <button class="close-modal">Close</button>
+    </div>
+  </div>
+  
 <div class="drawer glassy">
   <div class="drawer-header">
     <h3>Admin Menu</h3>
@@ -61,13 +93,14 @@
   <ul class="drawer-links">
     <li><a href="dashboard.html"><i class="uil uil-apps"></i> Dashboard</a></li>
     <li><a href="announcements.html"><i class="uil uil-megaphone"></i> Announcement</a></li>
-    <li><a href="order.html"><i class="uil uil-utensils"></i> Order </a></li>
+    <li><a href="orders.html"><i class="uil uil-utensils"></i>All Orders </a></li>
     <li><a href="assign-orders.html"><i class="uil uil-exchange"></i> Assign Order</a></li>
     <li><a href="alerts.html"><i class="uil uil-envelope-add"></i> Message</a></li>
     <li><a href="menu.html"><i class="uil uil-restaurant"></i> Food/Restaurant Menu</a></li>
     <li><a href="complaints.html"><i class="uil uil-exclamation"></i> Complaints</a></li>
     <li><a href="calendar.html"><i class="uil uil-calendar-alt"></i> Merchant Shift</a></li>
-    <li><a href="map.html"><i class="uil uil-map"></i>Merchants Location</a></li>
+    <li><a href="map.html"><i class="uil uil-location-point"></i>Merchants Location</a></li>
+    <li><a href="hostel-merchants.html"><i class="uil uil-store"></i>Hostel Merchants</a></li>
     <li><a href="extra-merch-receipt-restaurant.html"><i class="uil uil-users-alt"></i>Extra Receipt Merchants</a></li>
     <li><a href="get-token.html"><i class="uil uil-key-skeleton"></i> Merchant Token</a></li>
   </ul>
@@ -91,14 +124,16 @@
       <span>Home</span>
     </div></a>
     <a href="assign-orders.html"><div class="nav-item">
-      <i class="uil uil-clock"></i>
-      <span>Pending</span>
+      <i class="uil uil-exchange"></i>
+      <span>Assign</span>
     </div></a>
-    <a href="announcements.html"><div class="nav-item">
-      <i class="uil uil-microphone"></i>
-      <span>Announce</span>
+    <a href="orders.html"><div class="nav-item">
+      <i class="uil uil-receipt"></i>
+      <span>History</span>
     </div></a>
   </footer>
-<script src="../js/drawer.js"></script>
+  
+<script type="module" src="../js/drawer.js"></script>
+<script type="module" src="../js/admin/ad-assign-order.js"></script>
 </body>
 </html>

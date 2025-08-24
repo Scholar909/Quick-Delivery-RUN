@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Hostel Merchants</title>
+  <link rel="stylesheet" href="../css/admins/hostel-merchants.css">
+  <link rel="stylesheet" href="../css/drawer.css">
+  <!-- Unicons -->
+  <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.8/css/line.css">
+</head>
+<body>
+
+  <!-- Rotating Circle Background -->
+  <div class="background">
+    <div class="rotating-circle">
+      <img src="https://i.ibb.co/3mM5WnL/circle-bg.jpg" alt="circle">
+    </div>
+  </div>
+
+  <!-- Main Container -->
+  <div class="login-container">
+    <div class="login-card">
+
+      <h2 class="login-title"><i class="uil uil-store"></i> Hostel Merchants</h2>
+
+      <!-- Add Button -->
+      <div class="add-btn-container">
+        <button id="addMerchantBtn" class="login-btn"><i class="uil uil-plus"></i> Add Hostel Merchant</button>
+      </div>
+
+      <!-- Merchant Form -->
+      <form id="merchantForm" class="form">
+        <div class="form-group">
+          <label for="phone">Phone Number</label>
+          <input type="text" id="phone" placeholder="Enter phone number">
+        </div>
+
+        <div class="form-group">
+          <label for="name">Name (Auto-filled)</label>
+          <input type="text" id="name" placeholder="Name will load..." readonly>
+        </div>
+
+        <div class="form-group">
+          <label for="gender">Gender (Auto-filled)</label>
+          <input type="text" id="gender" placeholder="Gender will load..." readonly>
+        </div>
+
+        <p id="notFoundMsg" class="not-found-msg">Number not found in records.</p>
+
+        <button type="submit" class="login-btn"><i class="uil uil-save"></i> Save Merchant</button>
+      </form>
+
+      <!-- Merchants List -->
+      <h3 class="list-title">Hostel Merchants List</h3>
+      <div class="table-container">
+        <table class="merchant-table">
+          <thead>
+            <tr>
+              <th>Phone</th>
+              <th>Name</th>
+              <th>Gender</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="merchantList">
+            <!-- Example Row -->
+            <tr>
+              <td>+2348000000000</td>
+              <td>John Doe</td>
+              <td>Male</td>
+              <td>
+                <button class="edit-btn"><i class="uil uil-edit"></i></button>
+                <button class="delete-btn"><i class="uil uil-trash"></i></button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+<div class="drawer glassy">
+  <div class="drawer-header">
+    <h3>Admin Menu</h3>
+    <i class="uil uil-times close-drawer"></i>
+  </div>
+  <ul class="drawer-links">
+    <li><a href="dashboard.html"><i class="uil uil-apps"></i> Dashboard</a></li>
+    <li><a href="announcements.html"><i class="uil uil-megaphone"></i> Announcement</a></li>
+    <li><a href="orders.html"><i class="uil uil-utensils"></i>All Orders </a></li>
+    <li><a href="assign-orders.html"><i class="uil uil-exchange"></i> Assign Order</a></li>
+    <li><a href="alerts.html"><i class="uil uil-envelope-add"></i> Message</a></li>
+    <li><a href="menu.html"><i class="uil uil-restaurant"></i> Food/Restaurant Menu</a></li>
+    <li><a href="complaints.html"><i class="uil uil-exclamation"></i> Complaints</a></li>
+    <li><a href="calendar.html"><i class="uil uil-calendar-alt"></i> Merchant Shift</a></li>
+    <li><a href="map.html"><i class="uil uil-location-point"></i>Merchants Location</a></li>
+    <li><a href="hostel-merchants.html"><i class="uil uil-store"></i>Hostel Merchants</a></li>
+    <li><a href="extra-merch-receipt-restaurant.html"><i class="uil uil-users-alt"></i>Extra Receipt Merchants</a></li>
+    <li><a href="get-token.html"><i class="uil uil-key-skeleton"></i> Merchant Token</a></li>
+  </ul>
+  <div class="logout-section">
+    <a href="../admin-login.html" class="logout-btn"><i class="uil uil-signout"></i> Logout</a>
+  </div>
+</div>
+
+  <!-- Footer Navigation -->
+  <footer class="footer-nav">
+    <div class="nav-item">
+      <i class="uil uil-bars"></i>
+      <span>Menu</span>
+    </div>
+    <a href="complaints.html"><div class="nav-item">
+      <i class="uil uil-comment-question"></i>
+      <span>Complaints</span>
+    </div></a>
+    <a href="dashboard.html"><div class="nav-item active">
+      <i class="uil uil-home"></i>
+      <span>Home</span>
+    </div></a>
+    <a href="assign-orders.html"><div class="nav-item">
+      <i class="uil uil-exchange"></i>
+      <span>Assign</span>
+    </div></a>
+    <a href="orders.html"><div class="nav-item">
+      <i class="uil uil-receipt"></i>
+      <span>History</span>
+    </div></a>
+  </footer>
+  
+<script type="module" src="../js/drawer.js"></script>
+<script type="module" src="../js/admin/ad-hostel-merchants.js"></script>
+</body>
+</html>

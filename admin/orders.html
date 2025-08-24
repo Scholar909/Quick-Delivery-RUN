@@ -3,67 +3,70 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin Orders</title>
+  <title>Admin Order History</title>
   <link rel="stylesheet" href="../css/admins/ad-orders.css" />
   <link rel="stylesheet" href="../css/drawer.css">
-  <link href="https://unicons.iconscout.com/release/v4.0.8/css/line.css" rel="stylesheet"/>
+  <link href="https://unicons.iconscout.com/release/v4.0.8/css/line.css" rel="stylesheet" />
 </head>
-<body data-role="admin">
+<body data-role="customer">
 
-  <!-- Header -->
-  <header class="header glassy">
-    <h2>Orders</h2>
+  <!-- Page Header -->
+  <header class="header">
+    <h2>My Orders</h2>
   </header>
 
-  <!-- Tabs -->
-  <div class="tabs">
-    <button class="tab active" onclick="switchTab('pending')">Pending</button>
-    <button class="tab" onclick="switchTab('completed')">Completed</button>
-    <button class="tab" onclick="switchTab('declined')">Declined</button>
-  </div>
+  <!-- Tab Section -->
+  <section class="tab-bar">
+    <button class="tab active" data-tab="pending">Pending</button>
+    <button class="tab" data-tab="delivered">Delivered</button>
+    <button class="tab" data-tab="declined">Declined</button>
+  </section>
 
-  <!-- Content -->
-  <main class="orders-content">
-
-    <!-- Pending -->
-    <section id="pending" class="order-section active">
-      <div class="order-card glassy"><!--clickeable to view full receipt-->
-        <h4>Order #1340</h4>
-        <p><strong>Customer:</strong> john_doe</p>
-        <p><strong>Restaurant:</strong> Foodies Hub</p>
-        <p><strong>Details:</strong> Rice x2, Chicken x1</p>
-        <p><strong>Total:</strong> NGN 1,200</p>
-        <p><strong>Merchant:</strong> john_kai</p>
-        <p class="timestamp">Jul 29, 2025 - 10:15 AM</p>
+  <!-- Orders Container -->
+  <section class="orders-container">
+    <!-- PENDING TAB -->
+    <div class="tab-content active" id="pending">
+      <div class="order-card">
+        <div class="order-top">
+          <h4>Order ID: #12345</h4>
+          <span class="merchant-name">Merchant: JohnDoe</span>
+        </div>
+        <div class="order-bottom">
+          <p>Total: ₦1500</p>
+          <span class="view-btn">View Details</span>
+        </div>
       </div>
-      <!-- More pending orders... -->
-    </section>
+      <!-- Add more order-card divs as needed -->
+    </div>
 
-    <!-- Completed -->
-    <section id="completed" class="order-section">
-      <div class="order-card glassy">
-        <h4>Order #1337</h4>
-        <p><strong>Customer:</strong> jane_smith</p>
-        <p><strong>Restaurant:</strong> Green Bowl</p>
-        <p><strong>Details:</strong> Salad x1, Juice x2</p>
-        <p><strong>Merchant:</strong> john_swizz</p>
-        <p class="timestamp">Jul 28, 2025 - 4:40 PM</p>
+    <!-- DELIVERED TAB -->
+    <div class="tab-content" id="delivered">
+      <div class="order-card">
+        <div class="order-top">
+          <h4>Order ID: #12211</h4>
+          <span class="merchant-name">Merchant: GraceFoods</span>
+        </div>
+        <div class="order-bottom">
+          <p>Total: ₦2200</p>
+          <span class="view-btn">View Details</span>
+        </div>
       </div>
-    </section>
+    </div>
 
-    <!-- Declined -->
-    <section id="declined" class="order-section">
-      <div class="order-card glassy">
-        <h4>Order #1335</h4>
-        <p><strong>Customer:</strong> emeka02</p>
-        <p><strong>Restaurant:</strong> Quick Bites</p>
-        <p><strong>Details:</strong> Fries x1, Coke x1</p>
-        <p><strong>Merchant:</strong> chuks</p>
-        <p class="timestamp">Jul 28, 2025 - 2:10 PM</p>
+    <!-- DECLINED TAB -->
+    <div class="tab-content" id="declined">
+      <div class="order-card">
+        <div class="order-top">
+          <h4>Order ID: #12098</h4>
+          <span class="merchant-name">Merchant: AmalaSpot</span>
+        </div>
+        <div class="order-bottom">
+          <p>Total: ₦800</p>
+          <span class="view-btn">Declined</span>
+        </div>
       </div>
-    </section>
-
-  </main>
+    </div>
+  </section>
   
 <div class="drawer glassy">
   <div class="drawer-header">
@@ -73,13 +76,14 @@
   <ul class="drawer-links">
     <li><a href="dashboard.html"><i class="uil uil-apps"></i> Dashboard</a></li>
     <li><a href="announcements.html"><i class="uil uil-megaphone"></i> Announcement</a></li>
-    <li><a href="order.html"><i class="uil uil-utensils"></i> Order </a></li>
+    <li><a href="orders.html"><i class="uil uil-utensils"></i>All Orders </a></li>
     <li><a href="assign-orders.html"><i class="uil uil-exchange"></i> Assign Order</a></li>
     <li><a href="alerts.html"><i class="uil uil-envelope-add"></i> Message</a></li>
     <li><a href="menu.html"><i class="uil uil-restaurant"></i> Food/Restaurant Menu</a></li>
     <li><a href="complaints.html"><i class="uil uil-exclamation"></i> Complaints</a></li>
     <li><a href="calendar.html"><i class="uil uil-calendar-alt"></i> Merchant Shift</a></li>
-    <li><a href="map.html"><i class="uil uil-map"></i>Merchants Location</a></li>
+    <li><a href="map.html"><i class="uil uil-location-point"></i>Merchants Location</a></li>
+    <li><a href="hostel-merchants.html"><i class="uil uil-store"></i>Hostel Merchants</a></li>
     <li><a href="extra-merch-receipt-restaurant.html"><i class="uil uil-users-alt"></i>Extra Receipt Merchants</a></li>
     <li><a href="get-token.html"><i class="uil uil-key-skeleton"></i> Merchant Token</a></li>
   </ul>
@@ -103,15 +107,16 @@
       <span>Home</span>
     </div></a>
     <a href="assign-orders.html"><div class="nav-item">
-      <i class="uil uil-clock"></i>
-      <span>Pending</span>
+      <i class="uil uil-exchange"></i>
+      <span>Assign</span>
     </div></a>
-    <a href="announcements.html"><div class="nav-item">
-      <i class="uil uil-microphone"></i>
-      <span>Announce</span>
+    <a href="orders.html"><div class="nav-item">
+      <i class="uil uil-receipt"></i>
+      <span>History</span>
     </div></a>
   </footer>
 
-<script src="../js/drawer.js"></script>
+<script type="module" src="../js/drawer.js"></script>
+<script type="module" src="../js/admin/ad-orders.js"></script>
 </body>
 </html>

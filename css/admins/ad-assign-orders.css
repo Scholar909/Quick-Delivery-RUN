@@ -201,3 +201,12 @@ body {
 .nav-item.active {
   color: white;
 }
+
+/* Highlight card when an admin is processing it */
+.order-card.processing {
+  border-left: 6px solid orange;
+}
+
+.order-card.assigned {
+  border-left: 6px solid #00ff99;
+}

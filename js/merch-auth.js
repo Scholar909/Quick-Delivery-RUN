@@ -117,7 +117,8 @@ loginForm.addEventListener("submit", async (e) => {
 
         const merchantData = merchantDocSnap.data();
 
-        if (merchantData.role !== "merchant") {
+        // ✅ Allow hostel merchants to log in normally
+        if (merchantData.role !== "merchant" && merchantData.role !== "hostel") {
             await signOut(auth);
             showMessage(loginForm, "Access denied: Not a merchant account.");
             return;

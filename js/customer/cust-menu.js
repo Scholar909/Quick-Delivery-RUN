@@ -1,10 +1,14 @@
-import { db } from '../firebase.js';
+import { auth, db } from '../firebase.js';
 import {
   collection,
   onSnapshot,
   query,
-  orderBy
+  addDoc,
+  orderBy,
+  doc,
+  getDoc
 } from 'https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js';
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
 
 // DOM elements
 const restaurantSelect = document.getElementById('restaurantSelect');
@@ -19,30 +23,84 @@ const addPackCheckbox = document.getElementById('addPack');
 const orderTotalElem = document.getElementById('orderTotal');
 const payNowBtn = document.getElementById('payNowBtn');
 
-// ... keep your existing imports
+// -------------------------------------------------
+// Auto-disable Pay Now window (Africa/Lagos)
+// -------------------------------------------------
+const OPEN_MINUTES = 6 * 60;          // 09:00
+const CLOSE_MINUTES = 21 * 60 + 30;   // 21:30
 
-// After defining DOM elements and variables:
+function getLagosHM() {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Africa/Lagos',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  }).formatToParts(new Date());
 
-document.addEventListener("DOMContentLoaded", () => {
-  const savedRestaurant = localStorage.getItem('selectedRestaurant');
-  if (savedRestaurant) {
-    selectedRestaurant = savedRestaurant;
-    restaurantSelect.value = savedRestaurant;
-    localStorage.removeItem('selectedRestaurant');
-    renderMenu();
+  const hour = Number(parts.find(p => p.type === 'hour').value);
+  const minute = Number(parts.find(p => p.type === 'minute').value);
+  return { hour, minute };
+}
+
+function isOrderingOpenNow() {
+  const { hour, minute } = getLagosHM();
+  const mins = hour * 60 + minute;
+  return mins >= OPEN_MINUTES && mins < CLOSE_MINUTES;
+}
+
+let payNowNotice = null;
+function ensurePayNowNotice() {
+  if (!payNowNotice) {
+    payNowNotice = document.createElement('div');
+    payNowNotice.style.marginTop = '8px';
+    payNowNotice.style.fontSize = '0.9rem';
+    payNowNotice.style.opacity = '0.9';
+    payNowBtn.parentElement?.appendChild(payNowNotice);
   }
-});
+  return payNowNotice;
+}
 
+function updatePayNowAvailabilityUI() {
+  const open = isOrderingOpenNow();
+  const hasItems = cart.length > 0;
+  payNowBtn.disabled = !(open && hasItems);
+
+  const note = ensurePayNowNotice();
+  if (!open) {
+    note.textContent = 'Ordering is closed';
+    note.style.color = 'red';
+    note.style.display = 'flex';
+    note.style.justifyContent = 'center';
+    note.style.alignItems = 'center';
+  } else if (!hasItems) {
+    note.textContent = 'Your cart is empty';
+    note.style.color = 'red';
+    note.style.display = 'flex';
+    note.style.justifyContent = 'center';
+    note.style.alignItems = 'center';
+  } else {
+    note.textContent = '';
+    note.style.display = 'none';
+  }
+}
+
+setInterval(updatePayNowAvailabilityUI, 30_000);
+
+// -------------------------------------------------
 // Constants
+// -------------------------------------------------
 const DELIVERY_CHARGE = 300;
 const PACK_CHARGE = 200;
+const FEE_RATE = 0.015;
 
 // Data
 let allFoodItems = [];
 let selectedRestaurant = '';
 let cart = [];
 
-// Listen to restaurants (built from distinct restaurantName in foodItems)
+// -------------------------------------------------
+// Firestore listeners
+// -------------------------------------------------
 const listenToRestaurants = () => {
   const foodRef = collection(db, 'foodItems');
   onSnapshot(foodRef, (snapshot) => {
@@ -60,7 +118,6 @@ const listenToRestaurants = () => {
   });
 };
 
-// Listen to food items and render menu on changes
 const listenToFoodItems = () => {
   const foodRef = collection(db, 'foodItems');
   const q = query(foodRef, orderBy('restaurantName'));
@@ -69,11 +126,14 @@ const listenToFoodItems = () => {
       id: docSnap.id,
       ...docSnap.data()
     }));
+    syncCartWithAvailability();
     renderMenu();
   });
 };
 
-// Render menu with selectable circles
+// -------------------------------------------------
+// Menu rendering
+// -------------------------------------------------
 const renderMenu = () => {
   foodItemsContainer.innerHTML = '';
   if (!selectedRestaurant) return;
@@ -100,16 +160,12 @@ const renderMenu = () => {
       card.style.pointerEvents = 'none';
     }
 
-    // Check if item is in cart
     const isSelected = cart.some(ci => ci.id === item.id);
 
-    // Circle select element
     const circleSelect = document.createElement('div');
     circleSelect.classList.add('circle-select');
     if (isSelected) circleSelect.classList.add('selected');
-    circleSelect.title = isSelected ? 'Unchoose' : 'Choose';
 
-    // Menu info container
     const infoDiv = document.createElement('div');
     infoDiv.classList.add('menu-info');
     infoDiv.innerHTML = `
@@ -118,13 +174,11 @@ const renderMenu = () => {
       <p>Price: NGN${item.price}</p>
     `;
 
-    // Add circle and info to card
     card.appendChild(infoDiv);
     card.appendChild(circleSelect);
-    // Click handlers for both card and circle (if available)
+
     if (item.available) {
       const toggleSelection = () => {
-        // If cart has items from different restaurant, confirm clear cart
         if (cart.length && cart[0].restaurantName !== item.restaurantName) {
           if (!confirm("You can only order from one restaurant at a time. Clear current cart?")) return;
           cart = [];
@@ -134,18 +188,16 @@ const renderMenu = () => {
         if (idx === -1) {
           cart.push({ ...item, qty: 1 });
           circleSelect.classList.add('selected');
-          circleSelect.title = 'Unchoose';
         } else {
           cart.splice(idx, 1);
           circleSelect.classList.remove('selected');
-          circleSelect.title = 'Choose';
         }
         updateOrderButton();
       };
 
       card.addEventListener('click', toggleSelection);
       circleSelect.addEventListener('click', (e) => {
-        e.stopPropagation(); // prevent card click firing twice
+        e.stopPropagation();
         toggleSelection();
       });
     }
@@ -156,26 +208,27 @@ const renderMenu = () => {
   foodItemsContainer.appendChild(container);
 };
 
-// Update order button & count
+// -------------------------------------------------
+// Order Modal
+// -------------------------------------------------
 const updateOrderButton = () => {
   const totalQty = cart.reduce((sum, ci) => sum + ci.qty, 0);
   orderCount.textContent = totalQty;
   orderButton.classList.toggle('hidden', totalQty === 0);
+  updatePayNowAvailabilityUI();
 };
 
-// Open modal to show order
 const openOrderModal = () => {
   orderRestaurantName.textContent = cart[0]?.restaurantName || '';
   renderOrderTable();
   orderModal.classList.remove('hidden');
+  updatePayNowAvailabilityUI();
 };
 
-// Close modal
 const closeOrderModal = () => {
   orderModal.classList.add('hidden');
 };
 
-// Render order table rows
 const renderOrderTable = () => {
   orderTableBody.innerHTML = '';
   cart.forEach(ci => {
@@ -194,15 +247,28 @@ const renderOrderTable = () => {
   updateTotal();
 };
 
-// Update total cost including delivery and packaging
 const updateTotal = () => {
-  let total = cart.reduce((sum, ci) => sum + ci.price * ci.qty, 0);
-  total += DELIVERY_CHARGE;
-  if (addPackCheckbox.checked) total += PACK_CHARGE;
+  let itemTotal = cart.reduce((sum, ci) => sum + ci.price * ci.qty, 0);
+  let delivery = DELIVERY_CHARGE;
+  let pack = addPackCheckbox.checked ? PACK_CHARGE : 0;
+  let subtotal = itemTotal + delivery + pack;
+  let fee = Math.round(subtotal * FEE_RATE);
+  let total = subtotal + fee;
+
+  // Update modal UI
+  document.getElementById('deliveryCharge').textContent = `NGN${delivery}`;
+  document.getElementById('feeCharge').textContent = `NGN${fee}`;
   orderTotalElem.textContent = `NGN${total}`;
+
+  // Keep values for Pay Now
+  orderTotalElem.dataset.itemTotal = itemTotal;
+  orderTotalElem.dataset.delivery = delivery;
+  orderTotalElem.dataset.pack = pack;
+  orderTotalElem.dataset.fee = fee;
+  orderTotalElem.dataset.total = total;
 };
 
-// Handle quantity changes in modal
+// Quantity adjustments
 orderTableBody.addEventListener('click', (e) => {
   if (e.target.classList.contains('qty-btn')) {
     const id = e.target.dataset.id;
@@ -218,14 +284,13 @@ orderTableBody.addEventListener('click', (e) => {
   }
 });
 
-// Event listeners
+// -------------------------------------------------
+// Event Listeners
+// -------------------------------------------------
 restaurantSelect.addEventListener('change', () => {
   selectedRestaurant = restaurantSelect.value;
-  // Clear cart on restaurant change (optional)
   if (cart.length) {
     if (!confirm('Changing restaurant clears your cart. Continue?')) {
-      // revert select to previous restaurant
-      restaurantSelect.value = selectedRestaurant;
       return;
     }
     cart = [];
@@ -237,11 +302,229 @@ restaurantSelect.addEventListener('change', () => {
 orderButton.addEventListener('click', openOrderModal);
 closeModal.addEventListener('click', closeOrderModal);
 addPackCheckbox.addEventListener('change', updateTotal);
-payNowBtn.addEventListener('click', () => {
-  alert('Payment integration coming soon...');
+
+payNowBtn.addEventListener('click', async () => {
+  if (!isOrderingOpenNow()) {
+    alert('Ordering is closed (9:30 PM – 9:00 AM, Africa/Lagos).');
+    return;
+  }
+  if (!cart.length) {
+    alert("Your cart is empty!");
+    return;
+  }
+  if (!selectedRestaurant) {
+    alert("Please choose a restaurant.");
+    return;
+  }
+  if (!window.PaystackPop) {
+    alert("Payment library not loaded.");
+    return;
+  }
+
+  const user = auth.currentUser;
+  if (!user) {
+    alert("You must be logged in.");
+    return;
+  }
+
+  // 1. Get customer details
+  const customerDocRef = doc(db, "customers", user.uid);
+  const customerSnap = await getDoc(customerDocRef);
+  if (!customerSnap.exists()) {
+    alert("Customer profile not found.");
+    return;
+  }
+  const customerData = customerSnap.data();
+
+  // 2. Get restaurant details (with subaccount id)
+  const restRef = doc(db, "restaurants", selectedRestaurant);
+  const restSnap = await getDoc(restRef);
+  if (!restSnap.exists()) {
+    alert("Restaurant not found.");
+    return;
+  }
+  const restaurantData = restSnap.data();
+  const subaccountId = restaurantData.subaccount_id;  // saved in Firestore
+
+  // 3. Totals
+  const itemTotal = Number(orderTotalElem.dataset.itemTotal);
+  const delivery = Number(orderTotalElem.dataset.delivery);
+  const pack = Number(orderTotalElem.dataset.pack);
+  const fee = Number(orderTotalElem.dataset.fee);
+  const total = Number(orderTotalElem.dataset.total);
+
+  const amountKobo = Math.round(total * 100);
+
+  // 4. Trigger Paystack
+  const handler = PaystackPop.setup({
+    key: "pk_test_5197ede2e0944281b3c75205761cda1ee48509ea", // test key
+    email: customerData.email,
+    amount: amountKobo,
+    currency: "NGN",
+    ref: "ORDER-" + Date.now(),
+    subaccount: subaccountId, // 👈 goes directly to restaurant’s account
+    metadata: {
+      restaurantName: selectedRestaurant,
+      subaccount_id: subaccountId, // save for record
+      custom_fields: [
+        { display_name: "Customer Name", variable_name: "customer_name", value: customerData.fullname },
+        { display_name: "Phone", variable_name: "customer_phone", value: customerData.phone }
+      ]
+    },
+    callback: async function (response) {
+      if (response.status === "success") {
+        await addDoc(collection(db, "orders"), {
+          customerId: user.uid,
+          customerName: customerData.fullname,
+          customerUsername: customerData.username,
+          customerGender: customerData.gender,
+          customerEmail: customerData.email,
+          customerPhone: customerData.phone,
+          customerRoom: customerData.room || customerData.roomLocation,
+          restaurantName: restaurantData.name,
+          restaurantSubaccount: subaccountId, // 👈 saved here
+          items: cart,
+          deliveryCharge: delivery,
+          packCharge: pack,
+          fee: fee,
+          itemTotal: itemTotal,
+          totalAmount: total,
+          paymentGateway: "paystack",
+          paymentStatus: "success",
+          orderStatus: "pending_assignment",
+          createdAt: new Date(),
+          paystackRef: response.reference,
+          declinedBy: []
+        });
+
+        alert("Payment successful! Your order is pending assignment.");
+      } else {
+        await addDoc(collection(db, "orders"), {
+          customerId: user.uid,
+          customerName: customerData.fullname,
+          customerUsername: customerData.username,
+          customerEmail: customerData.email,
+          customerRoom: customerData.room || customerData.roomLocation,
+          restaurantName: selectedRestaurant,
+          restaurantSubaccount: subaccountId,
+          items: cart,
+          deliveryCharge: delivery,
+          packCharge: pack,
+          fee: fee,
+          itemTotal: itemTotal,
+          totalAmount: total,
+          paymentGateway: "paystack",
+          paymentStatus: "failed",
+          orderStatus: "gateway_declined",
+          paystackReason: response.status || "Transaction declined",
+          createdAt: new Date(),
+          paystackRef: response.reference
+        });
+
+        alert("Payment was declined.");
+      }
+
+      cart = [];
+      updateOrderButton();
+      closeOrderModal();
+    },
+    onClose: function () {
+      alert("Payment window closed.");
+    }
+  });
+
+  handler.openIframe();
 });
 
-// Initialization
+// Cart sync with availability
+// -------------------------------------------------
+const syncCartWithAvailability = () => {
+  const before = cart.length;
+  cart = cart.filter(ci => {
+    const item = allFoodItems.find(fi => fi.id === ci.id);
+    return item && item.available;
+  });
+  if (cart.length !== before) {
+    renderOrderTable();
+    updateOrderButton();
+  }
+};
+
+// -------------------------------------------------
+// Init
+// -------------------------------------------------
 listenToRestaurants();
 listenToFoodItems();
 updateOrderButton();
+updatePayNowAvailabilityUI();
+
+
+
+/*
+...
+
+import { db } from '../firebase.js';
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
+
+// Call this when checkout is clicked
+async function checkout(restaurantName, cartTotal, customerEmail, customerPhone, customerName) {
+  try {
+    // 1. Get restaurant details (with subaccount)
+    const restRef = doc(db, "restaurants", restaurantName);
+    const restSnap = await getDoc(restRef);
+
+    if (!restSnap.exists()) {
+      alert("Restaurant not found!");
+      return;
+    }
+
+    const restaurant = restSnap.data();
+
+    // 2. Trigger Flutterwave inline
+    FlutterwaveCheckout({
+      public_key: "FLWPUBK_TEST-xxxxxxxxxxxxxxxxxxxxxxx", // replace with your public key
+      tx_ref: "txn-" + Date.now(),
+      amount: cartTotal,
+      currency: "NGN",
+      payment_options: "card,ussd,banktransfer",
+
+      // Customer info
+      customer: {
+        email: customerEmail,
+        phonenumber: customerPhone,
+        name: customerName,
+      },
+
+      // 3. Split payments (direct to restaurant)
+      subaccounts: [
+        {
+          id: restaurant.subaccount_id,  // <-- saved in Firestore
+          transaction_charge_type: "flat",
+          transaction_charge: 0
+        }
+      ],
+
+      // 4. Optional meta
+      meta: {
+        restaurantName,
+        orderDate: new Date().toISOString()
+      },
+
+      callback: function (response) {
+        console.log("Payment response:", response);
+        if (response.status === "successful") {
+          alert("Payment successful! 🎉");
+          // TODO: Save order in Firestore
+        }
+      },
+
+      onclose: function() {
+        console.log("Checkout closed");
+      },
+    });
+
+  } catch (err) {
+    console.error("Checkout error:", err);
+  }
+}
+*/

@@ -113,12 +113,10 @@ body {
 }
 
 /* === Special Day Styling === */
-.working {
-  background-color: #0f4e75 !important;
-}
-
-.off-day {
-  background-color: crimson !important;
+.day.working{
+  background: #0f4e75;
+  color: #fff;
+  border-radius: 6px;
 }
 
 /* === Footer Navigation === */

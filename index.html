@@ -1,126 +1,182 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>About Us - Quick Delivery Service</title>
-    <link rel="stylesheet" href="css/index.css">
-    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quick Delivery - Home</title>
+<link href="https://unicons.iconscout.com/release/v4.0.0/css/line.css" rel="stylesheet">
+<style>
+  /* Reset & Base */
+  * { margin:0; padding:0; box-sizing:border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+  body {
+    min-height:100vh;
+    background: linear-gradient(135deg, #0f4e75, #00bcd4);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    overflow-x:hidden;
+    position:relative;
+  }
+
+  /* Rotating Background Circle */
+  .bg-circle {
+    position:absolute;
+    width:500px;
+    height:500px;
+    border-radius:50%;
+    background: radial-gradient(circle, #00bcd4, #0f4e75);
+    top:-150px;
+    left:-150px;
+    animation: rotateCircle 20s linear infinite;
+    z-index:1;
+    filter: blur(80px);
+  }
+
+  @keyframes rotateCircle {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  /* Glassmorphic Card */
+  .hero-card {
+    position:relative;
+    z-index:2;
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(15px);
+    border-radius:30px;
+    padding:60px 40px;
+    max-width:800px;
+    width:90%;
+    text-align:center;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    animation: fadeIn 1s ease forwards;
+  }
+
+  @keyframes fadeIn {
+    from {opacity:0; transform: translateY(20px);}
+    to {opacity:1; transform: translateY(0);}
+  }
+
+  /* Header */
+  .header {
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:25px;
+    flex-wrap:wrap;
+    margin-bottom:50px;
+  }
+
+  .logo-container {
+    width:120px;
+    height:120px;
+    border-radius:50%;
+    overflow:hidden;
+    perspective:1000px;
+  }
+
+  .logo {
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    border-radius:50%;
+    transform-style: preserve-3d;
+    animation: rotateLogo 8s infinite;
+  }
+
+  @keyframes rotateLogo {
+    0%, 20% { transform: rotateY(0deg); }
+    25%, 45% { transform: rotateY(180deg); }
+    50%, 70% { transform: rotateY(360deg); }
+    75%, 95% { transform: rotateY(540deg); }
+    100% { transform: rotateY(0deg); }
+  }
+
+  .title {
+    font-size:3rem;
+    font-weight:700;
+    color:white;
+    text-shadow: 2px 2px 10px rgba(0,0,0,0.3);
+  }
+
+  /* CTA Buttons */
+  .cta-buttons {
+    display:flex;
+    justify-content:center;
+    gap:40px;
+    flex-wrap:wrap;
+  }
+
+  .cta-buttons a {
+    text-decoration:none;
+    background: #0f4e75;
+    color:white;
+    padding:20px 40px;
+    border-radius:20px;
+    font-size:1.2rem;
+    font-weight:600;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    transition:0.5s;
+  }
+
+  .cta-buttons a:hover {
+    background: #ff9800;
+    color:white;
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+  }
+
+  /* Footer Nav */
+  .footer-nav {
+    display:flex;
+    justify-content:center;
+    gap:30px;
+    margin-top:50px;
+    padding-top:20px;
+    border-top:1px solid rgba(255,255,255,0.3);
+  }
+
+  .footer-nav a {
+    text-decoration:none;
+    color:white;
+    font-weight:600;
+    transition:0.3s;
+  }
+
+  .footer-nav a:hover {
+    color:#ff9800;
+  }
+
+  @media(max-width:600px){
+    .title { font-size:2rem; }
+    .cta-buttons { flex-direction:column; gap:20px; }
+  }
+</style>
 </head>
 <body>
-  <a href="cust-auth.html" class="sign-login"><i class="bx bx-user"></i>Customer Sign Up/Login</a>  
-  <a href='merch-auth.html' class="sign-login"><i class="bx bx-user"></i>Merchant Sign Up/Login</a>  
-    <!-- Header and Navigation -->
 
+<div class="bg-circle"></div>
 
-    <!-- Main Content -->
-    <main id="top">
+<div class="hero-card">
+  <div class="header">
+    <div class="logo-container">
+      <img src="IMG-20250807-WA0001.jpg" alt="Quick Delivery Logo" class="logo">
+    </div>
+    <div class="title">Quick Delivery</div>
+  </div>
 
-    <!-- ABOUT US SECTION -->
-    <section class="about-section container">
-        <h1>ABOUT US</h1>
-        <pre>
-Who We Are
-We are Quick Delivery — a fast-growing, on-demand food and package delivery service 
-redefining convenience for students, professionals, and households.
+  <div class="cta-buttons">
+    <a href="cust-auth.html"><i class="uil uil-user"></i> Customer Login / Sign-Up</a>
+    <a href="merch-auth.html"><i class="uil uil-briefcase-alt"></i> Merchant Login / Sign-Up</a>
+  </div>
 
-What We Do
-- Delicious local dishes
-- Affordable student meal combos
-- Fresh healthy options
-- Hot snacks, pastries, and drinks
+  <div class="footer-nav">
+    <a href="index.html">Home</a>
+    <a href="first-terms.html">Terms</a>
+    <a href="sec-policy.html">Policies</a>
+    <a href="#">Contact</a>
+  </div>
+</div>
 
-Our platform is designed for busy individuals, students, and families 
-who want great meals without the wait.
-
-Why We Started
-Our journey began with a simple observation: People love good food but hate the wait. 
-We saw the opportunity to close the gap between craving and satisfaction.
-
-Our Mission
-To deliver fresh, satisfying meals and packages within 30 minutes or less — 
-reliably, affordably, and professionally.
-
-Our Core Values
-- Speed: Time matters. We deliver fast.
-- Freshness: Every meal is hot and freshly prepared.
-- Affordability: Great food shouldn't break your budget.
-- Reliability: You can count on us.
-- Customer Satisfaction: We go the extra mile, literally.
-
-Our Coverage Area
-We currently serve Ede, Osogbo, and surrounding areas in Osun State. 
-More cities coming soon.
-        </pre>
-    </section>
-
-    <!-- TESTIMONIAL SECTION -->
-    <section class="testimonial-section container">
-        <h2>What Our Customers Say</h2>
-        <pre>
-“I will get back to you on this”
-        </pre>
-    </section>
-
-    <hr>
-
-    <!-- FAQ SECTION -->
-    <section class="faq-section container">
-        <h1>FAQ – Frequently Asked Questions</h1>
-        <pre>
-Orders & Payments
-Q: How do I place an order?
-A: Visit our website or WhatsApp line.
-
-Q: What payment methods do you accept?
-A: We accept bank transfers only.
-
-Delivery
-Q: How long does delivery take?
-A: 20–40 minutes depending on distance.
-
-Q: What are your delivery hours?
-A: Monday to Saturday, 9 AM – 9 PM
-
-Food & Menu
-Q: Are your meals freshly made?
-A: Absolutely. All meals are prepared fresh by trusted vendors.
-
-Account & Login
-Q: Do I need an account?
-A: No, but registered users get discounts and faster checkout.
-
-Cancellations & Refunds
-Q: How do I cancel?
-A: Cancel within 5 minutes of placing your order.
-
-Promotions & Discounts
-Q: First-time user discount?
-A: Yes! Enjoy 10% off your first order.
-        </pre>
-    </section>
-
-    <!-- CONTACT SECTION -->
-    <section class="contact-section container">
-        <h2>Contact Us</h2>
-        <pre>
-Phone: +234 9118770372
-Email: quickdelivery023@gmail.com
-WhatsApp: 09118770372, 08117777982
-        </pre>
-        <h2>Contact & Support</h2>
-        <pre>
-Q: How can I reach customer service?
-A: Message us on WhatsApp or call during business hours.
-
-Q: What if my order is late?
-A: Reach out to us—we’ll fix the issue or offer a refund.
-        </pre>
-    </section>
-
-</main>
-
-    <!-- Back to Top Button -->
-  <button onclick="scrollToTop()" class="back-to-top"><i class='bx bx-up-arrow-alt'></i></button>
 </body>
 </html>

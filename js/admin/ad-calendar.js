@@ -97,47 +97,22 @@ document.addEventListener("DOMContentLoaded", () => {
       dayDiv.textContent = day;
 
       // Click event to toggle working/off day and open shift editor
-      dayDiv.addEventListener("click", async () => {
+            dayDiv.addEventListener("click", async () => {
         if (!selectedMerchant) {
           alert("Please select a merchant first.");
           return;
         }
-
+      
         currentEditingDate = dateStr;
         selectedDateTitle.textContent = `Shifts for: ${dateStr}`;
         shiftEditor.classList.remove("hidden");
-
-        // Load current day document for shifts/status
+      
+        // Load current shifts
         const dayDocRef = doc(db, "calendars", selectedMerchant, "days", dateStr);
         const daySnap = await getDoc(dayDocRef);
-
-        // Toggle working/off day status: if working remove it, else set working
-        const isWorking = dayDiv.classList.contains("working");
-        let newStatus = isWorking ? "off" : "working";
-
-        // Update Firestore with new status (keep shifts if any)
-        if (daySnap.exists()) {
-          const currentData = daySnap.data();
-          await setDoc(dayDocRef, { 
-            status: newStatus,
-            shifts: currentData.shifts || []
-          }, { merge: true });
-        } else {
-          await setDoc(dayDocRef, { status: newStatus, shifts: [] });
-        }
-
-        // Update UI classes accordingly
-        if (newStatus === "working") {
-          dayDiv.classList.add("working");
-          dayDiv.classList.remove("off-day");
-        } else {
-          dayDiv.classList.add("off-day");
-          dayDiv.classList.remove("working");
-        }
-
-        // Load shifts to editor
-        const shifts = daySnap.exists() ? (daySnap.data().shifts || []) : [];
-        renderShiftRows(shifts);
+      
+        const existingShifts = daySnap.exists() ? (daySnap.data().shifts || []) : [];
+        renderShiftRows(existingShifts);
       });
 
       calendarGrid.appendChild(dayDiv);
@@ -148,28 +123,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Load calendar status (working/off) for selected merchant on calendar grid
   async function loadMerchantCalendar(merchantId) {
-    const dayDivs = calendarGrid.querySelectorAll(".day:not(.empty)");
-    for (const dayDiv of dayDivs) {
-      const date = dayDiv.dataset.date;
-      const dayDocRef = doc(db, "calendars", merchantId, "days", date);
-      const daySnap = await getDoc(dayDocRef);
+  const dayDivs = calendarGrid.querySelectorAll(".day:not(.empty)");
+  for (const dayDiv of dayDivs) {
+    const date = dayDiv.dataset.date;
+    const dayDocRef = doc(db, "calendars", merchantId, "days", date);
+    const daySnap = await getDoc(dayDocRef);
 
-      if (daySnap.exists()) {
-        const status = daySnap.data().status;
-        if (status === "working") {
-          dayDiv.classList.add("working");
-          dayDiv.classList.remove("off-day");
-        } else if (status === "off") {
-          dayDiv.classList.add("off-day");
-          dayDiv.classList.remove("working");
-        } else {
-          dayDiv.classList.remove("working", "off-day");
-        }
-      } else {
-        dayDiv.classList.remove("working", "off-day");
-      }
+    if (daySnap.exists() && (daySnap.data().shifts || []).length > 0) {
+      dayDiv.classList.add("working"); // style this as blue
+    } else {
+      dayDiv.classList.remove("working");
     }
   }
+}
 
   // Render shift rows inside the editor with start, end, label, and delete button
   function renderShiftRows(shifts = []) {
@@ -222,31 +188,39 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Event: Save shifts button pressed
   shiftForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    if (!selectedMerchant || !currentEditingDate) {
-      alert("Please select a merchant and date first.");
-      return;
+  e.preventDefault();
+  if (!selectedMerchant || !currentEditingDate) {
+    alert("Please select a merchant and date first.");
+    return;
+  }
+
+  const shifts = getShiftDataFromEditor();
+  const dayDocRef = doc(db, "calendars", selectedMerchant, "days", currentEditingDate);
+
+  try {
+    if (shifts.length > 0) {
+      await setDoc(dayDocRef, { status: "working", shifts }, { merge: true });
+    } else {
+      await setDoc(dayDocRef, { status: "off", shifts: [] }, { merge: true });
     }
 
-    const shifts = getShiftDataFromEditor();
-
-    try {
-      const dayDocRef = doc(db, "calendars", selectedMerchant, "days", currentEditingDate);
-      await setDoc(dayDocRef, { 
-        status: "working",
-        shifts
-      }, { merge: true });
-
-      alert("Shifts saved successfully.");
-      shiftEditor.classList.add("hidden");
-
-      // Refresh calendar UI for day status
-      await loadMerchantCalendar(selectedMerchant);
-    } catch (error) {
-      console.error("Error saving shifts:", error);
-      alert("Failed to save shifts.");
+        alert("Shifts saved successfully.");
+    shiftEditor.classList.add("hidden");
+    
+    // Immediately update just this day's cell
+    const dayCell = calendarGrid.querySelector(`.day[data-date="${currentEditingDate}"]`);
+    if (dayCell) {
+      if (shifts.length > 0) {
+        dayCell.classList.add("working");
+      } else {
+        dayCell.classList.remove("working");
+      }
     }
-  });
+  } catch (error) {
+    console.error("Error saving shifts:", error);
+    alert("Failed to save shifts.");
+  }
+});
 
   // Add new empty shift row button
   addShiftBtn.addEventListener("click", () => {

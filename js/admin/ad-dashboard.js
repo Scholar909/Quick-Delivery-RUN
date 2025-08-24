@@ -77,8 +77,8 @@ function createActionButtons(userData, userId) {
   });
   container.appendChild(viewBtn);
 
-  // Only for merchants: Availability toggle
-  if (userData.role === 'merchant') {
+  // For merchants (normal + hostel): Availability toggle
+  if (userData.role === 'merchant' || userData.role === 'hostel') {
     const toggleLabel = document.createElement('label');
     toggleLabel.style.display = 'flex';
     toggleLabel.style.alignItems = 'center';
@@ -94,7 +94,7 @@ function createActionButtons(userData, userId) {
       try {
         const userDocRef = doc(db, 'merchants', userId);
         await updateDoc(userDocRef, { available: toggleInput.checked });
-        alert(`Merchant ${toggleInput.checked ? 'is now available' : 'is now unavailable'}`);
+        alert(`${userData.role === 'hostel' ? 'Hostel merchant' : 'Merchant'} ${toggleInput.checked ? 'is now available' : 'is now unavailable'}`);
       } catch (err) {
         console.error("Error updating merchant availability:", err);
         alert("Failed to update availability");
@@ -126,18 +126,30 @@ function createActionButtons(userData, userId) {
   deleteBtn.textContent = "Delete";
   deleteBtn.className = "btn-action btn-delete";
   deleteBtn.title = "Delete user permanently";
-  deleteBtn.addEventListener('click', async () => {
-    if (!confirm(`Are you sure you want to delete user ${userData.username || userData.fullname || userData.email}? This action cannot be undone.`)) {
-      return;
+  
+deleteBtn.addEventListener("click", async () => {
+  if (!confirm("Are you sure you want to remove this merchant from hostel list?")) return;
+
+  try {
+    const snap = await getDoc(doc(db, "hostelMerchants", id));
+    if (snap.exists()) {
+      const { merchantId } = snap.data();
+      // 1️⃣ Delete from hostelMerchants
+      await deleteDoc(doc(db, "hostelMerchants", id));
+
+      // 2️⃣ Update role in merchants
+      await updateDoc(doc(db, "merchants", merchantId), { role: "merchant" });
+      
+      loadUsersRealTime();
+
+      alert("Merchant removed from hostel list and role reverted to merchant.");
     }
-    try {
-      await deleteDoc(doc(db, userData.role + 's', userId));
-      alert("User document deleted from Firestore. To delete from Firebase Auth, use Admin SDK on server.");
-    } catch (err) {
-      console.error('Error deleting user:', err);
-      alert('Failed to delete user');
-    }
-  });
+  } catch (err) {
+    console.error("Error deleting hostel merchant:", err);
+    alert("Failed to delete merchant.");
+  }
+});
+  
   container.appendChild(deleteBtn);
 
   return container;
@@ -177,7 +189,7 @@ function renderUserRow(user) {
   usernameTd.textContent = user.username || user.fullname || "(No username)";
 
   // Mark merchant in red if unavailable
-  if (user.role === 'merchant' && user.available === false) {
+  if ((user.role === 'merchant' || user.role === 'hostel') && user.available === false) {
     usernameTd.style.color = 'red';
   }
 
@@ -188,11 +200,17 @@ function renderUserRow(user) {
   tr.appendChild(emailTd);
 
   const statusTd = document.createElement('td');
-  statusTd.textContent = user.role || "(No role)";
+
+  // Role handling: Show Hostel if role is hostel
+  if (user.role === "hostel") {
+    statusTd.textContent = "hostel merchant";
+  } else {
+    statusTd.textContent = user.role || "(No role)";
+  }
   tr.appendChild(statusTd);
 
-  // If merchant, check live duty and style
-  if (user.role === "merchant" && user.available !== false) {
+  // If merchant (normal or hostel), check live duty and style
+  if ((user.role === "merchant" || user.role === "hostel") && user.available !== false) {
     checkMerchantOnDuty(user).then(isOnDuty => {
       if (isOnDuty) {
         Object.assign(statusTd.style, {
@@ -263,7 +281,7 @@ function loadUsersRealTime() {
   });
 
   onSnapshot(merchantsRef, snapshot => {
-    merchants = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), role: 'merchant' }));
+    merchants = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     allUsers = [...customers, ...merchants];
     updateTable(searchInput.value);
   });
@@ -331,8 +349,9 @@ function openUserModal(userData, userId) {
   const fields = [
     ['Username', userData.username],
     ['Full Name', userData.fullname],
+    ['Gener', userData.gender],
     ['Email', userData.email],
-    ['Role', userData.role],
+    ['Role', userData.role === "hostel" ? "hostel merchant" : userData.role],
     ['Status', userData.active === false ? 'Blocked' : 'Active'],
     ['Available', userData.available === false ? 'Unavailable' : 'Available'],
     ['Phone', userData.phone],
