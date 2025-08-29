@@ -33,13 +33,29 @@ function showMessage(form, text, type = "error") {
     form.appendChild(msgBox);
   }
   msgBox.textContent = text;
-  msgBox.style.color = type === "success" ? "#00ffcc" : "#ff4d4d";
+  msgBox.style.color = type === "success" ? "green" : "red";
+}
+
+// ===== Helper: Loading button =====
+function setLoading(btn, isLoading) {
+  if (!btn) return;
+  if (isLoading) {
+    btn.dataset.originalText = btn.textContent;
+    btn.textContent = "Please wait...";
+    btn.disabled = true;
+  } else {
+    btn.textContent = btn.dataset.originalText || "Submit";
+    btn.disabled = false;
+  }
 }
 
 // ===== LOGIN =====
 loginForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   showMessage(loginForm, "");
+
+  const btn = loginForm.querySelector("button[type=submit]");
+  setLoading(btn, true);
 
   const email = loginForm["login-email"].value.trim();
   const password = loginForm["login-password"].value;
@@ -55,6 +71,7 @@ loginForm.addEventListener("submit", async (e) => {
     if (!customerDocSnap.exists()) {
       await signOut(auth);
       showMessage(loginForm, "Account does not exist. Please sign up.");
+      setLoading(btn, false);
       return;
     }
 
@@ -63,25 +80,26 @@ loginForm.addEventListener("submit", async (e) => {
     if (customerData.role !== "customer") {
       await signOut(auth);
       showMessage(loginForm, "Access denied: Not a customer account.");
+      setLoading(btn, false);
       return;
     }
 
-    // ======== NEW: Check if blocked or deleted ========
     if (customerData.active === false) {
       await signOut(auth);
       showMessage(loginForm, "Your account has been blocked. Please contact support.");
+      setLoading(btn, false);
       return;
     }
-    // ===================================================
 
     showMessage(loginForm, "Login successful! Redirecting...", "success");
     setTimeout(() => {
-      window.location.href = "/customer/dashboard.html"; // change as needed
+      window.location.href = "./customer/dashboard.html";
     }, 1500);
 
   } catch (error) {
     console.error("Login error:", error);
     showMessage(loginForm, "Login failed: " + error.message);
+    setLoading(btn, false);
   }
 });
 
@@ -90,31 +108,36 @@ signupForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   showMessage(signupForm, "");
 
+  const btn = signupForm.querySelector("button[type=submit]");
+  setLoading(btn, true);
+
   // Collect and normalize values
   const fullname = signupForm["signup-fullname"].value.trim();
   const usernameRaw = signupForm["signup-username"].value.trim();
-  const username = usernameRaw.toLowerCase(); // lowercase
+  const username = usernameRaw.toLowerCase();
   const gender = signupForm["gender"].value;
   const email = signupForm["signup-email"].value.trim();
   const matricRaw = signupForm["signup-matric"].value.trim();
-  const matric = matricRaw.toUpperCase(); // uppercase
+  const matric = matricRaw.toUpperCase();
   const room = signupForm["signup-room"].value.trim();
   const password = signupForm["signup-password"].value;
   const confirm = signupForm["signup-confirm"].value;
   const phone = signupForm["signup-phone"].value.trim();
   const termsChecked = signupForm["signup-terms"].checked;
 
-  // Validations
   if (password !== confirm) {
     showMessage(signupForm, "Passwords do not match.");
+    setLoading(btn, false);
     return;
   }
   if (!gender) {
     showMessage(signupForm, "Please select your gender.");
+    setLoading(btn, false);
     return;
   }
   if (!termsChecked) {
     showMessage(signupForm, "You must agree to Terms & Conditions.");
+    setLoading(btn, false);
     return;
   }
 
@@ -126,6 +149,7 @@ signupForm.addEventListener("submit", async (e) => {
     const usernameSnapshot = await getDocs(usernameQuery);
     if (!usernameSnapshot.empty) {
       showMessage(signupForm, "Username is already taken.");
+      setLoading(btn, false);
       return;
     }
 
@@ -134,17 +158,15 @@ signupForm.addEventListener("submit", async (e) => {
     const matricSnapshot = await getDocs(matricQuery);
     if (!matricSnapshot.empty) {
       showMessage(signupForm, "Matric number is already registered.");
+      setLoading(btn, false);
       return;
     }
 
-    // Create user in Firebase Auth
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
-    // Update user profile displayName
     await updateProfile(user, { displayName: fullname });
 
-    // Save customer data to Firestore
     const customerDocRef = doc(db, "customers", user.uid);
     await setDoc(customerDocRef, {
       fullname,
@@ -166,11 +188,37 @@ signupForm.addEventListener("submit", async (e) => {
     signupForm.reset();
 
     setTimeout(() => {
-      window.location.href = "/customer/dashboard.html"; // change as needed
+      window.location.href = "./customer/dashboard.html";
     }, 1500);
 
   } catch (error) {
     console.error("Signup error:", error);
     showMessage(signupForm, "Signup failed: " + error.message);
+    setLoading(btn, false);
+  }
+});
+
+// ===== LIVE USERNAME CHECK =====
+const customerUsernameInput = signupForm["signup-username"];
+customerUsernameInput.addEventListener("input", async () => {
+  const val = customerUsernameInput.value.trim().toLowerCase();
+  if (!val) return;
+
+  const customersRef = collection(db, "customers");
+  const usernameQuery = query(customersRef, where("username", "==", val));
+  const snapshot = await getDocs(usernameQuery);
+
+  const msg = signupForm.querySelector(".usernameMsg") || document.createElement("p");
+  msg.className = "usernameMsg";
+  msg.style.fontSize = "0.8rem";
+  msg.style.marginTop = "0.3rem";
+  customerUsernameInput.insertAdjacentElement("afterend", msg);
+
+  if (snapshot.empty) {
+    msg.textContent = "✅ Username is available";
+    msg.style.color = "green";
+  } else {
+    msg.textContent = "❌ Username is taken";
+    msg.style.color = "red";
   }
 });
