@@ -56,6 +56,10 @@ select, input { width: 100%; padding: 0.6rem; border-radius: 8px; border: none; 
     </div>
     <div id="assignedMsg" class="message" style="color: #ff4d4d;"></div>
     <div id="formFields">
+      <div class="form-group">
+        <label for="link">Profile Link</label>
+        <input type="url" id="link" placeholder="https://example.com">
+      </div>
       <div class="form-group"><label for="fullName">Full Name</label><input type="text" id="fullName"></div>
       <div class="form-group"><label for="username">Username</label><input type="text" id="username"></div>
       <div class="form-group"><label for="apiCode">API Code</label><input type="text" id="apiCode"></div>
@@ -159,6 +163,7 @@ function loadMerchants() {
       card.className = "card";
       card.innerHTML = `
         <h3>${data.restaurantName}</h3>
+        ${data.link ? `<p><a href="${data.link}" target="_blank" style="color:#00aaff; text-decoration:underline;">View Profile</a></p>` : ""}
         <p><strong>Full Name:</strong> ${data.fullName}</p>
         <p><strong>Username:</strong> ${data.username}</p>
         <p><strong>API Code:</strong> ${data.apiCode}</p>
@@ -181,16 +186,18 @@ loadMerchants();
 saveBtn.addEventListener("click", async () => {
   const restaurantId = restaurantSelect.value;
   const restaurantName = restaurants.find(r => r.id === restaurantId)?.name || "";
+  const link = document.getElementById("link").value.trim();
   const fullName = document.getElementById("fullName").value.trim();
   const username = document.getElementById("username").value.trim();
   const apiCode = document.getElementById("apiCode").value.trim();
   const phone = document.getElementById("phone").value.trim();
 
-  if (!restaurantId || !fullName || !username || !apiCode || !phone) {
-    alert("Please fill in all fields"); return;
+  if (!restaurantId || !fullName || !username || !apiCode || !phone || !link) {
+    alert("Please fill in all fields");
+    return;
   }
 
-  const merchantData = { restaurantId, restaurantName, fullName, username, apiCode, phone };
+  const merchantData = { restaurantId, restaurantName, fullName, username, apiCode, phone, link };
 
   if (editId) {
     await updateDoc(doc(db, "extraMerchants", editId), merchantData);
@@ -238,6 +245,7 @@ modal.addEventListener("click", (e) => {
 async function openModalForEdit(id, data) {
   editId = id;
   document.getElementById("modalTitle").textContent = "Edit Extra Merchant";
+  document.getElementById("link").value = data.link || "";
   modal.style.display = "flex";
   loadRestaurants().then(() => {
     restaurantSelect.value = data.restaurantId;
