@@ -41,7 +41,20 @@ function showMessage(form, text, type = "error") {
         form.appendChild(msgBox);
     }
     msgBox.textContent = text;
-    msgBox.style.color = type === "success" ? "#00ffcc" : "#ff4d4d";
+    msgBox.style.color = type === "success" ? "green" : "red";
+}
+
+// ===== Helper: Loading button =====
+function setLoading(btn, isLoading) {
+    if (!btn) return;
+    if (isLoading) {
+        btn.dataset.originalText = btn.textContent;
+        btn.textContent = "Please wait...";
+        btn.disabled = true;
+    } else {
+        btn.textContent = btn.dataset.originalText || "Submit";
+        btn.disabled = false;
+    }
 }
 
 // ===== Helper: Request Location & Save to Firestore =====
@@ -94,11 +107,13 @@ loginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     showMessage(loginForm, "");
 
+    const btn = loginForm.querySelector("button[type=submit]");
+    setLoading(btn, true);
+
     const email = loginForm["login-email"].value.trim();
     const password = loginForm["login-password"].value;
 
     try {
-        // 🔑 Ensure old sessions are cleared completely
         await signOut(auth);
         localStorage.clear();
         sessionStorage.clear();
@@ -114,25 +129,26 @@ loginForm.addEventListener("submit", async (e) => {
         if (!merchantDocSnap.exists()) {
             await signOut(auth);
             showMessage(loginForm, "Account does not exist. Please sign up.");
+            setLoading(btn, false);
             return;
         }
 
         const merchantData = merchantDocSnap.data();
 
-        // ✅ Allow hostel merchants to log in normally
         if (merchantData.role !== "merchant" && merchantData.role !== "hostel") {
             await signOut(auth);
             showMessage(loginForm, "Access denied: Not a merchant account.");
+            setLoading(btn, false);
             return;
         }
 
         if (merchantData.active === false) {
             await signOut(auth);
             showMessage(loginForm, "Your account has been blocked. Please contact support.");
+            setLoading(btn, false);
             return;
         }
 
-        // ✅ Require location before redirect
         showMessage(loginForm, "Login successful! Getting location...", "success");
         await requestLocationAndStore(user.uid, loginForm);
 
@@ -141,6 +157,7 @@ loginForm.addEventListener("submit", async (e) => {
     } catch (error) {
         console.error("Login error:", error);
         showMessage(loginForm, "Login failed: " + error.message);
+        setLoading(btn, false);
     }
 });
 
@@ -148,6 +165,9 @@ loginForm.addEventListener("submit", async (e) => {
 signupForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     showMessage(signupForm, "");
+
+    const btn = signupForm.querySelector("button[type=submit]");
+    setLoading(btn, true);
 
     const fullname = signupForm["signup-fullname"].value.trim();
     const usernameRaw = signupForm["signup-username"].value.trim();
@@ -164,14 +184,17 @@ signupForm.addEventListener("submit", async (e) => {
 
     if (password !== confirm) {
         showMessage(signupForm, "Passwords do not match.");
+        setLoading(btn, false);
         return;
     }
     if (!gender) {
         showMessage(signupForm, "Please select your gender.");
+        setLoading(btn, false);
         return;
     }
     if (!tokenInput) {
         showMessage(signupForm, "Token is required.");
+        setLoading(btn, false);
         return;
     }
 
@@ -182,6 +205,7 @@ signupForm.addEventListener("submit", async (e) => {
         const usernameSnapshot = await getDocs(usernameQuery);
         if (!usernameSnapshot.empty) {
             showMessage(signupForm, "Username is already taken.");
+            setLoading(btn, false);
             return;
         }
 
@@ -189,6 +213,7 @@ signupForm.addEventListener("submit", async (e) => {
         const matricSnapshot = await getDocs(matricQuery);
         if (!matricSnapshot.empty) {
             showMessage(signupForm, "Matric number is already registered.");
+            setLoading(btn, false);
             return;
         }
 
@@ -198,6 +223,7 @@ signupForm.addEventListener("submit", async (e) => {
 
         if (tokenSnapshot.empty) {
             showMessage(signupForm, "Invalid or already used token.");
+            setLoading(btn, false);
             return;
         }
 
@@ -207,6 +233,7 @@ signupForm.addEventListener("submit", async (e) => {
         const now = Timestamp.now();
         if (tokenData.expiresAt && tokenData.expiresAt.toMillis() < now.toMillis()) {
             showMessage(signupForm, "Token has expired.");
+            setLoading(btn, false);
             return;
         }
 
@@ -238,7 +265,6 @@ signupForm.addEventListener("submit", async (e) => {
             usedAt: serverTimestamp()
         });
 
-        // ✅ Require location before redirect
         showMessage(signupForm, "Account created successfully! Getting location...", "success");
         await requestLocationAndStore(user.uid, signupForm);
 
@@ -248,5 +274,31 @@ signupForm.addEventListener("submit", async (e) => {
     } catch (error) {
         console.error("Signup error:", error);
         showMessage(signupForm, "Signup failed: " + error.message);
+        setLoading(btn, false);
+    }
+});
+
+// ===== LIVE USERNAME CHECK =====
+const merchantUsernameInput = signupForm["signup-username"];
+merchantUsernameInput.addEventListener("input", async () => {
+    const val = merchantUsernameInput.value.trim().toLowerCase();
+    if (!val) return;
+
+    const merchantsRef = collection(db, "merchants");
+    const usernameQuery = query(merchantsRef, where("username", "==", val));
+    const snapshot = await getDocs(usernameQuery);
+
+    const msg = signupForm.querySelector(".usernameMsg") || document.createElement("p");
+    msg.className = "usernameMsg";
+    msg.style.fontSize = "0.8rem";
+    msg.style.marginTop = "0.3rem";
+    merchantUsernameInput.insertAdjacentElement("afterend", msg);
+
+    if (snapshot.empty) {
+        msg.textContent = "✅ Username is available";
+        msg.style.color = "green";
+    } else {
+        msg.textContent = "❌ Username is taken";
+        msg.style.color = "red";
     }
 });
