@@ -165,7 +165,7 @@ async function acceptOrder(order, user, auto = false) {
     await updateDoc(doc(db, "orders", order.id), updateData);
     await sendOrderToExtraMerchants(order.id);
     await notifyReceiptMerchant(order, user);
-    console.log(auto ? "✅ Order auto-accepted!" : "✅ Order accepted!");
+    alert(auto ? "✅ Order auto-accepted and notification sent!" : "✅ Order accepted!");
   }
 }
 
@@ -179,6 +179,12 @@ export async function sendOrderToExtraMerchants(orderId) {
     if (!orderSnap.exists()) return;
 
     const order = orderSnap.data();
+    
+    if (order.isHostel){
+      console.log("Skip CallMeBot alert", orderId);
+      return;
+    }
+    
     if (order.extraSent) return; // Already sent
 
     if (!order.restaurantName) {
@@ -237,6 +243,7 @@ async function declineOrder(order, user, reason) {
 async function autoAccept(order, user) {
   console.log("⏰ Auto-accept triggered:", order.id);
   await acceptOrder(order, user, true);
+  alert(auto ? "✅ Order auto-accepted and notification sent!" : "✅ Order accepted!");
 }
 
 /* ------------------------------
@@ -269,6 +276,11 @@ SEND TO ALL EXTRA MERCHANTS FOR RESTAURANT
 ------------------------------ */
 async function notifyReceiptMerchant(orderData, merchantUser) {
   try {
+    if (orderData.isHostel){
+      console.log("Skip CALLMEBOT notify", orderData.id);
+      return;
+    }
+    
     if (!orderData.restaurantName) {
       console.warn("⚠️ Order missing restaurantName:", orderData.id);
       return;

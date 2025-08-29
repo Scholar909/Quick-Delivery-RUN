@@ -106,6 +106,20 @@ function createOrderCard(order, type = "pending", currentUser) {
   const hostelBadge = order.isHostel ? `<span class="hostel-badge">Hostel</span>` : "";
   const pottersBadge = order.deliveredTo?.includes('Potters lodge') ? `<span class="potters-badge">Potters Lodge</span>` : "";
   
+    // Show location description if Potters Lodge and description exists
+  let locationPreview = "";
+  if (order.deliveredTo?.includes("Potters lodge") && order.deliveryDescription) {
+    const shortLoc = order.deliveryDescription.length > 25 
+      ? order.deliveryDescription.substring(0, 25) + "..." 
+      : order.deliveryDescription;
+  
+    locationPreview = `
+      <p class="location-preview" style="color:#aaddff;cursor:pointer;">
+        Location: ${shortLoc}
+      </p>
+    `;
+  }
+  
   let doneBtnHtml = '';
   if (type === "pending") doneBtnHtml = `<button class="done-btn" type="submit">Done</button>`;
 
@@ -125,6 +139,7 @@ function createOrderCard(order, type = "pending", currentUser) {
       <h4>Order ID: #${order.paystackRef || order.id}</h4>
     </div>
     <span>${autoBadge} ${hostelBadge} ${pottersBadge}</span>
+    ${locationPreview}
     <div class="order-bottom">
       <p>Total: ₦${Number(total).toLocaleString()}</p>
       <span class="view-btn">${type === "declined" ? "View Receipt" : "Details"}</span>
@@ -180,6 +195,33 @@ function createOrderCard(order, type = "pending", currentUser) {
       overlay.appendChild(modal);
       document.body.appendChild(overlay);
 
+      overlay.addEventListener('click', () => document.body.removeChild(overlay));
+    });
+  }
+  
+  // Location modal (for Potters Lodge description)
+  if (order.deliveredTo?.includes("Potters lodge") && order.deliveryDescription) {
+    const locEl = div.querySelector('.location-preview');
+    locEl?.addEventListener('click', () => {
+      const fullLoc = order.deliveryDescription;
+  
+      const overlay = document.createElement('div');
+      Object.assign(overlay.style, {
+        position: "fixed", top: 0, left: 0, width: "100%", height: "100%",
+        background: "rgba(0,0,0,0.6)", display: "flex",
+        justifyContent: "center", alignItems: "center", zIndex: 9999
+      });
+  
+      const modal = document.createElement('div');
+      Object.assign(modal.style, {
+        background: "#fff", color: "#000", padding: "1rem",
+        borderRadius: "8px", maxWidth: "400px", textAlign: "center"
+      });
+      modal.textContent = fullLoc;
+  
+      overlay.appendChild(modal);
+      document.body.appendChild(overlay);
+  
       overlay.addEventListener('click', () => document.body.removeChild(overlay));
     });
   }

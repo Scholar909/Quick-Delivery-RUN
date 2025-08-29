@@ -1,3 +1,4 @@
+// File: merch-dashboard.js
 import { db, auth } from '../firebase.js';
 import {
   collection,
@@ -19,10 +20,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const statusMsgEl = document.getElementById("status-msg");
 
   let allShiftsForToday = []; // store shifts for modal display
+  let isHostelMerchant = false;
 
-  // ------------------------
-  // Helper: Convert 24-hour time to 12-hour format with AM/PM
-  // ------------------------
+  /* ------------------------------
+     HELPERS
+  ------------------------------ */
   function formatTo12Hour(time) {
     let [hour, minute] = time.split(":").map(Number);
     const ampm = hour >= 12 ? "PM" : "AM";
@@ -30,103 +32,94 @@ document.addEventListener("DOMContentLoaded", () => {
     return `${hour}:${minute.toString().padStart(2, "0")}${ampm.toLowerCase()}`;
   }
 
-  // ------------------------
-  // Create modal dynamically
-  // ------------------------
-  function createShiftModal() {
-    if (document.getElementById("shift-modal")) return; // prevent duplicates
+  function createTooltip(message) {
+    const existing = document.getElementById("completed-tooltip");
+    if (existing) existing.remove();
 
-    const modalOverlay = document.createElement("div");
-    modalOverlay.id = "shift-modal";
-    modalOverlay.style.position = "fixed";
-    modalOverlay.style.top = "0";
-    modalOverlay.style.left = "0";
-    modalOverlay.style.width = "100%";
-    modalOverlay.style.height = "100%";
-    modalOverlay.style.background = "rgba(0,0,0,0.3)";
-    modalOverlay.style.backdropFilter = "blur(6px)";
-    modalOverlay.style.display = "flex";
-    modalOverlay.style.alignItems = "center";
-    modalOverlay.style.justifyContent = "center";
-    modalOverlay.style.zIndex = "9999";
-
-    const modalContent = document.createElement("div");
-    modalContent.style.background = "black";
-    modalContent.style.padding = "20px 30px";
-    modalContent.style.borderRadius = "12px";
-    modalContent.style.boxShadow = "0 4px 20px rgba(0,0,0,0.15)";
-    modalContent.style.minWidth = "280px";
-    modalContent.style.position = "relative";
-    modalContent.style.fontFamily = "sans-serif";
-
-    const closeBtn = document.createElement("span");
-    closeBtn.textContent = "×";
-    closeBtn.style.position = "absolute";
-    closeBtn.style.top = "10px";
-    closeBtn.style.right = "15px";
-    closeBtn.style.cursor = "pointer";
-    closeBtn.style.fontSize = "20px";
-    closeBtn.style.fontWeight = "bold";
-
-    const title = document.createElement("h3");
-    title.textContent = "Today's Shifts";
-    title.style.marginBottom = "10px";
-
-    const list = document.createElement("div");
-    list.innerHTML = allShiftsForToday
-      .map(s => `<div style="padding:5px 0;">${formatTo12Hour(s.start)} - ${formatTo12Hour(s.end)}</div>`)
-      .join("");
-
-    modalContent.appendChild(closeBtn);
-    modalContent.appendChild(title);
-    modalContent.appendChild(list);
-    modalOverlay.appendChild(modalContent);
-    document.body.appendChild(modalOverlay);
-
-    closeBtn.addEventListener("click", () => modalOverlay.remove());
-    modalOverlay.addEventListener("click", (e) => {
-      if (e.target === modalOverlay) modalOverlay.remove();
+    const tip = document.createElement("div");
+    tip.id = "completed-tooltip";
+    tip.textContent = message;
+    Object.assign(tip.style, {
+      position: "fixed",
+      bottom: "80px",
+      right: "20px",
+      background: "#0f4e75",
+      color: "#fff",
+      padding: "8px 12px",
+      borderRadius: "8px",
+      fontSize: "14px",
+      zIndex: 9999
     });
+    document.body.appendChild(tip);
+
+    setTimeout(() => tip.remove(), 4000);
   }
-  
-  
+
+  async function checkHostelMerchant(uid) {
+    const snap = await getDoc(doc(db, "hostelMerchants", uid));
+    isHostelMerchant = snap.exists();
+  }
+
+  /* ------------------------------
+     COMPLETED ORDERS LOADER
+  ------------------------------ */
   async function loadCompletedOrders(merchantId) {
     try {
-      // Direct completions (delivered by this merchant to room directly)
-      const qDirect = query(
-        collection(db, "orders"),
-        where("assignedMerchantId", "==", merchantId),
-        where("orderStatus", "==", "delivered"),
-        where("deliveredTo", "==", "Room directly")
-      );
-      const directSnap = await getDocs(qDirect);
-      const directCount = directSnap.size;
-  
-      // Indirect completions (this merchant dropped at Potters Lodge,
-      // and hostel merchant later delivered → so they appear in fromMerchantId)
-      const qPotters = query(
-        collection(db, "orders"),
-        where("fromMerchantId", "==", merchantId),
-        where("orderStatus", "==", "delivered"),
-        where("deliveredTo", ">=", "Potters lodge") // string match safeguard
-      );
-      const pottersSnap = await getDocs(qPotters);
-      const pottersCount = pottersSnap.size;
-  
-      // Display both counts with colors
-      completedCountEl.innerHTML = `
-        <span style="color:limegreen;font-weight:bold;">${directCount}</span> +
-        <span style="color:orange;font-weight:bold;">${pottersCount}</span>
-      `;
+      if (isHostelMerchant) {
+        // hostel merchant → only count delivered assigned to them
+        const qDelivered = query(
+          collection(db, "orders"),
+          where("assignedMerchantId", "==", merchantId),
+          where("orderStatus", "==", "delivered")
+        );
+        const snap = await getDocs(qDelivered);
+        const count = snap.size;
+
+        completedCountEl.innerHTML = `
+          <span style="color:limegreen;font-weight:bold;">${count}</span>
+        `;
+
+        completedCountEl.style.cursor = "pointer";
+        completedCountEl.onclick = () =>
+          createTooltip("Green = Total orders delivered (Hostel Merchant)");
+      } else {
+        // normal merchant: direct vs potters
+        const qDirect = query(
+          collection(db, "orders"),
+          where("assignedMerchantId", "==", merchantId),
+          where("orderStatus", "==", "delivered"),
+          where("deliveredTo", "==", "Room directly")
+        );
+        const directSnap = await getDocs(qDirect);
+        const directCount = directSnap.size;
+
+        const qPotters = query(
+          collection(db, "orders"),
+          where("fromMerchantId", "==", merchantId),
+          where("orderStatus", "==", "delivered"),
+          where("deliveredTo", ">=", "Potters lodge")
+        );
+        const pottersSnap = await getDocs(qPotters);
+        const pottersCount = pottersSnap.size;
+
+        completedCountEl.innerHTML = `
+          <span style="color:limegreen;font-weight:bold;">${directCount}</span> +
+          <span style="color:orange;font-weight:bold;">${pottersCount}</span>
+        `;
+
+        completedCountEl.style.cursor = "pointer";
+        completedCountEl.onclick = () =>
+          createTooltip("Green = Room directly deliveries, Orange = Dropped at Potters Lodge");
+      }
     } catch (err) {
       console.error("Error loading completed orders:", err);
       completedCountEl.textContent = "—";
     }
   }
-  
-  // ------------------------
-  // Load Merchant Announcement
-  // ------------------------
+
+  /* ------------------------------
+     MERCHANT ANNOUNCEMENT
+  ------------------------------ */
   async function loadMerchantAnnouncement() {
     try {
       const q = query(
@@ -147,24 +140,26 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = docSnap.data();
 
       announcementCard.innerHTML = `
-        <h4>${data.title}</h4>
+        <h3>${data.title}</h3>
         <p>${data.body}</p>
       `;
 
       if (data.createdAt) {
         const date = data.createdAt.toDate();
-        announceTime.textContent = `Posted on ${date.toDateString()} at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+        announceTime.textContent = `Posted on ${date.toDateString()} at ${date.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        })}`;
       }
-
     } catch (error) {
       console.error("Failed to load merchant announcement:", error);
       announcementCard.innerHTML = `<p>Error loading announcement.</p>`;
     }
   }
 
-  // ------------------------
-  // Load Today's Shift
-  // ------------------------
+  /* ------------------------------
+     SHIFT LOADER
+  ------------------------------ */
   async function loadTodayShift(merchantId) {
     try {
       const today = new Date();
@@ -186,8 +181,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       allShiftsForToday = data.shifts;
-
-      // Determine which shift to show on stat card
       const nowMinutes = today.getHours() * 60 + today.getMinutes();
       let displayedShift = null;
       let status = "Shift Pending";
@@ -199,12 +192,12 @@ document.addEventListener("DOMContentLoaded", () => {
         const endMinutes = endH * 60 + endM;
 
         if (nowMinutes >= startMinutes && nowMinutes <= endMinutes) {
-          displayedShift = shift; // current shift
+          displayedShift = shift;
           status = "Working Now";
           break;
         }
         if (nowMinutes < startMinutes) {
-          displayedShift = shift; // next upcoming shift
+          displayedShift = shift;
           status = "Shift Pending";
           break;
         }
@@ -214,7 +207,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       if (!displayedShift) {
-        // all shifts passed, show last one
         displayedShift = data.shifts[data.shifts.length - 1];
       }
 
@@ -226,14 +218,67 @@ document.addEventListener("DOMContentLoaded", () => {
       shiftTimeEl.textContent = displayText;
       statusMsgEl.textContent = status;
 
-      // Attach click event to open modal if more than one shift
       if (data.shifts.length > 1) {
         shiftTimeEl.style.cursor = "pointer";
-        shiftTimeEl.addEventListener("click", createShiftModal);
+        shiftTimeEl.addEventListener("click", () => {
+          const existing = document.getElementById("shift-modal");
+          if (existing) existing.remove();
+
+          const modalOverlay = document.createElement("div");
+          modalOverlay.id = "shift-modal";
+          modalOverlay.style.position = "fixed";
+          modalOverlay.style.top = "0";
+          modalOverlay.style.left = "0";
+          modalOverlay.style.width = "100%";
+          modalOverlay.style.height = "100%";
+          modalOverlay.style.background = "rgba(0,0,0,0.3)";
+          modalOverlay.style.backdropFilter = "blur(6px)";
+          modalOverlay.style.display = "flex";
+          modalOverlay.style.alignItems = "center";
+          modalOverlay.style.justifyContent = "center";
+          modalOverlay.style.zIndex = "9999";
+
+          const modalContent = document.createElement("div");
+          modalContent.style.background = "black";
+          modalContent.style.padding = "20px 30px";
+          modalContent.style.borderRadius = "12px";
+          modalContent.style.boxShadow = "0 4px 20px rgba(0,0,0,0.15)";
+          modalContent.style.minWidth = "280px";
+          modalContent.style.position = "relative";
+          modalContent.style.fontFamily = "sans-serif";
+
+          const closeBtn = document.createElement("span");
+          closeBtn.textContent = "×";
+          closeBtn.style.position = "absolute";
+          closeBtn.style.top = "10px";
+          closeBtn.style.right = "15px";
+          closeBtn.style.cursor = "pointer";
+          closeBtn.style.fontSize = "20px";
+          closeBtn.style.fontWeight = "bold";
+
+          const title = document.createElement("h3");
+          title.textContent = "Today's Shifts";
+          title.style.marginBottom = "10px";
+
+          const list = document.createElement("div");
+          list.innerHTML = allShiftsForToday
+            .map(s => `<div style="padding:5px 0;">${formatTo12Hour(s.start)} - ${formatTo12Hour(s.end)}</div>`)
+            .join("");
+
+          modalContent.appendChild(closeBtn);
+          modalContent.appendChild(title);
+          modalContent.appendChild(list);
+          modalOverlay.appendChild(modalContent);
+          document.body.appendChild(modalOverlay);
+
+          closeBtn.addEventListener("click", () => modalOverlay.remove());
+          modalOverlay.addEventListener("click", (e) => {
+            if (e.target === modalOverlay) modalOverlay.remove();
+          });
+        });
       } else {
         shiftTimeEl.style.cursor = "default";
       }
-
     } catch (error) {
       console.error("Error loading shift:", error);
       shiftTimeEl.textContent = "Error loading shift";
@@ -241,11 +286,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // ------------------------
-  // Init
-  // ------------------------
-  onAuthStateChanged(auth, (user) => {
+  /* ------------------------------
+     INIT
+  ------------------------------ */
+  onAuthStateChanged(auth, async (user) => {
     if (user) {
+      await checkHostelMerchant(user.uid);
       loadMerchantAnnouncement();
       loadTodayShift(user.uid);
       loadCompletedOrders(user.uid);

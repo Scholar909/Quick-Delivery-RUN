@@ -62,6 +62,8 @@ async function requestLocationAndStore(uid, form) {
                     const lng = pos.coords.longitude;
 
                     await updateDoc(doc(db, "merchants", uid), {
+                        lat: lat,
+                        lng: lng,
                         location: new GeoPoint(lat, lng),
                         locationUpdatedAt: serverTimestamp()
                     });
@@ -221,8 +223,8 @@ signupForm.addEventListener("submit", async (e) => {
             email,
             phone,
             matric,
-            room: "",
-            roomLocation: "",
+            room,
+            roomLocation: room,
             accountDetails: "",
             profileImage: "",
             role: "merchant",

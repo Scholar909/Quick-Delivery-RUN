@@ -1,3 +1,4 @@
+// File: merch-profile.js
 import { auth, db } from '../firebase.js';
 import {
   doc,
@@ -58,18 +59,15 @@ auth.onAuthStateChanged(async (user) => {
      <p><strong>Phone Number:</strong> ${merchantData.phone || 'Not added'}</p>
      <p><strong>Room Number:</strong> ${merchantData.room || 'Not provided'}</p>`;
 
-  // Extra phone autofill + lock if already set
   if (merchantData.extraPhone) {
     extraNumber.value = merchantData.extraPhone;
     extraNumber.disabled = true;
   }
 
-  // Account details: always editable
   accountDetails.value = merchantData.accountDetails
     ? merchantData.accountDetails.replace(/,/g, '\n')
     : '';
 
-  // Toggle add/edit button visibility
   if (merchantData.profileImage) {
     addBtn.style.display = 'none';
   } else {
@@ -77,22 +75,52 @@ auth.onAuthStateChanged(async (user) => {
   }
 });
 
-// ====== Update Profile ======
+// ====== Update Profile + Password ======
 updateBtn.addEventListener('click', async () => {
+  const user = auth.currentUser;
   const updates = {};
 
-  // ====== Extra phone: permanently lock after first update ======
+  // extra phone (lock after first set)
   if (!merchantData.extraPhone && extraNumber.value.trim()) {
     updates.extraPhone = extraNumber.value.trim();
   }
 
-  // ====== Account details: always editable ======
+  // account details
   if (accountDetails.value.trim()) {
     updates.accountDetails = accountDetails.value.trim().replace(/\n/g, ', ');
   }
 
+  // -------- PASSWORD SECTION --------
+  if (oldPass.value || newPass.value || confirmPass.value) {
+    if (!oldPass.value || !newPass.value || !confirmPass.value) {
+      alert("Please fill all password fields.");
+      return;
+    }
+    if (newPass.value !== confirmPass.value) {
+      alert("New passwords do not match.");
+      return;
+    }
+
+    try {
+      const cred = EmailAuthProvider.credential(user.email, oldPass.value);
+      await reauthenticateWithCredential(user, cred);
+      await updatePassword(user, newPass.value);
+
+      // clear password inputs
+      oldPass.value = newPass.value = confirmPass.value = '';
+      alert("Password updated successfully!");
+    } catch (err) {
+      alert("Password change failed: " + err.message);
+      return; // stop further updates if password fails
+    }
+  }
+
+  // -------- SAVE PROFILE FIELDS --------
   if (Object.keys(updates).length > 0) {
-    await updateDoc(doc(db, "merchants", auth.currentUser.uid), updates);
+    await updateDoc(doc(db, "merchants", user.uid), {
+      ...updates,
+      updatedAt: serverTimestamp()
+    });
 
     if (updates.extraPhone) {
       extraNumber.disabled = true;
@@ -105,7 +133,7 @@ updateBtn.addEventListener('click', async () => {
     }
 
     alert("Profile updated!");
-  } else {
+  } else if (!(oldPass.value || newPass.value || confirmPass.value)) {
     alert("No changes detected or allowed.");
   }
 });
@@ -140,8 +168,7 @@ imageInput.addEventListener('change', async () => {
     const result = await res.json();
     const url = result.data.url;
 
-    const user = auth.currentUser;
-    await updateDoc(doc(db, "merchants", user.uid), {
+    await updateDoc(doc(db, "merchants", auth.currentUser.uid), {
       profileImage: url,
       updatedAt: serverTimestamp()
     });
@@ -157,34 +184,7 @@ imageInput.addEventListener('change', async () => {
   }
 });
 
-// ====== Change Password ======
+// ====== Toggle Password Body ======
 document.getElementById('togglePassword').addEventListener('click', () => {
   document.getElementById('passwordBody').classList.toggle('open');
-});
-
-async function changePassword() {
-  if (!oldPass.value || !newPass.value || !confirmPass.value) {
-    alert("Please fill all password fields.");
-    return;
-  }
-  if (newPass.value !== confirmPass.value) {
-    alert("New passwords do not match.");
-    return;
-  }
-
-  const user = auth.currentUser;
-  const cred = EmailAuthProvider.credential(user.email, oldPass.value);
-
-  try {
-    await reauthenticateWithCredential(user, cred);
-    await updatePassword(user, newPass.value);
-    alert("Password updated successfully!");
-    oldPass.value = newPass.value = confirmPass.value = '';
-  } catch (err) {
-    alert("Password change failed: " + err.message);
-  }
-}
-
-document.querySelector('#passwordBody').addEventListener('keypress', (e) => {
-  if (e.key === 'Enter') changePassword();
 });

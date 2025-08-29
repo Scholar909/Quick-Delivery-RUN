@@ -1,8 +1,9 @@
-import { auth } from './firebase.js';
+import { auth, db } from './firebase.js';
 import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
+import { doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
 
 document.addEventListener("DOMContentLoaded", () => {
-  const role = document.body.dataset.role; // Optional if you still want to differentiate
+  const role = document.body.dataset.role; // "admin", "merchant", or "customer"
   const menuIcon = document.querySelector(".nav-item i.uil-bars");
   const drawer = document.querySelector(".drawer");
   const closeBtn = document.querySelector(".drawer .close-drawer");
@@ -41,8 +42,8 @@ document.addEventListener("DOMContentLoaded", () => {
       e.preventDefault();
       const redirectHref = logoutBtn.getAttribute('href') || './index.html';
       try {
-        await signOut(auth); // Firebase sign out
-        window.location.href = redirectHref; // redirect to the href in HTML
+        await signOut(auth);
+        window.location.href = redirectHref;
       } catch (err) {
         console.error("Logout failed:", err);
         alert("Logout failed. Try again.");
@@ -51,19 +52,37 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // ------------------------
-  // AUTO-REDIRECT IF NOT LOGGED IN
+  // AUTO-REDIRECT IF NOT LOGGED IN + BLOCK CHECK
   // ------------------------
   onAuthStateChanged(auth, user => {
     if (!user) {
-      // Only protect pages with a data-role attribute
+      // Only protect pages with a role
       const pageRole = document.body.getAttribute('data-role');
       if (pageRole) {
         const logoutLink = document.querySelector('.logout-btn');
         if (logoutLink) {
           window.location.href = logoutLink.getAttribute('href');
         } else {
-          window.location.href = './index.html';
+          window.location.href = '../index.html';
         }
+      }
+    } else {
+      // ✅ Check if user is blocked (only for merchant/customer)
+      if (role === "merchant" || role === "customer" || role === "hostel") {
+        const ref = doc(db, role + "s", user.uid);
+        onSnapshot(ref, snap => {
+          if (snap.exists() && snap.data().active === false) {
+            alert("Your account has been blocked. You will be logged out.");
+            signOut(auth).then(() => {
+              const logoutLink = document.querySelector('.logout-btn');
+              if (logoutLink) {
+                window.location.href = logoutLink.getAttribute('href');
+              } else {
+                window.location.href = '../index.html';
+              }
+            });
+          }
+        });
       }
     }
   });

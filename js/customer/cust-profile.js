@@ -1,3 +1,4 @@
+// File: cust-profile.js
 import { auth, db } from '../firebase.js';
 import {
   doc,
@@ -20,6 +21,7 @@ const addBtn = document.getElementById('addImage');
 const imageInput = document.getElementById('imageInput');
 
 const extraNumber = document.getElementById('extraNumber');
+const accountDetails = document.getElementById('accountDetails');
 const updateBtn = document.getElementById('updateProfile');
 
 const oldPass = document.querySelector('#passwordBody input[placeholder="Old Password"]');
@@ -28,9 +30,6 @@ const confirmPass = document.querySelector('#passwordBody input[placeholder="Con
 
 // ====== State ======
 let customerData = {};
-let lastRoomUpdate = null;
-let initialRoom = '';
-let initialLocation = '';
 
 // ====== Load Profile ======
 auth.onAuthStateChanged(async (user) => {
@@ -60,18 +59,15 @@ auth.onAuthStateChanged(async (user) => {
      <p><strong>Phone Number:</strong> ${customerData.phone || 'Not added'}</p>
      <p><strong>Room Number:</strong> ${customerData.room || 'Not provided'}</p>`;
 
-  // Extra phone autofill + lock if already set
   if (customerData.extraPhone) {
     extraNumber.value = customerData.extraPhone;
     extraNumber.disabled = true;
   }
 
-  // Account details: always editable
   accountDetails.value = customerData.accountDetails
     ? customerData.accountDetails.replace(/,/g, '\n')
     : '';
 
-  // Toggle add/edit button visibility
   if (customerData.profileImage) {
     addBtn.style.display = 'none';
   } else {
@@ -79,36 +75,64 @@ auth.onAuthStateChanged(async (user) => {
   }
 });
 
-// ====== Update Profile ======
+// ====== Update Profile + Password ======
 updateBtn.addEventListener('click', async () => {
+  const user = auth.currentUser;
   const updates = {};
-  const now = new Date();
 
-  // ====== Extra phone: permanently lock after first update ======
+  // Extra phone (locked after first set)
   if (!customerData.extraPhone && extraNumber.value.trim()) {
     updates.extraPhone = extraNumber.value.trim();
   }
-  
-    // ====== Account details: always editable ======
+
+  // Account details (always editable)
   if (accountDetails.value.trim()) {
     updates.accountDetails = accountDetails.value.trim().replace(/\n/g, ', ');
   }
 
+  // -------- PASSWORD SECTION --------
+  if (oldPass.value || newPass.value || confirmPass.value) {
+    if (!oldPass.value || !newPass.value || !confirmPass.value) {
+      alert("Please fill all password fields.");
+      return;
+    }
+    if (newPass.value !== confirmPass.value) {
+      alert("New passwords do not match.");
+      return;
+    }
+
+    try {
+      const cred = EmailAuthProvider.credential(user.email, oldPass.value);
+      await reauthenticateWithCredential(user, cred);
+      await updatePassword(user, newPass.value);
+
+      oldPass.value = newPass.value = confirmPass.value = '';
+      alert("Password updated successfully!");
+    } catch (err) {
+      alert("Password change failed: " + err.message);
+      return; // stop further updates if password failed
+    }
+  }
+
+  // -------- SAVE PROFILE FIELDS --------
   if (Object.keys(updates).length > 0) {
-    await updateDoc(doc(db, "customers", auth.currentUser.uid), updates);
+    await updateDoc(doc(db, "customers", user.uid), {
+      ...updates,
+      updatedAt: serverTimestamp()
+    });
 
     if (updates.extraPhone) {
       extraNumber.disabled = true;
       customerData.extraPhone = updates.extraPhone;
     }
-    
+
     if (updates.accountDetails) {
       customerData.accountDetails = updates.accountDetails;
       accountDetails.value = updates.accountDetails.replace(/,/g, '\n');
     }
 
     alert("Profile updated!");
-  } else {
+  } else if (!(oldPass.value || newPass.value || confirmPass.value)) {
     alert("No changes detected or allowed.");
   }
 });
@@ -143,7 +167,6 @@ imageInput.addEventListener('change', async () => {
     const result = await res.json();
     const url = result.data.url;
 
-    const user = auth.currentUser;
     await updateDoc(doc(db, "customers", user.uid), {
       profileImage: url,
       updatedAt: serverTimestamp()
@@ -160,34 +183,7 @@ imageInput.addEventListener('change', async () => {
   }
 });
 
-// ====== Change Password ======
+// ====== Toggle Password Body ======
 document.getElementById('togglePassword').addEventListener('click', () => {
   document.getElementById('passwordBody').classList.toggle('open');
-});
-
-async function changePassword() {
-  if (!oldPass.value || !newPass.value || !confirmPass.value) {
-    alert("Please fill all password fields.");
-    return;
-  }
-  if (newPass.value !== confirmPass.value) {
-    alert("New passwords do not match.");
-    return;
-  }
-
-  const user = auth.currentUser;
-  const cred = EmailAuthProvider.credential(user.email, oldPass.value);
-
-  try {
-    await reauthenticateWithCredential(user, cred);
-    await updatePassword(user, newPass.value);
-    alert("Password updated successfully!");
-    oldPass.value = newPass.value = confirmPass.value = '';
-  } catch (err) {
-    alert("Password change failed: " + err.message);
-  }
-}
-
-document.querySelector('#passwordBody').addEventListener('keypress', (e) => {
-  if (e.key === 'Enter') changePassword();
 });

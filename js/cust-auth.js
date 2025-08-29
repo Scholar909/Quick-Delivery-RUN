@@ -76,7 +76,7 @@ loginForm.addEventListener("submit", async (e) => {
 
     showMessage(loginForm, "Login successful! Redirecting...", "success");
     setTimeout(() => {
-      window.location.href = "./customer/dashboard.html"; // change as needed
+      window.location.href = "/customer/dashboard.html"; // change as needed
     }, 1500);
 
   } catch (error) {
@@ -151,10 +151,11 @@ signupForm.addEventListener("submit", async (e) => {
       username,
       gender,
       email,
+      phone,
       matric,
       room,
       roomLocation: room,
-      phone,
+      accountDetails: "",
       profileImage: "",
       role: "customer",
       createdAt: serverTimestamp(),
@@ -165,7 +166,7 @@ signupForm.addEventListener("submit", async (e) => {
     signupForm.reset();
 
     setTimeout(() => {
-      window.location.href = "./customer/dashboard.html"; // change as needed
+      window.location.href = "/customer/dashboard.html"; // change as needed
     }, 1500);
 
   } catch (error) {

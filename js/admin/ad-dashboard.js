@@ -349,7 +349,7 @@ function openUserModal(userData, userId) {
   const fields = [
     ['Username', userData.username],
     ['Full Name', userData.fullname],
-    ['Gener', userData.gender],
+    ['Gender', userData.gender],
     ['Email', userData.email],
     ['Role', userData.role === "hostel" ? "hostel merchant" : userData.role],
     ['Status', userData.active === false ? 'Blocked' : 'Active'],
