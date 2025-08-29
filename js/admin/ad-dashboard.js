@@ -249,7 +249,8 @@ function updateTable(filterText = '') {
   const filteredUsers = allUsers.filter(user => {
     const name = (user.username || user.fullname || '').toLowerCase();
     const email = (user.email || '').toLowerCase();
-    return name.includes(lowerFilter) || email.includes(lowerFilter);
+    const role = (user.role === "hostel" ? "hostel merchant" : user.role || "").toLowerCase();
+    return name.includes(lowerFilter) || email.includes(lowerFilter) || role.includes(lowerFilter);
   });
 
   filteredUsers.sort((a, b) => {
