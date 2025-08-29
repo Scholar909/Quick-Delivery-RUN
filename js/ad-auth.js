@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       
       // ✅ Redirect to admin dashboard on successful login
-      window.location.href = '/admin/dashboard.html';
+      window.location.href = './admin/dashboard.html';
 
     } catch (err) {
       console.error(err);
