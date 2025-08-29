@@ -1,0 +1,153 @@
+/* === Reset & Body === */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+body {
+  background: linear-gradient(to bottom right, #0f4e75, #000000);
+  min-height: 100vh;
+  color: white;
+  padding-bottom: 80px;
+}
+
+/* === Header === */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.2rem 1rem;
+  background-color: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.header h2 {
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.calendar-icon {
+  font-size: 1.5rem;
+  color: white;
+  cursor: pointer;
+}
+
+/* === Calendar Glass Section === */
+.calendar-glass {
+  margin: 2rem 1rem;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  border-radius: 15px;
+  padding: 1.5rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.calendar-glass h3 {
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+.day {
+  background-color: rgba(255, 255, 255, 0.06);
+  padding: 1rem 0;
+  text-align: center;
+  border-radius: 10px;
+  font-weight: 500;
+  transition: background 0.3s ease;
+}
+
+.day.active {
+  background-color: #0f4e75;
+  font-weight: bold;
+}
+
+.day.shift {
+  border: 2px solid #0f4e75;
+}
+
+.legend {
+  text-align: right;
+  font-size: 0.85rem;
+  color: #ccc;
+}
+
+.shift-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  background-color: #0f4e75;
+  border-radius: 50%;
+  margin-right: 5px;
+}
+
+/* === Complaint Section === */
+.complaint-card {
+  margin: 2rem 1rem;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  padding: 1.5rem;
+  border-radius: 15px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.complaint-card h3 {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.complaint-card p {
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+  color: #e0e0e0;
+}
+
+/* === Footer Navigation === */
+.footer-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(15px);
+  display: flex;
+  justify-content: space-around;
+  padding: 0.7rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.footer-nav a {
+  text-decoration: none;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #ccc;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.nav-item i {
+  font-size: 1.3rem;
+  margin-bottom: 2px;
+}
+
+.nav-item:hover,
+.nav-item.active {
+  color: white;
+}

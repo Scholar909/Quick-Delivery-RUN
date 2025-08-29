@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Admin Complaints</title>
+<link href="https://unicons.iconscout.com/release/v4.0.0/css/line.css" rel="stylesheet" />
+<link rel="stylesheet" href="../css/admins/ad-complaints.css" />
+<link rel="stylesheet" href="../css/drawer.css">
+<style>
+.badge {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  color: white;
+  text-align: center;
+  line-height: 14px;
+  font-weight: bold;
+}
+
+.badge.red {
+  background-color: #e74c3c;
+  top: 15px; /* above the drawer arrow */
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.badge.green {
+  background-color: #2ecc71;
+  bottom: 15px; /* below the drawer arrow */
+  left: 50%;
+  transform: translateX(-50%);
+}
+</style>
+</head>
+<body>
+
+<header class="header glassy">
+  <h2>Complaints</h2>
+</header>
+
+<main class="main-content glassy">
+
+  <form id="reply-form" class="complaint-form">
+    <h3>Reply to Complaint</h3>
+
+    <input type="hidden" id="recipientId" />
+    <input type="hidden" id="originalMessageId" />
+
+    <label for="replyTitle">Title</label>
+    <input type="text" id="replyTitle" placeholder="Enter reply title" required />
+
+    <label for="replyBody">Message</label>
+    <textarea id="replyBody" rows="4" placeholder="Enter your reply" required></textarea>
+
+    <button type="submit" class="submit-btn">Send Reply</button>
+  </form>
+
+</main>
+
+<!-- Semicircle arrow icon on right side -->
+<div id="drawer-toggle" class="drawer-toggle" title="Open Complaints">
+  <span id="notification-count" class="badge red">0</span>
+  
+  <i class="uil uil-angle-left"></i>
+<!-- Green total count -->
+  <span id="total-count" class="badge green">0</span>
+</div>
+
+<!-- Drawer -->
+<aside id="drawer-aside" class="drawer-aside">
+  <h3>Messages</h3>
+  <div id="complaints-list" class="complaints-list">
+    <!-- Complaints cards inserted here dynamically -->
+  </div>
+</aside>
+
+<div class="drawer glassy">
+  <div class="drawer-header">
+    <h3>Admin Menu</h3>
+    <i class="uil uil-times close-drawer"></i>
+  </div>
+  <ul class="drawer-links">
+    <li><a href="dashboard.html"><i class="uil uil-apps"></i> Dashboard</a></li>
+    <li><a href="announcements.html"><i class="uil uil-megaphone"></i> Announcement</a></li>
+    <li><a href="orders.html"><i class="uil uil-utensils"></i>All Orders </a></li>
+    <li><a href="assign-orders.html"><i class="uil uil-exchange"></i> Assign Order</a></li>
+    <li><a href="alerts.html"><i class="uil uil-envelope-add"></i> Message</a></li>
+    <li><a href="menu.html"><i class="uil uil-restaurant"></i> Food/Restaurant Menu</a></li>
+    <li><a href="complaints.html"><i class="uil uil-exclamation"></i> Complaints</a></li>
+    <li><a href="calendar.html"><i class="uil uil-calendar-alt"></i> Merchant Shift</a></li>
+    <li><a href="map.html"><i class="uil uil-map"></i>Merchants Location</a></li>
+    <li><a href="hostel-merchants.html"><i class="uil uil-store"></i>Hostel Merchants</a></li>
+    <li><a href="extra-merch-receipt-restaurant.html"><i class="uil uil-users-alt"></i>Extra Receipt Merchants</a></li>
+    <li><a href="get-token.html"><i class="uil uil-key-skeleton"></i> Merchant Token</a></li>
+  </ul>
+  <div class="logout-section">
+    <a href="../admin-login.html" class="logout-btn"><i class="uil uil-signout"></i> Logout</a>
+  </div>
+</div>
+
+  <!-- Footer Navigation -->
+  <footer class="footer-nav">
+    <div class="nav-item">
+      <i class="uil uil-bars"></i>
+      <span>Menu</span>
+    </div>
+    <a href="complaints.html"><div class="nav-item">
+      <i class="uil uil-comment-question"></i>
+      <span>Complaints</span>
+    </div></a>
+    <a href="dashboard.html"><div class="nav-item active">
+      <i class="uil uil-home"></i>
+      <span>Home</span>
+    </div></a>
+    <a href="assign-orders.html"><div class="nav-item">
+      <i class="uil uil-exchange"></i>
+      <span>Assign</span>
+    </div></a>
+    <a href="orders.html"><div class="nav-item">
+      <i class="uil uil-receipt"></i>
+      <span>History</span>
+    </div></a>
+  </footer>
+  
+<script type="module" src="../js/drawer.js"></script>
+<script type="module" src="../js/admin/ad-complaints.js"></script>
+</body>
+</html>

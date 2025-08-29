@@ -1,0 +1,179 @@
+/* === Reset === */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* === Body === */
+body {
+  background: linear-gradient(to bottom right, #0f4e75, #000000);
+  min-height: 100vh;
+  color: white;
+  padding-bottom: 80px;
+}
+
+/* === Header === */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.2rem 1rem;
+  background-color: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.header h2 {
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.back-icon {
+  font-size: 1.6rem;
+  color: white;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.back-icon:hover {
+  color: #ccc;
+}
+
+/* === Tab Bar === */
+.tab-bar {
+  display: flex;
+  justify-content: space-around;
+  margin: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+
+.tab {
+  flex: 1;
+  padding: 0.8rem;
+  text-align: center;
+  background: transparent;
+  color: #ccc;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+.tab.active {
+  background-color: #0f4e75;
+  color: white;
+}
+
+/* === Orders Container === */
+.orders-container {
+  padding: 1rem;
+}
+
+.tab-content {
+  display: none;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.order-card {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  border-radius: 15px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease;
+}
+
+.order-card:hover {
+  transform: translateY(-3px);
+}
+
+.order-top,
+.order-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.order-top h4 {
+  font-size: 1rem;
+}
+
+.merchant-name{
+  font-size: 0.9rem;
+  color: #ccc;
+}
+
+.order-bottom p {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.view-btn, .done-btn, #roomBtn, #pottersBtn, #maleBtn, #femaleBtn, #doneHostelBtn {
+  background-color: #0f4e75;
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.view-btn:hover {
+  background-color: #0c3b59;
+}
+
+.done-btn:hover {
+  background-color: #0c3b59;
+}
+
+/* === Footer Navigation === */
+.footer-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(15px);
+  display: flex;
+  justify-content: space-around;
+  padding: 0.7rem 0;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.footer-nav a {
+  text-decoration: none;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #ccc;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.nav-item i {
+  font-size: 1.3rem;
+  margin-bottom: 2px;
+}
+
+.nav-item:hover,
+.nav-item.active {
+  color: white;
+}

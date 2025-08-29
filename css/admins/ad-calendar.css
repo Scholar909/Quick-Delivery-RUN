@@ -1,0 +1,338 @@
+/* === Reset & Body === */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+body {
+  background: linear-gradient(to bottom right, #0f4e75, #000000);
+  min-height: 100vh;
+  color: white;
+  padding-bottom: 80px;
+}
+
+/* === Header === */
+.header {
+  padding: 1.5rem;
+  text-align: center;
+  background-color: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.header h2 {
+  font-size: 1.6rem;
+  font-weight: 600;
+}
+
+/* === Merchant Selector === */
+.selector {
+  margin: 1.5rem;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  border-radius: 15px;
+  padding: 1rem 1.2rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.selector label {
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.selector select {
+  width: 100%;
+  padding: 0.7rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+  outline: none;
+}
+
+.selector select option {
+  background-color: #0f4e75;
+  color: white;
+}
+
+/* === Calendar Section === */
+.calendar {
+  margin: 1.5rem;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  border-radius: 15px;
+  padding: 1rem 1.2rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.calendar-header h3 {
+  font-size: 1.3rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* === Calendar Grid === */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.5rem;
+  text-align: center;
+}
+
+.day-name {
+  font-weight: bold;
+  padding: 0.6rem 0;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+
+.day {
+  padding: 1rem 0;
+  background-color: rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+  font-size: 0.95rem;
+  color: white;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.day:hover {
+  transform: scale(1.05);
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* === Special Day Styling === */
+.day.working{
+  background: #0f4e75;
+  color: #fff;
+  border-radius: 6px;
+}
+
+/* === Footer Navigation === */
+.footer-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(15px);
+  display: flex;
+  justify-content: space-around;
+  padding: 0.7rem 0;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.footer-nav a {
+  text-decoration: none;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #ccc;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.nav-item i {
+  font-size: 1.3rem;
+  margin-bottom: 2px;
+}
+
+.nav-item:hover,
+.nav-item.active {
+  color: white;
+}
+
+.shift-editor h4 {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  color: white;
+  text-align: center;
+}
+
+/* === Shift Editor Section === */
+.shift-editor {
+  margin: 1.5rem;
+  padding: 1.5rem 1.2rem;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  border-radius: 15px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  animation: fadeIn 0.4s ease-in-out;
+  position: relative;
+  overflow: hidden;
+}
+
+/* === Shift Row === */
+.shift-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.7rem;
+  margin-bottom: 1rem;
+  padding: 0.5rem 0.7rem;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+
+/* Inputs grow responsively */
+.shift-row input[type="time"],
+.shift-row input[type="text"] {
+  flex: 1 1 120px;
+  min-width: 100px;
+  height: 28px;              /* ↓ Reduce height */
+  padding: 2px 6px;          /* ↓ Tighten padding */
+  font-size: 13px;           /* ↓ Smaller text */
+  border: none;
+  border-radius: 6px;
+  background-color: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+  color: white;
+  outline: none;
+  box-sizing: border-box;   /* ✅ Ensures padding doesn't add to height */
+}
+
+.shift-row input::placeholder {
+  color: #ccc;
+}
+
+/* Delete Button */
+.shift-row .delete-row {
+  flex: 0 0 auto;
+  padding: 0.5rem 0.8rem;
+  background-color: crimson;
+  border: none;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background-color 0.2s ease;
+}
+
+.shift-row .delete-row:hover {
+  background-color: darkred;
+}
+
+/* Stack layout on small screens */
+@media (max-width: 500px) {
+  .shift-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .shift-row input[type="time"],
+  .shift-row input[type="text"] {
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+    height: 32px;
+    padding: 0.25rem 0.5rem;
+  }
+
+  .shift-row input,
+  .shift-row .delete-row {
+    width: 100%;
+  }
+}
+
+/* === Add More Button === */
+.add-time-btn {
+  display: block;
+  margin: 0 auto 1rem;
+  padding: 0.6rem 1rem;
+  background-color: #0f4e75;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+}
+
+.add-time-btn:hover {
+  background-color: #0c3a59;
+}
+
+/* === Save Button === */
+.save-shift-btn {
+  display: block;
+  margin: 0 auto;
+  padding: 0.7rem 1.2rem;
+  background-color: #0f4e75;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.save-shift-btn:hover {
+  background-color: #0c3a59;
+}
+
+/* === Close Button === */
+.close-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0.25rem 0.6rem;
+  border-radius: 50%;
+  backdrop-filter: blur(5px);
+  transition: background 0.3s;
+}
+
+/* === Animation === */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* === Calendar Navigation Buttons === */
+.month-nav {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: none;
+  padding: 0.3rem 0.8rem;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  margin: 0 0.8rem;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.month-nav:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.muted {
+  opacity: 0.4;
+}

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Customer Profile</title>
+<link href="https://unicons.iconscout.com/release/v4.0.8/css/line.css" rel="stylesheet"/>
+<link rel="stylesheet" href="../css/drawer.css">
+<link rel="stylesheet" href="../css/customers/cust-profile.css">
+</head>
+<body data-role="customer">
+
+<header class="header">
+  <h2>Profile</h2>
+</header>
+
+<main class="profile-container">
+
+  <!-- Profile Card -->
+  <div class="card profile-main">
+    <div class="profile-pic-wrapper">
+      <img src="../images/default-avatar.png" alt="Profile" id="profileImage">
+      <div class="profile-pic-overlay" id="profileOptions">
+        <p id="viewImage">View</p>
+        <p id="editImage">Edit</p>
+        <p id="addImage">Add</p>
+      </div>
+    </div>
+    <!-- Hidden file input for uploads -->
+    <input type="file" id="imageInput" accept="image/*" style="display:none;">
+    <span class="role-tag">Customer</span>
+    <div class="profile-info">
+      <p class="username-email"><strong>janedoe123</strong> | janedoe@example.com</p>
+    </div>
+  </div>
+
+  <!-- Editable Details -->
+  <div class="card">
+    <label>Extra Phone Number</label>
+    <input type="number" id="extraNumber" placeholder="08123456789">
+    
+    <label>Account Details</label>
+    <textarea id="accountDetails" placeholder="Account Number, Bank Name, Account Name"></textarea>
+  </div>
+
+  <!-- Password Settings -->
+  <div class="card">
+    <div class="password-header" id="togglePassword">
+      <span>Password Settings</span>
+      <i class="uil uil-angle-down"></i>
+    </div>
+    <div class="password-body" id="passwordBody">
+      <input type="password" placeholder="Old Password">
+      <input type="password" placeholder="New Password">
+      <input type="password" placeholder="Confirm New Password">
+    </div>
+  </div>
+
+  <!-- Support -->
+  <div class="card support">
+    <p>Need help? <a href="https://wa.me/2348012345678" target="_blank"><i class="uil uil-whatsapp"></i> Contact Support</a></p>
+  </div>
+
+  <!-- Update Button -->
+  <button class="update-btn" id="updateProfile">Update</button>
+
+</main>
+
+<!-- Profile Image Modal -->
+<div id="imageModal" class="modal" style="display:none;">
+  <span class="close" onclick="document.getElementById('imageModal').style.display='none'">&times;</span>
+  <img class="modal-content" id="modalImg">
+</div>
+
+<!-- Drawer -->
+<div class="drawer glassy">
+  <div class="drawer-header">
+    <h3>Customers Menu</h3>
+    <i class="uil uil-times close-drawer"></i>
+  </div>
+  <ul class="drawer-links">
+    <li><a href="dashboard.html"><i class="uil uil-apps"></i> Dashboard</a></li>
+    <li><a href="profile.html"><i class="uil uil-user"></i> Profile</a></li>
+    <li><a href="menu-place-order.html"><i class="uil uil-utensils"></i> Menu/Place Order</a></li>
+    <li><a href="alerts.html"><i class="uil uil-envelope"></i> Alerts</a></li>
+    <li><a href="complaints.html"><i class="uil uil-exclamation"></i> Complaints</a></li>
+    <li><a href="pending-orders.html"><i class="uil uil-clipboard-alt"></i> Order History</a></li>
+  </ul>
+  <div class="logout-section">
+    <a href="../cust-auth.html" class="logout-btn"><i class="uil uil-signout"></i> Logout</a>
+  </div>
+</div>
+
+<!-- Footer -->
+  <footer class="footer-nav">
+    <div class="nav-item">
+      <i class="uil uil-bars"></i>
+      <span>Menu</span>
+    </div>
+    <a href="complaints.html"><div class="nav-item">
+      <i class="uil uil-comment-question"></i>
+      <span>Complaints</span>
+    </div></a>
+    <a href="dashboard.html"><div class="nav-item">
+      <i class="uil uil-home"></i>
+      <span>Home</span>
+    </div></a>
+    <a href="alerts.html"><div class="nav-item">
+      <i class="uil uil-envelope"></i>
+      <span>Alerts</span>
+    </div></a>
+    <a href="pending-orders.html"><div class="nav-item">
+      <i class="uil uil-history"></i>
+      <span>History</span>
+    </div></a>
+  </footer>
+
+<script type="module" src="../js/drawer.js"></script>
+<script type="module" src="../js/customer/cust-profile.js"></script>
+</body>
+</html>
