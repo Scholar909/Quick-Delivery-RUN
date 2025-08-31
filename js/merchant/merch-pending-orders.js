@@ -281,7 +281,7 @@ function listenToOrders(currentUser) {
   );
 
   onSnapshot(qPending, (snapshot) => {
-    pendingTab.innerHTML = '';
+    pendingTab.innerHTML = `<p>No Pending Order Available</p>`;
     snapshot.forEach(docSnap => {
       const order = { id: docSnap.id, ...docSnap.data() };
       pendingTab.appendChild(createOrderCard(order, "pending", currentUser));
@@ -307,7 +307,7 @@ function listenToOrders(currentUser) {
   );
 
   function updateDeliveredTab() {
-    deliveredTab.innerHTML = '';
+    deliveredTab.innerHTML = `<p>No Delivered Order Available</p>`;
     Array.from(deliveredOrdersMap.values())
       .sort((a, b) => (b.deliveredTime?.seconds || 0) - (a.deliveredTime?.seconds || 0))
       .forEach(order => {
@@ -339,7 +339,7 @@ function listenToOrders(currentUser) {
   );
 
   onSnapshot(qDeclined, (snapshot) => {
-    declinedTab.innerHTML = '';
+    declinedTab.innerHTML = `<p>No Declined Order Available</p>`;
     snapshot.forEach(docSnap => {
       const order = { id: docSnap.id, ...docSnap.data() };
       declinedTab.appendChild(createOrderCard(order, "declined", currentUser));
