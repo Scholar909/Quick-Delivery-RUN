@@ -293,7 +293,21 @@ document.addEventListener("DOMContentLoaded", () => {
   onAuthStateChanged(auth, async (user) => {
     if (user) {
       await checkHostelMerchant(user.uid);
-      welcomeMsgEl.innerHTML = `Welcome, ${merchantData.username || 'Merchant'}`;
+
+      try {
+        // 🔹 fetch merchant profile
+        const docSnap = await getDoc(doc(db, "merchants", user.uid));
+        if (docSnap.exists()) {
+          const userData = docSnap.data();
+          welcomeMsgEl.textContent = `Welcome, ${userData.username || userData.shopName || "Merchant"}`;
+        } else {
+          welcomeMsgEl.textContent = "Welcome, Merchant";
+        }
+      } catch (err) {
+        console.error("Error fetching merchant data:", err);
+        welcomeMsgEl.textContent = "Welcome, Merchant";
+      }
+
       loadMerchantAnnouncement();
       loadTodayShift(user.uid);
       loadCompletedOrders(user.uid);
