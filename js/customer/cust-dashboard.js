@@ -62,7 +62,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ...new Set(snapshot.docs.map(doc => doc.data().restaurantName))
       ].sort();
 
-      restaurantsGrid.innerHTML = 'No Restaurants Available';
+      restaurantsGrid.innerHTML = '';
       restaurantNames.forEach(name => {
         const card = document.createElement('div');
         card.classList.add('restaurant-card');
