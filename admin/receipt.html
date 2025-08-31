@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Order Receipt</title>
+  <link rel="stylesheet" href="../css/admins/receipt.css"/>
+  <link href="https://unicons.iconscout.com/release/v4.0.8/css/line.css" rel="stylesheet"/>
+</head>
+<body>
+  <!-- Page Header -->
+  <header class="header">
+    <h2>Order Receipt</h2>
+    <a class="back-link" href="orders.html"><i class="uil uil-arrow-left"></i> Back</a>
+  </header>
+
+  <!-- Receipt -->
+  <main class="page">
+    <section class="receipt glassy" id="receiptCard" aria-live="polite">
+
+      <h3 class="restaurant" id="restaurantName">—</h3>
+
+      <div class="top-line">
+        <p><strong>Customer:</strong> <span id="custName">—</span></p>
+        <p class="right"><strong>Order ID:</strong> <span id="orderId">—</span></p>
+      </div>
+
+      <div class="sub-line">
+        <p><strong>Room:</strong> <span id="roomLocation">—</span></p>
+        <p><strong>Delivery Merchant:</strong> <span id="merchantUsername">—</span></p>
+      </div>
+
+      <div class="table-wrap">
+        <table class="items-table" aria-describedby="restaurantName">
+          <thead>
+            <tr>
+              <th class="left">Item</th>
+              <th class="center">Qty</th>
+              <th class="right">Price</th>
+            </tr>
+          </thead>
+          <tbody id="itemsBody"></tbody>
+          <tfoot id="itemsFoot"></tfoot>
+        </table>
+      </div>
+
+      <div class="charges">
+        <p><span>Item Total</span><span id="itemTotal">—</span></p>
+        <p><span>Charge</span><span id="charge">—</span></p>
+        <p><span>Fee (1.5%)</span><span id="fee">—</span></p>
+        <div class="sep"></div>
+        <p class="total"><span>Total</span><span id="totalAll">—</span></p>
+      </div>
+
+      <div class="times">
+        <p><strong>Assigned time:</strong> <span id="assignedTime">—</span></p>
+        <p class="right"><strong>Delivered time:</strong> <span id="deliveredTime">—</span></p>
+      </div>
+
+      <div class="status-wrap">
+        <span id="statusBadge" class="status-badge status-pending">Pending</span>
+      </div>
+
+      <div class="actions">
+        <button id="printBtn" class="btn"><i class="uil uil-print"></i> Print / Save PDF</button>
+        <a id="historyBtn" class="btn ghost" href="orders.html"><i class="uil uil-history"></i> History</a>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="../js/admin/receipt.js"></script>
+</body>
+</html>

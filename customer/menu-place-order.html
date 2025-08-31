@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Customer Menu</title>
+  <link rel="stylesheet" href="../css/customers/cust-menu.css" />
+  <link rel="stylesheet" href="../css/drawer.css">
+  <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.8/css/line.css">
+</head>
+<body class="complaints-body" data-role="customer">
+
+  <!-- Header -->
+  <header class="complaints-header">
+    <h2>Menu / Place Order</h2>
+  </header>
+
+  <!-- Restaurant Selection -->
+  <section class="restaurant-section">
+    <h3>Select a Restaurant</h3>
+    <select id="restaurantSelect">
+      <option disabled selected value="">Choose Restaurant</option>
+    </select>
+
+    <!-- Menu List -->
+    <section id="food-items">
+      <!-- JS will populate menu cards here -->
+    </section>
+  </section>
+  
+  <!-- Floating Order Button -->
+  <button id="orderButton" class="order-btn hidden">
+    🛒 <span id="orderCount">0</span>
+  </button>
+
+  <!-- Order Modal -->
+  <div id="orderModal" class="modal hidden">
+    <div class="modal-content">
+      <span id="closeModal" class="close">&times;</span>
+
+      <h3 id="orderRestaurantName">Your Order</h3>
+
+      <label class="pack-option">
+        <input type="checkbox" id="addPack" /> Add pack/take-away (+NGN200)
+      </label>
+
+      <table id="orderTable">
+        <thead>
+          <tr>
+            <th>Food</th>
+            <th>Qty</th>
+            <th>Price</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <div class="charges">
+        <p>Delivery charge: <span id="deliveryCharge">NGN300</span></p>
+        <p>Fee(1.5%): <span id="feeCharge">NGN0</span></p>
+        <p><strong>Total: <span id="orderTotal">NGN0</span></strong></p>
+      </div>
+
+      <button id="payNowBtn" class="pay-btn">Pay Now</button>
+    </div>
+  </div>
+
+  <!-- Drawer -->
+<div class="drawer glassy">
+  <div class="drawer-header">
+    <h3>Customers Menu</h3>
+    <i class="uil uil-times close-drawer"></i>
+  </div>
+  <ul class="drawer-links">
+    <li><a href="dashboard.html"><i class="uil uil-apps"></i> Dashboard</a></li>
+    <li><a href="profile.html"><i class="uil uil-user"></i> Profile</a></li>
+    <li><a href="menu-place-order.html"><i class="uil uil-utensils"></i> Menu/Place Order</a></li>
+    <li><a href="alerts.html"><i class="uil uil-envelope"></i> Alerts</a></li>
+    <li><a href="complaints.html"><i class="uil uil-exclamation"></i> Complaints</a></li>
+    <li><a href="pending-orders.html"><i class="uil uil-clipboard-alt"></i> Order History</a></li>
+  </ul>
+  <div class="logout-section">
+    <a href="../cust-auth.html" class="logout-btn"><i class="uil uil-signout"></i> Logout</a>
+  </div>
+</div>
+
+  <!-- Footer Navigation -->
+  <footer class="footer-nav">
+    <div class="nav-item">
+      <i class="uil uil-bars"></i>
+      <span>Menu</span>
+    </div>
+    <a href="complaints.html"><div class="nav-item">
+      <i class="uil uil-comment-question"></i>
+      <span>Complaints</span>
+    </div></a>
+    <a href="dashboard.html"><div class="nav-item">
+      <i class="uil uil-home"></i>
+      <span>Home</span>
+    </div></a>
+    <a href="alerts.html"><div class="nav-item">
+      <i class="uil uil-envelope"></i>
+      <span>Alerts</span>
+    </div></a>
+    <a href="pending-orders.html"><div class="nav-item">
+      <i class="uil uil-history"></i>
+      <span>History</span>
+    </div></a>
+  </footer>
+
+  <script src="https://js.paystack.co/v2/inline.js"></script>
+  <script src="https://checkout.flutterwave.com/v3.js"></script>
+  <script type="module" src="../js/drawer.js"></script>
+  <script type="module" src="../js/customer/cust-menu.js"></script>
+</body>
+</html>

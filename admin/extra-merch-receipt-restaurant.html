@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Extra Merchants</title>
+<link rel="stylesheet" href="../css/drawer.css">
+<link href="https://unicons.iconscout.com/release/v4.0.8/css/line.css" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+body { background: linear-gradient(to bottom right, #0f4e75, #000); min-height: 100vh; color: #fff; padding: 1rem; }
+header { display: flex; justify-content: space-between; align-items: center; }
+header h2 { font-size: 1.5rem; }
+.add-btn { background-color: #0f4e75; padding: 0.6rem 1rem; border: none; border-radius: 8px; cursor: pointer; color: #fff; display: flex; align-items: center; gap: 0.3rem; }
+.add-btn:hover { background-color: #0c3a59; }
+.section { margin-top: 1.5rem; }
+.card { background: rgba(255,255,255,0.08); backdrop-filter: blur(10px); padding: 1rem; border-radius: 12px; margin-bottom: 1rem; }
+.card h3 { margin-bottom: 0.5rem; }
+.card p { margin: 0.2rem 0; }
+.card-actions { margin-top: 0.6rem; display: flex; gap: 0.5rem; }
+.btn { padding: 0.4rem 0.8rem; border: none; border-radius: 6px; cursor: pointer; }
+.btn.edit { background: #00aaff; }
+.btn.delete { background: #ff4d4d; }
+.btn:hover { opacity: 0.9; }
+
+/* Modal */
+.modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; }
+.modal-content { background: rgba(255,255,255,0.08); backdrop-filter: blur(12px); padding: 1.5rem; border-radius: 12px; width: 90%; max-width: 400px; }
+.form-group { margin-bottom: 1rem; }
+label { display: block; margin-bottom: 0.3rem; font-weight: bold; }
+select, input { width: 100%; padding: 0.6rem; border-radius: 8px; border: none; background: rgba(255,255,255,0.1); color: #fff; }
+.message { text-align: center; margin-bottom: 1rem; }
+
+.footer-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(255,255,255,0.05); backdrop-filter: blur(15px); display: flex; justify-content: space-around; padding: 0.7rem 0; border-top: 1px solid rgba(255,255,255,0.1); }
+.footer-nav a { text-decoration: none; }
+.nav-item { display: flex; flex-direction: column; align-items: center; color: #ccc; font-size: 0.85rem; cursor: pointer; transition: color 0.2s ease; }
+.nav-item i { font-size: 1.3rem; margin-bottom: 2px; }
+.nav-item:hover, .nav-item.active { color: white; }
+</style>
+</head>
+<body>
+<header>
+  <h2>Extra Merchants</h2>
+  <button class="add-btn" id="addMerchantBtn"><i class="uil uil-plus"></i> Add</button>
+</header>
+
+<section id="merchantList" class="section"></section>
+
+<!-- Modal -->
+<div class="modal" id="merchantModal">
+  <div class="modal-content">
+    <h3 id="modalTitle">Add Extra Merchant</h3>
+    <div class="form-group">
+      <label for="restaurantSelect">Restaurant</label>
+      <select id="restaurantSelect"></select>
+    </div>
+    <div id="assignedMsg" class="message" style="color: #ff4d4d;"></div>
+    <div id="formFields">
+      <div class="form-group">
+        <label for="link">Profile Link</label>
+        <input type="url" id="link" placeholder="https://example.com">
+      </div>
+      <div class="form-group"><label for="fullName">Full Name</label><input type="text" id="fullName"></div>
+      <div class="form-group"><label for="username">Username</label><input type="text" id="username"></div>
+      <div class="form-group"><label for="apiCode">API Code</label><input type="text" id="apiCode"></div>
+      <div class="form-group"><label for="phone">Phone Number</label><input type="tel" id="phone" placeholder="2348012345678"></div>
+      <button class="add-btn" id="saveMerchantBtn">Submit</button>
+    </div>
+  </div>
+</div>
+
+<!-- Drawer + Footer same as before -->
+<div class="drawer glassy">
+  <div class="drawer-header">
+    <h3>Admin Menu</h3>
+    <i class="uil uil-times close-drawer"></i>
+  </div>
+  <ul class="drawer-links">
+    <li><a href="dashboard.html"><i class="uil uil-apps"></i> Dashboard</a></li>
+    <li><a href="announcements.html"><i class="uil uil-megaphone"></i> Announcement</a></li>
+    <li><a href="orders.html"><i class="uil uil-utensils"></i>All Orders </a></li>
+    <li><a href="assign-orders.html"><i class="uil uil-exchange"></i> Assign Order</a></li>
+    <li><a href="alerts.html"><i class="uil uil-envelope-add"></i> Message</a></li>
+    <li><a href="menu.html"><i class="uil uil-restaurant"></i> Food/Restaurant Menu</a></li>
+    <li><a href="complaints.html"><i class="uil uil-exclamation"></i> Complaints</a></li>
+    <li><a href="calendar.html"><i class="uil uil-calendar-alt"></i> Merchant Shift</a></li>
+    <li><a href="map.html"><i class="uil uil-map"></i>Merchants Location</a></li>
+    <li><a href="hostel-merchants.html"><i class="uil uil-store"></i>Hostel Merchants</a></li>
+    <li><a href="extra-merch-receipt-restaurant.html"><i class="uil uil-users-alt"></i>Extra Receipt Merchants</a></li>
+    <li><a href="get-token.html"><i class="uil uil-key-skeleton"></i> Merchant Token</a></li>
+  </ul>
+  <div class="logout-section">
+    <a href="../admin-login.html" class="logout-btn"><i class="uil uil-signout"></i> Logout</a>
+  </div>
+</div>
+
+  <!-- Footer Navigation -->
+  <footer class="footer-nav">
+    <div class="nav-item">
+      <i class="uil uil-bars"></i>
+      <span>Menu</span>
+    </div>
+    <a href="complaints.html"><div class="nav-item">
+      <i class="uil uil-comment-question"></i>
+      <span>Complaints</span>
+    </div></a>
+    <a href="dashboard.html"><div class="nav-item active">
+      <i class="uil uil-home"></i>
+      <span>Home</span>
+    </div></a>
+    <a href="assign-orders.html"><div class="nav-item">
+      <i class="uil uil-exchange"></i>
+      <span>Assign</span>
+    </div></a>
+    <a href="orders.html"><div class="nav-item">
+      <i class="uil uil-receipt"></i>
+      <span>History</span>
+    </div></a>
+  </footer>
+
+<script type="module" src="../js/drawer.js"></script>
+<script type="module">
+import { db } from '../js/firebase.js';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, where } 
+from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
+
+// DOM
+const addBtn = document.getElementById("addMerchantBtn");
+const modal = document.getElementById("merchantModal");
+const saveBtn = document.getElementById("saveMerchantBtn");
+const restaurantSelect = document.getElementById("restaurantSelect");
+const assignedMsg = document.getElementById("assignedMsg");
+const formFields = document.getElementById("formFields");
+const merchantList = document.getElementById("merchantList");
+
+let editId = null;
+let restaurants = [];
+
+/* Load restaurants */
+async function loadRestaurants() {
+  restaurantSelect.innerHTML = "";
+  restaurants = [];
+  const snap = await getDocs(collection(db, "restaurants"));
+  snap.forEach(docSnap => {
+    const data = docSnap.data();
+    restaurants.push({ id: docSnap.id, name: data.name });
+  });
+  restaurants.forEach(r => {
+    const opt = document.createElement("option");
+    opt.value = r.id;
+    opt.textContent = r.name;
+    restaurantSelect.appendChild(opt);
+  });
+}
+
+/* Load merchants list */
+function loadMerchants() {
+  onSnapshot(collection(db, "extraMerchants"), snap => {
+    merchantList.innerHTML = "";
+    snap.forEach(docSnap => {
+      const data = docSnap.data();
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <h3>${data.restaurantName}</h3>
+        ${data.link ? `<p><a href="${data.link}" target="_blank" style="color:#00aaff; text-decoration:underline;">View Profile</a></p>` : ""}
+        <p><strong>Full Name:</strong> ${data.fullName}</p>
+        <p><strong>Username:</strong> ${data.username}</p>
+        <p><strong>API Code:</strong> ${data.apiCode}</p>
+        <p><strong>Phone:</strong> ${data.phone}</p>
+        <div class="card-actions">
+          <button class="btn edit">Edit</button>
+          <button class="btn delete">Delete</button>
+        </div>`;
+      card.querySelector(".edit").addEventListener("click", () => openModalForEdit(docSnap.id, data));
+      card.querySelector(".delete").addEventListener("click", async () => {
+        await deleteDoc(doc(db, "extraMerchants", docSnap.id));
+      });
+      merchantList.appendChild(card);
+    });
+  });
+}
+loadMerchants();
+
+/* Save merchant */
+saveBtn.addEventListener("click", async () => {
+  const restaurantId = restaurantSelect.value;
+  const restaurantName = restaurants.find(r => r.id === restaurantId)?.name || "";
+  const link = document.getElementById("link").value.trim();
+  const fullName = document.getElementById("fullName").value.trim();
+  const username = document.getElementById("username").value.trim();
+  const apiCode = document.getElementById("apiCode").value.trim();
+  const phone = document.getElementById("phone").value.trim();
+
+  if (!restaurantId || !fullName || !username || !apiCode || !phone || !link) {
+    alert("Please fill in all fields");
+    return;
+  }
+
+  const merchantData = { restaurantId, restaurantName, fullName, username, apiCode, phone, link };
+
+  if (editId) {
+    await updateDoc(doc(db, "extraMerchants", editId), merchantData);
+  } else {
+    const assigned = await checkAssigned(restaurantId);
+    if (assigned) return;
+    await addDoc(collection(db, "extraMerchants"), merchantData);
+  }
+  modal.style.display = "none";
+});
+
+/* Check assigned */
+async function checkAssigned(restaurantId) {
+  const q = query(collection(db, "extraMerchants"), where("restaurantId", "==", restaurantId));
+  const snap = await getDocs(q);
+  if (!snap.empty) {
+    assignedMsg.textContent = "Merchant already assigned.";
+    formFields.style.display = "none";
+    return true;
+  } else {
+    assignedMsg.textContent = "";
+    formFields.style.display = "block";
+    return false;
+  }
+}
+restaurantSelect.addEventListener("change", () => {
+  checkAssigned(restaurantSelect.value);
+});
+
+/* Modal controls */
+addBtn.addEventListener("click", () => {
+  editId = null;
+  document.getElementById("modalTitle").textContent = "Add Extra Merchant";
+  modal.style.display = "flex";
+  loadRestaurants().then(() => {
+    restaurantSelect.value = restaurants[0]?.id || "";
+    checkAssigned(restaurantSelect.value);
+  });
+});
+modal.addEventListener("click", (e) => {
+  if (e.target === modal) modal.style.display = "none";
+});
+
+/* Open modal for edit */
+async function openModalForEdit(id, data) {
+  editId = id;
+  document.getElementById("modalTitle").textContent = "Edit Extra Merchant";
+  document.getElementById("link").value = data.link || "";
+  modal.style.display = "flex";
+  loadRestaurants().then(() => {
+    restaurantSelect.value = data.restaurantId;
+    assignedMsg.textContent = "";
+    formFields.style.display = "block";
+    document.getElementById("fullName").value = data.fullName;
+    document.getElementById("username").value = data.username;
+    document.getElementById("apiCode").value = data.apiCode;
+    document.getElementById("phone").value = data.phone;
+  });
+}
+</script>
+</body>
+</html>
