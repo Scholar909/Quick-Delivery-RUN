@@ -104,7 +104,7 @@ function createOrderCard(order, type = "pending") {
 
 // ---------- render ----------
 function renderOrders(snapshot, container, type) {
-  container.innerHTML = `<p>No Order Available</p>` ;
+  container.innerHTML = '';
   snapshot.forEach(docSnap => {
     const order = { id: docSnap.id, ...docSnap.data() };
     container.appendChild(createOrderCard(order, type));
