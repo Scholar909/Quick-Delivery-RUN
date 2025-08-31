@@ -5,6 +5,17 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
 
+async function isHostelFlow(order, user) {
+  // Check merchant role
+  const userDoc = await getDoc(doc(db, "merchants", user.uid));
+  const role = userDoc.exists() ? userDoc.data().role?.toLowerCase() : "";
+
+  // Check order tag
+  const tag = order.tag?.toLowerCase() || "";
+
+  return role === "hostel" || tag === "potters lodge";
+}
+
 const ordersList = document.querySelector('.orders-list');
 let timers = {}; // auto-accept timeout
 
@@ -156,12 +167,10 @@ async function acceptOrder(order, user, auto = false) {
     assignedMerchantName: user.displayName || "Merchant"
   };
 
-  if (order.isHostel) {
-    // Only update order, skip CallMeBot
+  if (await isHostelFlow(order, user)) {
     await updateDoc(doc(db, "orders", order.id), updateData);
     alert(auto ? "✅ Hostel order auto-accepted!" : `✅ Hostel order accepted! Customer room: ${order.customerRoom || 'N/A'}`);
   } else {
-    // Normal merchant flow
     await updateDoc(doc(db, "orders", order.id), updateData);
     await sendOrderToExtraMerchants(order.id);
     await notifyReceiptMerchant(order, user);
@@ -180,8 +189,9 @@ export async function sendOrderToExtraMerchants(orderId) {
 
     const order = orderSnap.data();
     
-    if (order.isHostel){
-      console.log("Skip CallMeBot alert", orderId);
+    // Check hostel by tag only (no user available here)
+    if (order.tag?.toLowerCase() === "potters lodge") {
+      console.log("Skip CallMeBot alert for hostel order:", orderId);
       return;
     }
     
@@ -276,8 +286,10 @@ SEND TO ALL EXTRA MERCHANTS FOR RESTAURANT
 ------------------------------ */
 async function notifyReceiptMerchant(orderData, merchantUser) {
   try {
-    if (orderData.isHostel){
-      console.log("Skip CALLMEBOT notify", orderData.id);
+    
+    // Check hostel by tag only (no user object here)
+    if (orderData.tag?.toLowerCase() === "potters lodge") {
+      console.log("Skip CALLMEBOT notify for hostel order:", orderData.id);
       return;
     }
     
