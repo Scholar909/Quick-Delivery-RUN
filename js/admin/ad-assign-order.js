@@ -87,7 +87,7 @@ const declineModal = buildModal("declineModal", "Decline Order");
 function listenToPendingOrders() {
   const q = query(collection(db, "orders"), where("orderStatus", "==", "pending_assignment"));
   onSnapshot(q, (snapshot) => {
-    ordersList.innerHTML = 'No Order Available';
+    ordersList.innerHTML = `<p>No Order Available</p>`;
     const orders = [];
     snapshot.forEach(docSnap => orders.push({ id: docSnap.id, ...docSnap.data() }));
     orders.sort((a, b) => a.createdAt?.toDate() - b.createdAt?.toDate());
