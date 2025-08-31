@@ -68,7 +68,7 @@ onAuthStateChanged(auth, (user) => {
 
   const q = query(collection(db, "orders"), where("assignedMerchantId", "==", user.uid));
   onSnapshot(q, (snapshot) => {
-    ordersList.innerHTML = "No order available.";
+    ordersList.innerHTML = `<p>No Order Available</p>` ;
     snapshot.forEach(docSnap => {
       const order = { id: docSnap.id, ...docSnap.data() };
       if (order.orderStatus === "pending") {
