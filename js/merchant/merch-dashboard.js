@@ -293,7 +293,7 @@ document.addEventListener("DOMContentLoaded", () => {
   onAuthStateChanged(auth, async (user) => {
     if (user) {
       await checkHostelMerchant(user.uid);
-      welcomeMsgEl.innerHTML = `Welcome, ${user.username || 'Merchant'}`;
+      welcomeMsgEl.innerHTML = `Welcome, ${userData.username || 'Merchant'}`;
       loadMerchantAnnouncement();
       loadTodayShift(user.uid);
       loadCompletedOrders(user.uid);
