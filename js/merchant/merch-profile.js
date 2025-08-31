@@ -157,6 +157,26 @@ imageInput.addEventListener('change', async () => {
   const file = imageInput.files[0];
   if (!file) return;
 
+  const user = auth.currentUser;
+  const merchantRef = doc(db, "merchants", user.uid);
+  const snap = await getDoc(merchantRef);
+
+  if (!snap.exists()) {
+    alert("Profile not found.");
+    return;
+  }
+
+  const data = snap.data();
+  const now = new Date();
+
+  // 1️⃣ Check if locked
+  if (data.profileImageLockedUntil && now < data.profileImageLockedUntil.toDate()) {
+    alert("Image locked");
+    imageInput.value = "";
+    return;
+  }
+
+  // 2️⃣ Upload to ImgBB
   const formData = new FormData();
   formData.append("image", file);
 
@@ -168,9 +188,23 @@ imageInput.addEventListener('change', async () => {
     const result = await res.json();
     const url = result.data.url;
 
-    await updateDoc(doc(db, "merchants", auth.currentUser.uid), {
+    // 3️⃣ Determine if this change triggers a lock
+    let lockedUntil = null;
+    if (data.profileImageUpdatedAt) {
+      const lastUpdated = data.profileImageUpdatedAt.toDate();
+      const hoursSince = (now - lastUpdated) / (1000 * 60 * 60);
+
+      if (hoursSince >= 12) {
+        // lock for 1 month
+        lockedUntil = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+      }
+    }
+
+    // 4️⃣ Save new image + lock rules
+    await updateDoc(merchantRef, {
       profileImage: url,
-      updatedAt: serverTimestamp()
+      profileImageUpdatedAt: serverTimestamp(),
+      profileImageLockedUntil: lockedUntil ? lockedUntil : null
     });
 
     profileImage.src = url;
