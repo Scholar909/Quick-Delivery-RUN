@@ -85,13 +85,12 @@ document.addEventListener("DOMContentLoaded", () => {
         const userDoc = await getDoc(doc(db, "customers", user.uid));
         if (userDoc.exists()) {
           const userData = userDoc.data();
-          welcomeMsgEl.textContent = `Welcome, ${userData.username || userData.fullName || "Customer"}`;
+          welcomeMsgEl.textContent = `Welcome, ${userData.username ||  "Customer"}`;
         } else {
           welcomeMsgEl.textContent = `Welcome, Customer`;
         }
       } catch (err) {
         console.error("Error fetching customer data:", err);
-        welcomeMsgEl.textContent = `Welcome, Customer`;
       }
     }
   });
