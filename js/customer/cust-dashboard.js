@@ -1,11 +1,15 @@
-import { db } from '../firebase.js';
+import { db, auth } from '../firebase.js';
 import {
   collection,
-  onSnapshot
+  onSnapshot,
+  doc,
+  getDoc
 } from 'https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js';
+import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js';
 
 document.addEventListener("DOMContentLoaded", () => {
   const carousel = document.getElementById("announcement-carousel");
+  const welcomeMsgEl = document.getElementById("welcome-msg");
   const restaurantsGrid = document.querySelector(".restaurants .grid");
 
   async function loadCustomerAnnouncements() {
@@ -58,7 +62,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ...new Set(snapshot.docs.map(doc => doc.data().restaurantName))
       ].sort();
 
-      restaurantsGrid.innerHTML = '';
+      restaurantsGrid.innerHTML = 'No Restaurants Available';
       restaurantNames.forEach(name => {
         const card = document.createElement('div');
         card.classList.add('restaurant-card');
@@ -66,13 +70,31 @@ document.addEventListener("DOMContentLoaded", () => {
 
         card.addEventListener('click', () => {
           localStorage.setItem('selectedRestaurant', name);
-          window.location.href = '../customer/menu-place-order.html'; // ✅ Adjust path if needed
+          window.location.href = '../customer/menu-place-order.html';
         });
 
         restaurantsGrid.appendChild(card);
       });
     });
   }
+  
+  // 🔹 Show Welcome Message with Customer Name
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      try {
+        const userDoc = await getDoc(doc(db, "customers", user.uid));
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          welcomeMsgEl.textContent = `Welcome, ${userData.username || userData.fullName || "Customer"}`;
+        } else {
+          welcomeMsgEl.textContent = `Welcome, Customer`;
+        }
+      } catch (err) {
+        console.error("Error fetching customer data:", err);
+        welcomeMsgEl.textContent = `Welcome, Customer`;
+      }
+    }
+  });
 
   loadCustomerAnnouncements();
   loadRestaurants();
