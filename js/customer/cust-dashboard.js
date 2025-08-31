@@ -83,18 +83,21 @@ document.addEventListener("DOMContentLoaded", () => {
     if (user) {
       try {
         const userDoc = await getDoc(doc(db, "customers", user.uid));
-      if (userDoc.exists()) {
-      const userData = userDoc.data();
-      console.log("Fetched customer data:", userData); // 👈 Debug log
-    
-      if (userData.username && userData.username.trim() !== "") {
-        welcomeMsgEl.textContent = `Welcome, ${userData.username}`;
-      } else {
-        welcomeMsgEl.textContent = "Welcome, Customer";
-      }
-    } else {
-      welcomeMsgEl.textContent = "Welcome, Customer";
-    }
+        console.log("Customer UID:", user.uid);  // ✅ moved inside
+        console.log("Customer doc exists?", userDoc.exists());
+
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          console.log("Customer data:", userData);
+
+          if (userData.username && userData.username.trim() !== "") {
+            welcomeMsgEl.textContent = `Welcome, ${userData.username}`;
+          } else {
+            welcomeMsgEl.textContent = "Welcome, Customer";
+          }
+        } else {
+          welcomeMsgEl.textContent = "Welcome, Customer";
+        }
       } catch (err) {
         console.error("Error fetching customer data:", err);
       }
