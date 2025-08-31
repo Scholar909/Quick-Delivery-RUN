@@ -167,7 +167,7 @@ imageInput.addEventListener('change', async () => {
     const result = await res.json();
     const url = result.data.url;
 
-    await updateDoc(doc(db, "customers", user.uid), {
+    await updateDoc(doc(db, "customers", auth.currentUser.uid), {
       profileImage: url,
       updatedAt: serverTimestamp()
     });
