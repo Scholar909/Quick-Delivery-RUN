@@ -299,13 +299,12 @@ document.addEventListener("DOMContentLoaded", () => {
         const docSnap = await getDoc(doc(db, "merchants", user.uid));
         if (docSnap.exists()) {
           const userData = docSnap.data();
-          welcomeMsgEl.textContent = `Welcome, ${userData.username || userData.shopName || "Merchant"}`;
+          welcomeMsgEl.textContent = `Welcome, ${userData.username || "Merchant"}`;
         } else {
           welcomeMsgEl.textContent = "Welcome, Merchant";
         }
       } catch (err) {
         console.error("Error fetching merchant data:", err);
-        welcomeMsgEl.textContent = "Welcome, Merchant";
       }
 
       loadMerchantAnnouncement();
