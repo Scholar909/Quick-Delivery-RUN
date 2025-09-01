@@ -110,6 +110,9 @@ function createActionButtons(userData, userId) {
   blockBtn.className = "btn-action btn-block";
   blockBtn.title = userData.active === false ? "Unblock user" : "Block user";
   blockBtn.textContent = userData.active === false ? "Unblock" : "Block";
+  blockBtn.style.cursor = "pointer";
+        blockBtn.onclick = () =>
+          createTooltip("When blocking someone, ensure to mark them as unavailable (uncheck the 'available'), and ensure to turn then available when unblocking them (check the 'available')");
   blockBtn.addEventListener('click', async () => {
     try {
       const userDocRef = doc(db, userData.role + 's', userId);
@@ -154,6 +157,29 @@ deleteBtn.addEventListener("click", async () => {
 
   return container;
 }
+
+function createTooltip(message) {
+    const existing = document.getElementById("completed-tooltip");
+    if (existing) existing.remove();
+
+    const tip = document.createElement("div");
+    tip.id = "completed-tooltip";
+    tip.textContent = message;
+    Object.assign(tip.style, {
+      position: "fixed",
+      bottom: "80px",
+      right: "20px",
+      background: "#0f4e75",
+      color: "#fff",
+      padding: "8px 12px",
+      borderRadius: "8px",
+      fontSize: "14px",
+      zIndex: 9999
+    });
+    document.body.appendChild(tip);
+
+    setTimeout(() => tip.remove(), 4000);
+  }
 
 // Check if merchant is currently on duty
 async function checkMerchantOnDuty(user) {
