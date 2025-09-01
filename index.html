@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Quick Delivery - Home</title>
 <link href="https://unicons.iconscout.com/release/v4.0.0/css/line.css" rel="stylesheet">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0f4e75">
 <style>
 /* Reset & Base */
 * { margin:0; padding:0; box-sizing:border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
@@ -297,6 +299,15 @@ body {
     toggleBtn.textContent = expanded ? "Show Less" : "Read More";
   });
 </script>
-
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register("/sw.js")
+      .then(() => console.log("✅ Service Worker Registered"))
+      .catch((err) => console.log("SW Registration Failed:", err));
+  });
+}
+</script>
 </body>
 </html>
