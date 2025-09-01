@@ -79,30 +79,29 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   
   // 🔹 Show Welcome Message with Customer Name
-  onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      try {
-        const userDoc = await getDoc(doc(db, "customers", user.uid));
-        console.log("Customer UID:", user.uid);  // ✅ moved inside
-        console.log("Customer doc exists?", userDoc.exists());
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    try {
+      const docSnap = await getDoc(doc(db, "customers", user.uid));
+      console.log("Customer UID:", user.uid);
 
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          console.log("Customer data:", userData);
+      if (docSnap.exists()) {
+        const userData = docSnap.data();
+        console.log("Customer data:", userData);
 
-          if (userData.username && userData.username.trim() !== "") {
-            welcomeMsgEl.textContent = `Welcome, ${userData.username}`;
-          } else {
-            welcomeMsgEl.textContent = "Welcome, Customer";
-          }
-        } else {
-          welcomeMsgEl.textContent = "Welcome, Customer";
-        }
-      } catch (err) {
-        console.error("Error fetching customer data:", err);
+        // Always fallback gracefully
+        welcomeMsgEl.textContent = `Welcome, ${userData.username || "Customer"}`;
+      } else {
+        welcomeMsgEl.textContent = "Welcome, Customer";
       }
+    } catch (err) {
+      console.error("Error fetching customer data:", err);
+      welcomeMsgEl.textContent = "Welcome, Customer";
     }
-  });
+  } else {
+    welcomeMsgEl.textContent = "Welcome, Guest";
+  }
+});
 
   loadCustomerAnnouncements();
   loadRestaurants();
