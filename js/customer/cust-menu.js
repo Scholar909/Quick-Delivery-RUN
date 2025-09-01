@@ -357,7 +357,7 @@ payNowBtn.addEventListener('click', async () => {
 
   // 4. Trigger Paystack
   const handler = PaystackPop.setup({
-    key: "pk_test_5197ede2e0944281b3c75205761cda1ee48509ea", // test key
+    key: "pk_live_ec6cb3aa50925c928ed61a040c7ada1aab26c054", // test key
     email: customerData.email,
     amount: amountKobo,
     currency: "NGN",
