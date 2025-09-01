@@ -88,9 +88,10 @@ onAuthStateChanged(auth, async (user) => {
       if (docSnap.exists()) {
         const userData = docSnap.data();
         console.log("Customer data:", userData);
-
-        // Always fallback gracefully
-        welcomeMsgEl.textContent = `Welcome, ${userData.username || "Customer"}`;
+      
+        // Defensive fallback
+        const name = userData.username || userData.fullname || userData.email || "Customer";
+        welcomeMsgEl.textContent = `Welcome, ${name}`;
       } else {
         welcomeMsgEl.textContent = "Welcome, Customer";
       }
