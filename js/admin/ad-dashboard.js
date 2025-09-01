@@ -24,6 +24,39 @@ let customers = [];
 let merchants = [];
 let allUsers = [];
 
+// ✅ Tooltip helper
+function createTooltip(message) {
+  const tooltip = document.createElement('div');
+  tooltip.textContent = message;
+
+  Object.assign(tooltip.style, {
+    position: 'fixed',
+    bottom: '20px',
+    right: '20px',
+    background: '#333',
+    color: '#fff',
+    padding: '10px 16px',
+    borderRadius: '8px',
+    fontSize: '14px',
+    maxWidth: '280px',
+    lineHeight: '1.4',
+    zIndex: 2000,
+    opacity: '0',
+    transition: 'opacity 0.3s ease'
+  });
+
+  document.body.appendChild(tooltip);
+
+  requestAnimationFrame(() => {
+    tooltip.style.opacity = '1';
+  });
+
+  setTimeout(() => {
+    tooltip.style.opacity = '0';
+    setTimeout(() => tooltip.remove(), 300);
+  }, 4000);
+}
+
 // Check auth state, redirect if no user
 onAuthStateChanged(auth, user => {
   if (user) {
@@ -55,6 +88,7 @@ function createActionButtons(userData, userId) {
   container.style.display = 'flex';
   container.style.gap = '0.5rem';
 
+  // Message button
   const msgBtn = document.createElement('button');
   msgBtn.textContent = "Message";
   msgBtn.className = "btn-action btn-message";
@@ -68,6 +102,7 @@ function createActionButtons(userData, userId) {
   });
   container.appendChild(msgBtn);
 
+  // View button
   const viewBtn = document.createElement('button');
   viewBtn.textContent = "View";
   viewBtn.className = "btn-action btn-view";
@@ -77,7 +112,7 @@ function createActionButtons(userData, userId) {
   });
   container.appendChild(viewBtn);
 
-  // For merchants (normal + hostel): Availability toggle
+  // Availability toggle for merchants/hostel
   if (userData.role === 'merchant' || userData.role === 'hostel') {
     const toggleLabel = document.createElement('label');
     toggleLabel.style.display = 'flex';
@@ -88,7 +123,7 @@ function createActionButtons(userData, userId) {
 
     const toggleInput = document.createElement('input');
     toggleInput.type = 'checkbox';
-    toggleInput.checked = userData.available !== false; // default ON if not set
+    toggleInput.checked = userData.available !== false;
 
     toggleInput.addEventListener('change', async () => {
       try {
@@ -106,18 +141,31 @@ function createActionButtons(userData, userId) {
     container.appendChild(toggleLabel);
   }
 
+  // Block / Unblock button
   const blockBtn = document.createElement('button');
   blockBtn.className = "btn-action btn-block";
   blockBtn.title = userData.active === false ? "Unblock user" : "Block user";
   blockBtn.textContent = userData.active === false ? "Unblock" : "Block";
-  blockBtn.style.cursor = "pointer";
-        blockBtn.onclick = () =>
-          createTooltip("When blocking someone, ensure to mark them as unavailable (uncheck the 'available'), and ensure to turn then available when unblocking them (check the 'available')");
+
   blockBtn.addEventListener('click', async () => {
+    // ✅ Tooltip shows on click
+    createTooltip("When blocking someone, ensure to also mark them unavailable (uncheck 'available'). When unblocking, mark them available again.");
+
     try {
-      const userDocRef = doc(db, userData.role + 's', userId);
-      await updateDoc(userDocRef, { active: !(userData.active !== false) });
-      alert(`User ${userData.username || userData.fullname || userData.email} is now ${userData.active === false ? "unblocked" : "blocked"}`);
+      const collectionName =
+        userData.role === "customer"
+          ? "customers"
+          : "merchants"; // includes both merchants and hostel merchants
+      
+      const userDocRef = doc(db, collectionName, userId);
+      const newActiveState = !(userData.active !== false);
+      await updateDoc(userDocRef, { active: newActiveState });
+
+      alert(
+        `User ${userData.username || userData.fullname || userData.email} is now ${
+          newActiveState ? "active (unblocked)" : "blocked"
+        }`
+      );
     } catch (err) {
       console.error('Error toggling block status:', err);
       alert('Failed to toggle block status');
@@ -125,61 +173,34 @@ function createActionButtons(userData, userId) {
   });
   container.appendChild(blockBtn);
 
+  // Delete button
   const deleteBtn = document.createElement('button');
   deleteBtn.textContent = "Delete";
   deleteBtn.className = "btn-action btn-delete";
   deleteBtn.title = "Delete user permanently";
-  
-deleteBtn.addEventListener("click", async () => {
-  if (!confirm("Are you sure you want to remove this merchant from hostel list?")) return;
 
-  try {
-    const snap = await getDoc(doc(db, "hostelMerchants", id));
-    if (snap.exists()) {
-      const { merchantId } = snap.data();
-      // 1️⃣ Delete from hostelMerchants
-      await deleteDoc(doc(db, "hostelMerchants", id));
+  deleteBtn.addEventListener("click", async () => {
+    if (!confirm("Are you sure you want to remove this merchant from hostel list?")) return;
 
-      // 2️⃣ Update role in merchants
-      await updateDoc(doc(db, "merchants", merchantId), { role: "merchant" });
-      
-      loadUsersRealTime();
-
-      alert("Merchant removed from hostel list and role reverted to merchant.");
+    try {
+      const snap = await getDoc(doc(db, "hostelMerchants", userId));
+      if (snap.exists()) {
+        const { merchantId } = snap.data();
+        await deleteDoc(doc(db, "hostelMerchants", userId));
+        await updateDoc(doc(db, "merchants", merchantId), { role: "merchant" });
+        loadUsersRealTime();
+        alert("Merchant removed from hostel list and role reverted to merchant.");
+      }
+    } catch (err) {
+      console.error("Error deleting hostel merchant:", err);
+      alert("Failed to delete merchant.");
     }
-  } catch (err) {
-    console.error("Error deleting hostel merchant:", err);
-    alert("Failed to delete merchant.");
-  }
-});
-  
+  });
+
   container.appendChild(deleteBtn);
 
   return container;
 }
-
-function createTooltip(message) {
-    const existing = document.getElementById("completed-tooltip");
-    if (existing) existing.remove();
-
-    const tip = document.createElement("div");
-    tip.id = "completed-tooltip";
-    tip.textContent = message;
-    Object.assign(tip.style, {
-      position: "fixed",
-      bottom: "80px",
-      right: "20px",
-      background: "#0f4e75",
-      color: "#fff",
-      padding: "8px 12px",
-      borderRadius: "8px",
-      fontSize: "14px",
-      zIndex: 9999
-    });
-    document.body.appendChild(tip);
-
-    setTimeout(() => tip.remove(), 4000);
-  }
 
 // Check if merchant is currently on duty
 async function checkMerchantOnDuty(user) {
