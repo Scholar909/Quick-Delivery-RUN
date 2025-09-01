@@ -10,16 +10,34 @@
 <style>
 /* Reset & Base */
 * { margin:0; padding:0; box-sizing:border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+
 body {
-  min-height:100vh;
+  min-height: 100vh;
   background: linear-gradient(135deg, #0f4e75, #1a1a1a);
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  overflow:hidden;
-  position:relative;
-  padding:20px;
-  color:white;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;  /* start from top, not middle */
+  overflow-x: hidden;       /* prevent sideways scroll */
+  overflow-y: auto;         /* allow natural page scroll */
+  padding: 20px;
+}
+
+.hero-card {
+  position: relative;
+  z-index: 2;
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(20px);
+  border-radius: 25px;
+  padding: 40px 25px;
+  max-width: 900px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  animation: fadeIn 1s ease forwards;
+
+  /* fixes */
+  overflow: visible;
+}
 }
 
 /* Rotating Background Glow */
@@ -39,24 +57,6 @@ body {
 @keyframes rotateCircle {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
-}
-
-/* Glassmorphic Card */
-.hero-card {
-  position:relative;
-  z-index:2;
-  background: rgba(255,255,255,0.06);
-  backdrop-filter: blur(20px);
-  border-radius:25px;
-  padding:40px 25px;
-  max-width:900px;
-  width:100%;
-  text-align:center;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.6);
-  animation: fadeIn 1s ease forwards;
-  overflow-y:auto;
-  max-height:90vh;
-  margin-bottom: 30px;
 }
 
 @keyframes fadeIn {
