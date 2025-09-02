@@ -410,6 +410,7 @@ payNowBtn.addEventListener('click', async () => {
         });
   
         alert("Payment successful! Your order is pending assignment.");
+        window.location.href = "pending-orders.html";
       } else {
         alert("Payment failed.");
       }
