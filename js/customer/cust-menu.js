@@ -10,6 +10,9 @@ import {
 } from 'https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
 
+// Grab Flutterwave from the global window (set by v3.js)
+const FlutterCheckout = window.FlutterwaveCheckout;
+
 // DOM elements
 const restaurantSelect = document.getElementById('restaurantSelect');
 const foodItemsContainer = document.getElementById('food-items');
@@ -316,7 +319,7 @@ payNowBtn.addEventListener('click', async () => {
     alert("Please choose a restaurant.");
     return;
   }
-  if (!window.PaystackPop) {
+  if (!FlutterCheckout) {
     alert("Payment library not loaded.");
     return;
   }
@@ -353,26 +356,35 @@ payNowBtn.addEventListener('click', async () => {
   const fee = Number(orderTotalElem.dataset.fee);
   const total = Number(orderTotalElem.dataset.total);
 
-  const amountKobo = Math.round(total * 100);
-
   // 4. Trigger Paystack
-  const handler = PaystackPop.setup({
-    key: "pk_live_ec6cb3aa50925c928ed61a040c7ada1aab26c054", // test key
-    email: customerData.email,
-    amount: amountKobo,
+  FlutterCheckout({
+    public_key: "FLWPUBK-b7fc5a9c1691534f97111ea016002bf3-X", // replace with your Flutterwave public key
+    tx_ref: "ORDER-" + Date.now(),
+    amount: total,  // NGN (already in Naira, not kobo)
     currency: "NGN",
-    ref: "ORDER-" + Date.now(),
-    subaccount: subaccountId, // 👈 goes directly to restaurant’s account
-    metadata: {
-      restaurantName: selectedRestaurant,
-      subaccount_id: subaccountId, // save for record
-      custom_fields: [
-        { display_name: "Customer Name", variable_name: "customer_name", value: customerData.fullname },
-        { display_name: "Phone", variable_name: "customer_phone", value: customerData.phone }
-      ]
+    payment_options: "card, ussd, banktransfer",
+  
+    customer: {
+      email: customerData.email,
+      phonenumber: customerData.phone,
+      name: customerData.fullname,
     },
+  
+    subaccounts: [
+      {
+        id: subaccountId,   // restaurant’s subaccount_id from Firestore
+        transaction_charge_type: "flat",
+        transaction_charge: 0
+      }
+    ],
+  
+    meta: {
+      restaurantName: selectedRestaurant,
+      customerId: user.uid,
+    },
+  
     callback: async function (response) {
-      if (response.status === "success") {
+      if (response.status === "successful") {
         await addDoc(collection(db, "orders"), {
           customerId: user.uid,
           customerName: customerData.fullname,
@@ -382,30 +394,6 @@ payNowBtn.addEventListener('click', async () => {
           customerPhone: customerData.phone,
           customerRoom: customerData.room || customerData.roomLocation,
           restaurantName: restaurantData.name,
-          restaurantSubaccount: subaccountId, // 👈 saved here
-          items: cart,
-          deliveryCharge: delivery,
-          packCharge: pack,
-          fee: fee,
-          itemTotal: itemTotal,
-          totalAmount: total,
-          paymentGateway: "paystack",
-          paymentStatus: "success",
-          orderStatus: "pending_assignment",
-          createdAt: new Date(),
-          paystackRef: response.reference,
-          declinedBy: []
-        });
-
-        alert("Payment successful! Your order is pending assignment.");
-      } else {
-        await addDoc(collection(db, "orders"), {
-          customerId: user.uid,
-          customerName: customerData.fullname,
-          customerUsername: customerData.username,
-          customerEmail: customerData.email,
-          customerRoom: customerData.room || customerData.roomLocation,
-          restaurantName: selectedRestaurant,
           restaurantSubaccount: subaccountId,
           items: cart,
           deliveryCharge: delivery,
@@ -413,27 +401,28 @@ payNowBtn.addEventListener('click', async () => {
           fee: fee,
           itemTotal: itemTotal,
           totalAmount: total,
-          paymentGateway: "paystack",
-          paymentStatus: "failed",
-          orderStatus: "gateway_declined",
-          paystackReason: response.status || "Transaction declined",
+          paymentGateway: "flutterwave",
+          paymentStatus: "success",
+          orderStatus: "pending_assignment",
           createdAt: new Date(),
-          paystackRef: response.reference
+          flutterwaveTx: response.transaction_id,
+          declinedBy: []
         });
-
-        alert("Payment was declined.");
+  
+        alert("Payment successful! Your order is pending assignment.");
+      } else {
+        alert("Payment failed.");
       }
-
+  
       cart = [];
       updateOrderButton();
       closeOrderModal();
     },
-    onClose: function () {
+  
+    onclose: function() {
       alert("Payment window closed.");
-    }
+    },
   });
-
-  handler.openIframe();
 });
 
 // Cart sync with availability
