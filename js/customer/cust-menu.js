@@ -255,13 +255,7 @@ const updateTotal = () => {
   let delivery = DELIVERY_CHARGE;
   let pack = addPackCheckbox.checked ? PACK_CHARGE : 0;
   let subtotal = itemTotal + delivery + pack;
-  let fee;
-  if (subtotal < 2500) {
-    fee = 10; // Flat ₦10 below 2.5k
-  } else {
-    fee = Math.round(subtotal * FEE_RATE);
-    if (fee > 2000) fee = 2000; // Cap at ₦2000
-  }
+  let fee = 0;
   let total = subtotal + fee;
 
   // Update modal UI
