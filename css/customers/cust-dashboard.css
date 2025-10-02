@@ -145,3 +145,57 @@ body {
 .nav-item.active {
   color: white;
 }
+
+/* === Combos & Recommendations Sections === */
+.combos-section, .recommendations-section {
+  margin: 1.5rem 1rem;
+}
+
+.combos-section h3, .recommendations-section h3 {
+  font-size: 1.3rem;
+  margin-bottom: 1rem;
+}
+
+.card-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 120px;
+}
+
+.item-card {
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(12px);
+  border-radius: 12px;
+  padding: 1rem;
+  width: 100%;
+  max-width: 320px;
+  text-align: center;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+}
+
+.item-card h4 {
+  font-size: 1.1rem;
+  margin-bottom: 0.4rem;
+}
+
+.item-card p {
+  font-size: 0.9rem;
+  margin: 0.2rem 0;
+  color: #ccc;
+}
+
+.item-card button {
+  background: #0f4e75;
+  border: none;
+  color: white;
+  padding: 0.5rem 1rem;
+  margin-top: 0.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.item-card button:hover {
+  background: #0c3b59;
+}

@@ -273,3 +273,50 @@ body.complaints-body {
 .pay-btn:hover {
   background: #13659a;
 }
+
+/* === Inputs, Selects & Textareas in Modals === */
+#bankModal input,
+#bankModal select,
+#bankModal textarea {
+  width: 100%;
+  padding: 12px 14px;
+  margin: 0.6rem 0;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+  color: #fff;
+  font-size: 0.95rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Placeholder text */
+#bankModal input::placeholder,
+#bankModal textarea::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Focus state */
+#bankModal input:focus,
+#bankModal select:focus,
+#bankModal textarea:focus {
+  border-color: #0f9bd1;
+  box-shadow: 0 0 6px rgba(15, 155, 209, 0.6);
+  outline: none;
+}
+
+/* Dropdown arrow fix for selects */
+#bankModal select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg fill='%23fff' height='18' width='18' xmlns='http://www.w3.org/2000/svg'><path d='M5 7l4 4 4-4z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 14px;
+  padding-right: 36px;
+}
+
+/* Textarea resize off */
+#bankModal textarea {
+  resize: none;
+  min-height: 80px;
+}
