@@ -20,7 +20,12 @@ const searchInput = document.getElementById('searchAll');
 const foodItemsContainer = document.getElementById('food-items');
 const restaurantSelect = document.getElementById('restaurantSelect');
 const restaurantNameInput = document.getElementById('restaurantName');
-const restaurantSubaccountInput = document.getElementById('restaurantSubaccountId');
+
+// 🔹 New Bank Inputs
+const restaurantBankNameInput = document.getElementById('restaurantBankName');
+const restaurantAccountNameInput = document.getElementById('restaurantAccountName');
+const restaurantAccountNumberInput = document.getElementById('restaurantAccountNumber');
+
 const itemNameInput = document.getElementById('itemName');
 const itemCategorySelect = document.getElementById('itemCategory');
 const itemPriceInput = document.getElementById('itemPrice');
@@ -32,49 +37,40 @@ let latestRestaurantNames = [];
 let namesFromRestaurants = [];
 let namesFromFood = [];
 
-// 🔹 Toggle restaurantNameInput visibility based on dropdown
-restaurantSelect.addEventListener('change', () => {
-  if (restaurantSelect.value) {
-    restaurantNameInput.style.display = 'none';   // hide input
-    restaurantNameInput.value = '';               // clear value to avoid conflicts
-  } else {
-    restaurantNameInput.style.display = 'block';  // show input if no dropdown selected
-  }
-});
-
-// 🔹 Toggle restaurantNameInput visibility + auto-fill subaccount when dropdown changes
+// 🔹 Toggle restaurantNameInput visibility
 restaurantSelect.addEventListener('change', async () => {
   if (restaurantSelect.value) {
-    // hide manual restaurant name input
     restaurantNameInput.style.display = 'none';
     restaurantNameInput.value = '';
 
+    // Fetch restaurant doc by name → pre-fill bank details
     try {
-      // fetch restaurant doc by name
       const restaurantRef = doc(db, 'restaurants', restaurantSelect.value);
       const snap = await getDoc(restaurantRef);
       if (snap.exists()) {
-        restaurantSubaccountInput.value = snap.data().subaccount_id || '';
-        restaurantSubaccountInput.readOnly = true; // lock field
-      } else {
-        restaurantSubaccountInput.value = '';
-        restaurantSubaccountInput.readOnly = false; // allow typing for new
+        const data = snap.data();
+        restaurantBankNameInput.value = data.bankName || '';
+        restaurantAccountNameInput.value = data.accountName || '';
+        restaurantAccountNumberInput.value = data.accountNumber || '';
+        restaurantBankNameInput.readOnly = true;
+        restaurantAccountNameInput.readOnly = true;
+        restaurantAccountNumberInput.readOnly = true;
       }
     } catch (err) {
-      console.error("Error fetching restaurant subaccount:", err);
-      restaurantSubaccountInput.value = '';
-      restaurantSubaccountInput.readOnly = false;
+      console.error("Error fetching restaurant bank details:", err);
     }
-
   } else {
-    // no dropdown selected → show input to allow new restaurant
     restaurantNameInput.style.display = 'block';
-    restaurantSubaccountInput.value = '';
-    restaurantSubaccountInput.readOnly = false; // allow admin to type new subaccount id
+    restaurantBankNameInput.value = '';
+    restaurantAccountNameInput.value = '';
+    restaurantAccountNumberInput.value = '';
+    restaurantBankNameInput.readOnly = false;
+    restaurantAccountNameInput.readOnly = false;
+    restaurantAccountNumberInput.readOnly = false;
   }
 });
 
-// 🔹 Load saved state from localStorage
+// 🔹 Load saved search
 const savedSearch = localStorage.getItem('adminMenuSearch') || '';
 searchInput.value = savedSearch;
 
@@ -84,9 +80,11 @@ addBtn.addEventListener('click', () => {
   if (!addFormSection.classList.contains('hidden')) {
     menuForm.reset();
     editingItemId = null;
-    
     restaurantSelect.value = "";
     restaurantNameInput.style.display = 'block';
+    restaurantBankNameInput.readOnly = false;
+    restaurantAccountNameInput.readOnly = false;
+    restaurantAccountNumberInput.readOnly = false;
   }
 });
 
@@ -96,7 +94,6 @@ const updateRestaurantDropdown = () => {
   latestRestaurantNames = Array.from(new Set(names)).sort((a, b) => a.localeCompare(b));
 
   const prev = restaurantSelect.value;
-
   restaurantSelect.innerHTML = `<option value="">-- Select Restaurant --</option>`;
   latestRestaurantNames.forEach(name => {
     const option = document.createElement('option');
@@ -104,17 +101,14 @@ const updateRestaurantDropdown = () => {
     option.textContent = name;
     restaurantSelect.appendChild(option);
   });
-
   if (prev && latestRestaurantNames.includes(prev)) {
     restaurantSelect.value = prev;
   }
-
   restaurantsLoaded = true;
 };
 
 // 🔹 Real-time listeners
 const listenToRestaurantsAndItems = () => {
-  // Restaurants listener
   const restaurantRef = collection(db, 'restaurants');
   onSnapshot(restaurantRef, (snapshot) => {
     namesFromRestaurants = snapshot.docs
@@ -123,7 +117,6 @@ const listenToRestaurantsAndItems = () => {
     updateRestaurantDropdown();
   });
 
-  // Food items listener (names + menu)
   const foodRef = collection(db, 'foodItems');
   const q = query(foodRef, orderBy('restaurantName'));
   onSnapshot(q, (snapshot) => {
@@ -131,24 +124,21 @@ const listenToRestaurantsAndItems = () => {
       id: docSnap.id,
       ...docSnap.data()
     }));
-
     namesFromFood = allFoodItems
       .map(d => (d.restaurantName ?? '').toString().trim())
       .filter(n => n.length > 0);
-
     updateRestaurantDropdown();
-    applySearchFilter(); // Show filtered based on saved search
+    applySearchFilter();
   });
 };
 
 // Group items by restaurant
-const groupItemsByRestaurant = (foodItems) => {
-  return foodItems.reduce((acc, item) => {
+const groupItemsByRestaurant = (foodItems) =>
+  foodItems.reduce((acc, item) => {
     if (!acc[item.restaurantName]) acc[item.restaurantName] = [];
     acc[item.restaurantName].push(item);
     return acc;
   }, {});
-};
 
 // Display items
 const displayFoodItems = (foodItems) => {
@@ -222,7 +212,9 @@ menuForm.addEventListener('submit', async (e) => {
   e.preventDefault();
 
   const restaurantName = restaurantSelect.value || restaurantNameInput.value.trim();
-  const subaccountId = restaurantSubaccountInput.value.trim();
+  const bankName = restaurantBankNameInput.value.trim();
+  const accountName = restaurantAccountNameInput.value.trim();
+  const accountNumber = restaurantAccountNumberInput.value.trim();
   const itemName = itemNameInput.value.trim();
   const itemCategory = itemCategorySelect.value;
   const itemPrice = parseFloat(itemPriceInput.value);
@@ -235,7 +227,6 @@ menuForm.addEventListener('submit', async (e) => {
   try {
     if (editingItemId) {
       const restaurantRef = doc(db, 'restaurants', restaurantName);
-
       await updateDoc(doc(db, 'foodItems', editingItemId), {
         restaurantId: restaurantRef.id,
         restaurantName,
@@ -244,22 +235,26 @@ menuForm.addEventListener('submit', async (e) => {
         price: itemPrice
       });
     } else {
-      // 🔹 Restaurant reference (doc id will be restaurantId)
       const restaurantRef = doc(db, 'restaurants', restaurantName);  
-      
       await addDoc(collection(db, 'foodItems'), {
-        restaurantId: restaurantRef.id,   // Save restaurant id
-        restaurantName,                   // Keep restaurant name for readability
+        restaurantId: restaurantRef.id,
+        restaurantName,
         name: itemName,
         category: itemCategory,
         price: itemPrice,
         available: true
       });
     }
-    
+
+    // 🔹 Save/Update restaurant bank details
     const restaurantRef = doc(db, 'restaurants', restaurantName);
-    await setDoc(restaurantRef, { name: restaurantName, subaccount_id: subaccountId }, { merge: true });
-    
+    await setDoc(restaurantRef, {
+      name: restaurantName,
+      bankName,
+      accountName,
+      accountNumber
+    }, { merge: true });
+
     menuForm.reset();
     addFormSection.classList.add('hidden');
     editingItemId = null;
@@ -277,9 +272,7 @@ foodItemsContainer.addEventListener('click', async (e) => {
       const data = foodDoc.data();
 
       if (!restaurantsLoaded && data.restaurantName) {  
-        const exists = Array.from(restaurantSelect.options).some(  
-          opt => opt.value === data.restaurantName  
-        );  
+        const exists = Array.from(restaurantSelect.options).some(opt => opt.value === data.restaurantName);  
         if (!exists) {  
           const temp = document.createElement('option');  
           temp.value = data.restaurantName;  
@@ -293,13 +286,17 @@ foodItemsContainer.addEventListener('click', async (e) => {
       itemCategorySelect.value = data.category || '';  
       itemPriceInput.value = data.price ?? '';  
 
-      // 🔹 Fetch and fill restaurant subaccount_id
+      // Fetch and fill restaurant bank details
       const restaurantRef = doc(db, 'restaurants', data.restaurantName);
       const restaurantSnap = await getDoc(restaurantRef);
       if (restaurantSnap.exists()) {
-        restaurantSubaccountInput.value = restaurantSnap.data().subaccount_id || '';
-      } else {
-        restaurantSubaccountInput.value = '';
+        const rdata = restaurantSnap.data();
+        restaurantBankNameInput.value = rdata.bankName || '';
+        restaurantAccountNameInput.value = rdata.accountName || '';
+        restaurantAccountNumberInput.value = rdata.accountNumber || '';
+        restaurantBankNameInput.readOnly = true;
+        restaurantAccountNameInput.readOnly = true;
+        restaurantAccountNumberInput.readOnly = true;
       }
 
       addFormSection.classList.remove('hidden');  

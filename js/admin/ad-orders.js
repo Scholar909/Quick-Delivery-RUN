@@ -51,6 +51,17 @@ function createOrderCard(order, type = "pending") {
     reasonPreview = `<p class="reason-preview" style="color:#ffaaaa;cursor:pointer;">Reason: ${shortReason}</p>`;
   }
 
+  // 🔹 Refund / Payment Status info
+  let extraStatus = "";
+  if (type === "declined") {
+    if (order.paymentStatus === "refund_required") {
+      extraStatus += `<p class="refund-status" style="color:#e67e22;">Refund Required</p>`;
+    }
+    if (order.refundStatus === "refunded") {
+      extraStatus += `<p class="refund-status" style="color:#27ae60;">Refunded ✔</p>`;
+    }
+  }
+
   div.innerHTML = `
     <div class="order-top">
       <h4>Order ID: #${order.paystackRef || order.id}</h4>
@@ -58,11 +69,11 @@ function createOrderCard(order, type = "pending") {
     </div>
     <div class="order-bottom">
       <p>Total: ₦${Number(total).toLocaleString()}</p>
-
       <span class="view-btn">${type === "declined" ? "View Receipt" : "View Details"}</span>
     </div>
     <p>Date: ${createdAt}</p>
     ${reasonPreview}
+    ${extraStatus}
   `;
 
   // ---------- attach click handlers ----------

@@ -82,12 +82,18 @@ const assignModal = buildModal("assignModal", "Select Merchant");
 const declineModal = buildModal("declineModal", "Decline Order");
 
 /* ------------------------------
-   LISTEN TO PENDING ASSIGNMENTS
+   LISTEN TO PENDING ASSIGNMENTS (only confirmed payments)
 ------------------------------ */
 function listenToPendingOrders() {
-  const q = query(collection(db, "orders"), where("orderStatus", "==", "pending_assignment"));
+  // show only orders that are pending assignment AND paymentStatus is successful
+  const q = query(
+    collection(db, "orders"),
+    where("orderStatus", "==", "pending_assignment"),
+    where("paymentStatus", "==", "successful")
+  );
+
   onSnapshot(q, (snapshot) => {
-    ordersList.innerHTML = "";
+    ordersList.innerHTML = '';
     const orders = [];
     snapshot.forEach(docSnap => orders.push({ id: docSnap.id, ...docSnap.data() }));
     orders.sort((a, b) => a.createdAt?.toDate() - b.createdAt?.toDate());
