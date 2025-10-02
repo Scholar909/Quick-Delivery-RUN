@@ -11,11 +11,44 @@ import {
   updateDoc,
   where,
   runTransaction,
-  serverTimestamp
+  serverTimestamp,
+  Timestamp,
+  deleteDoc
 } from 'https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
 
-// DOM elements
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    listenToRestaurants();
+    listenToFoodItems();
+    listenToBuyNowCart(user.uid); // ✅ NEW: listen for Buy Now redirect data
+    if (auth.currentUser) {
+      await clearBuyNowCart(auth.currentUser.uid);
+    }
+  } else {
+    cart = [];
+  }
+});
+
+// -------------------------------------------------
+// Clear Firestore Buy Now Cart after order/cancel
+// -------------------------------------------------
+async function clearBuyNowCart(userId) {
+  try {
+    const cartRef = collection(db, "carts", userId, "items");
+    const snap = await getDocs(cartRef);
+    for (const docSnap of snap.docs) {
+      await deleteDoc(docSnap.ref);
+    }
+    console.log("Buy Now cart cleared");
+  } catch (err) {
+    console.error("Failed to clear cart:", err);
+  }
+}
+
+// -------------------------------------------------
+// DOM Elements & Constants (same as before)
+// -------------------------------------------------
 const restaurantSelect = document.getElementById('restaurantSelect');
 const foodItemsContainer = document.getElementById('food-items');
 const orderButton = document.getElementById('orderButton');
@@ -27,18 +60,169 @@ const orderRestaurantName = document.getElementById('orderRestaurantName');
 const addPackCheckbox = document.getElementById('addPack');
 const orderTotalElem = document.getElementById('orderTotal');
 const payNowBtn = document.getElementById('payNowBtn');
-
-// Ive Paid modal (2–sided)
 const bankModal = document.getElementById('bankModal');
 const closeBankModal = document.getElementById('closeBankModal');
 const ivePaidBtn = document.getElementById('ivePaidBtn');
-
-// Step navigation DOM
 const step1 = document.getElementById("bankStep1");
 const step2 = document.getElementById("bankStep2");
 const nextBtn = document.getElementById("nextToStep2");
 const cancelStep1 = document.getElementById("cancelStep1");
-const prevBtn = document.getElementById("prevToStep1"); // optional previous button support
+const prevBtn = document.getElementById("prevToStep1");
+
+// Charges
+const DELIVERY_CHARGE = 300;
+const PACK_CHARGE = 200;
+const FEE_CHARGE = 50;
+
+// State
+let allFoodItems = [];
+let selectedRestaurant = '';
+let cart = [];
+let currentRestaurantData = null;
+let savedOrderId = null;
+let countdownTimeout = null; // for the 5-min auto-expiry
+
+// -------------------------------------------------
+// Load Buy Now Data from Firestore Cart
+// -------------------------------------------------
+function listenToBuyNowCart(userId) {
+  const cartRef = collection(db, "carts", userId, "items");
+  onSnapshot(cartRef, (snapshot) => {
+    const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    if (!items.length) return;
+
+    cart = items.map(it => ({
+      id: it.id,
+      name: it.name,
+      price: Number(it.price),
+      qty: it.qty || 1,
+      restaurantId: it.restaurantId,
+      restaurantName: it.restaurantName,
+      category: it.category || "Uncategorized",
+      available: true
+    }));
+
+    // 🔹 Ensure restaurant is properly set
+    if (cart.length) {
+      selectedRestaurant = cart[0].restaurantName || "";
+      orderRestaurantName.textContent = selectedRestaurant;
+    
+      // 🔹 fetch restaurant data immediately
+      if (selectedRestaurant) {
+        const restRef = doc(db, "restaurants", selectedRestaurant);
+        getDoc(restRef).then(restSnap => {
+          if (restSnap.exists()) {
+            currentRestaurantData = restSnap.data();
+          }
+        });
+      }
+    }
+
+    updateOrderButton();
+    renderOrderTable();
+
+    // auto-open modal
+    if (cart.length) {
+      orderModal.classList.remove("hidden");
+    }
+  });
+}
+
+const banks = [
+  "Access Bank",
+  "ASO Savings & Loans",
+  "CitiBank",
+  "Diamond Bank",
+  "Ecobank Plc",
+  "Enterprise Bank",
+  "FCMB (First City Monument Bank)",
+  "Fidelity Bank",
+  "FBNMobile",
+  "First Bank of Nigeria",
+  "Fortis Microfinance Bank",
+  "FortisMobile",
+  "GTBank Plc",
+  "Heritage Bank",
+  "JAIZ Bank",
+  "Keystone Bank",
+  "Opay",
+  "Page MFBank",
+  "Palmpay",
+  "Parralex Bank",
+  "PayAttitude Online",
+  "Skye Bank",
+  "Stanbic IBTC Bank",
+  "Stanbic Mobile Money",
+  "Standard Chartered Bank",
+  "Sterling Bank",
+  "SunTrust Bank",
+  "Union Bank",
+  "United Bank for Africa",
+  "Unity Bank",
+  "VTNetworks",
+  "Wema Bank",
+  "Zenith Bank",
+  "ZenithMobile"
+  // …add any other Nigerian banks + licensed mobile money operators here
+];
+
+const custBankSelect = document.getElementById("custBankName");
+custBankSelect.innerHTML = `<option value="">Choose Bank</option>`;
+banks.forEach(bank => {
+  const opt = document.createElement("option");
+  opt.value = bank;
+  opt.textContent = bank;
+  custBankSelect.appendChild(opt);
+});
+
+// parseAlertTimestamp(a) -> returns epoch ms (Number)
+function parseAlertTimestamp(a) {
+  // 1) Prefer Firestore Timestamp objects
+  if (!a.timestamp) return new Date();
+  // Convert string to Date
+  return new Date(a.timestamp);
+
+  if (a?.createdAt?.toMillis) return a.createdAt.toMillis();
+  if (a?.timestamp?.toMillis) return a.timestamp.toMillis();
+
+  // 2) If a.timestamp or other fields are numbers (seconds or ms)
+  const numericFields = ["createdAt", "timestamp", "time", "ts"];
+  for (const f of numericFields) {
+    const v = a?.[f];
+    if (typeof v === "number") {
+      // assume seconds if it's 10 digits, ms if 13 digits
+      return v < 1e11 ? v * 1000 : v;
+    }
+  }
+
+  // 3) If the field is a string (like "Wed, 01 Oct 2025 02:02:20 +0530")
+  const strCandidates = ["timestamp", "time", "date", "createdAt", "ts", "datetime"];
+  for (const f of strCandidates) {
+    const s = a?.[f];
+    if (!s || typeof s !== "string") continue;
+
+    // try direct Date.parse (works for RFC2822 / RFC3339)
+    const parsed = Date.parse(s);
+    if (!isNaN(parsed)) return parsed;
+
+    // try to extract an ISO-ish substring yyyy-MM-ddTHH:mm:ss
+    const isoMatch = s.match(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+\-]\d{2}:?\d{2})?/);
+    if (isoMatch) {
+      const p = Date.parse(isoMatch[0]);
+      if (!isNaN(p)) return p;
+    }
+
+    // try to find numeric epoch inside string
+    const numMatch = s.match(/(\d{10,13})/);
+    if (numMatch) {
+      const n = Number(numMatch[1]);
+      return n < 1e11 ? n * 1000 : n;
+    }
+  }
+
+  // 4) Last resort: treat as now
+  return Date.now();
+}
 
 // countdown + floating grid reminder
 let countdownTimer = null;
@@ -56,22 +240,6 @@ floatingGrid.addEventListener("click", () => {
 });
 document.body.appendChild(floatingGrid);
 
-// -------------------------------------------------
-// Constants
-// -------------------------------------------------
-const DELIVERY_CHARGE = 300;
-const PACK_CHARGE = 200;
-const FEE_CHARGE = 50;
-
-let allFoodItems = [];
-let selectedRestaurant = '';
-let cart = [];
-let currentRestaurantData = null;
-let savedOrderId = null;
-
-// -------------------------------------------------
-// Firestore listeners
-// -------------------------------------------------
 const listenToRestaurants = () => {
   const foodRef = collection(db, 'foodItems');
   onSnapshot(foodRef, (snapshot) => {
@@ -103,15 +271,15 @@ const listenToFoodItems = () => {
 };
 
 // -------------------------------------------------
-// Checkout Time Restriction (e.g. 8am–8pm only)
+// Checkout Time Restriction (e.g. 8am–9pm only)
 // -------------------------------------------------
 function checkOrderWindow() {
   const now = new Date();
   const hour = now.getHours();
-  if (hour < 8 || hour >= 20) {
+  if (hour < 7 || hour >= 24) {
     payNowBtn.disabled = true;
     payNowBtn.style.opacity = "0.5";
-    payNowBtn.textContent = "Checkout Closed (8am–8pm)";
+    payNowBtn.textContent = "Checkout Closed (8am–9pm)";
   } else {
     payNowBtn.disabled = false;
     payNowBtn.style.opacity = "1";
@@ -213,8 +381,14 @@ const openOrderModal = () => {
   orderModal.classList.remove('hidden');
 };
 
-const closeOrderModal = () => {
+const closeOrderModal = async () => {
   orderModal.classList.add('hidden');
+  cart = [];
+  updateOrderButton();
+  renderOrderTable();
+  if (auth.currentUser) {
+  await clearBuyNowCart(auth.currentUser.uid);
+  }
 };
 
 const renderOrderTable = () => {
@@ -317,15 +491,35 @@ payNowBtn.addEventListener('click', () => {
 // -------------------------------------------------
 closeBankModal.addEventListener("click", () => {
   bankModal.classList.add("hidden");
-  stopCountdown();        // stop the timer
-  savedOrderId = null;    // clear order reference
+  stopCountdown();
+  hidePendingAnimation();
+
+  if (savedOrderId) {
+    updateDoc(doc(db, "orders", savedOrderId), {
+      orderStatus: "cancelled",
+      paymentStatus: "cancelled"
+    }).catch(()=>{});
+    savedOrderId = null;
+  }
+
   updateOrderButton();
   closeOrderModal();
 });
 
 cancelStep1.addEventListener("click", () => {
   bankModal.classList.add("hidden");
-  savedOrderId = null;
+  stopCountdown();
+  hidePendingAnimation();
+
+  if (savedOrderId) {
+    // if somehow order was created, mark as cancelled
+    updateDoc(doc(db, "orders", savedOrderId), {
+      orderStatus: "cancelled",
+      paymentStatus: "cancelled"
+    }).catch(()=>{});
+    savedOrderId = null;
+  }
+
   updateOrderButton();
   closeOrderModal();
 });
@@ -383,65 +577,6 @@ if (prevBtn) {
   });
 }
 
-// ----------------------------
-// Load Banks from resolve.php
-// ----------------------------
-async function loadBanks() {
-  try {
-    const res = await fetch("https://account-resolve.infinityfree.me/resolve.php?action=banks");
-    const data = await res.json();
-
-    if (data.status === "success") {
-      const bankSelect = document.getElementById("custBankName");
-      bankSelect.innerHTML = `<option disabled selected value="">Select Bank</option>`;
-      data.data.forEach(bank => {
-        const opt = document.createElement("option");
-        opt.value = bank.code;      // Flutterwave bank code
-        opt.textContent = bank.name; // Bank display name
-        bankSelect.appendChild(opt);
-      });
-    } else {
-      console.error("Bank load failed:", data);
-      alert("Could not load bank list. Try again later.");
-    }
-  } catch (err) {
-    console.error("Bank load error:", err);
-    alert("Error loading banks. Check your connection.");
-  }
-}
-
-// Call immediately on page load
-loadBanks();
-
-// Auto-resolve account name (optional; unchanged from your original)
-document.getElementById("custAccountNumber").addEventListener("blur", async () => {
-  const bankCode = document.getElementById("custBankName").value;
-  const accNum = document.getElementById("custAccountNumber").value;
-
-  if (bankCode && accNum.length === 10) {
-    try {
-      const res = await fetch("https://account-resolve.infinityfree.me/resolve.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          bank_code: bankCode,
-          account_number: accNum
-        })
-      });
-      const data = await res.json();
-
-      if (data.status === "success") {
-        document.getElementById("custAccountName").value = data.data.account_name;
-      } else {
-        document.getElementById("custAccountName").value = "";
-        alert("Could not resolve account name.");
-      }
-    } catch (err) {
-      console.error("Resolver error:", err);
-    }
-  }
-});
-
 // Copy icons behavior (unchanged) - ensure copy buttons have class .copy-icon and data-copy=targetId
 document.addEventListener("click", (e) => {
   if (e.target.classList && e.target.classList.contains("copy-icon")) {
@@ -451,272 +586,296 @@ document.addEventListener("click", (e) => {
   }
 });
 
-// -------------------------------------------------
-// Ive Paid handler (core matching logic implemented here)
-// -------------------------------------------------
 ivePaidBtn.addEventListener("click", async () => {
-  // gather customer info from step1 inputs
-  const custBankName = document.getElementById("custBankName")?.value || "";
-  const custAccountNumber = document.getElementById("custAccountNumber")?.value || "";
-  const custAccountName = document.getElementById("custAccountName")?.value || "";
-  const custNarration = document.getElementById("custNarration")?.value || "";
-  const custTimestamp = new Date(); // approximate time when user clicked I've Paid
-
-  // basic pre-checks
-  const user = auth.currentUser;
-  if (!user) return alert("You must be logged in.");
-  if (!custBankName || !custAccountNumber || !custAccountName) return alert("Please fill your bank details.");
-
-  // get customer profile
-  const customerDocRef = doc(db, "customers", user.uid);
-  const customerSnap = await getDoc(customerDocRef);
-  if (!customerSnap.exists()) return alert("Customer profile not found.");
-  const customerData = customerSnap.data();
-
-  // prepare order totals
-  const itemTotal = Number(orderTotalElem.dataset.itemTotal || 0);
-  const delivery = Number(orderTotalElem.dataset.delivery || 0);
-  const pack = Number(orderTotalElem.dataset.pack || 0);
-  const fee = Number(orderTotalElem.dataset.fee || 0);
-  const total = Number(orderTotalElem.dataset.total || 0);
-
-  // create order doc with pending_confirmation (we will update paymentStatus after matching)
-  const newOrderRef = await addDoc(collection(db, "orders"), {
-    customerId: user.uid,
-    customerName: customerData.fullname,
-    customerUsername: customerData.username,
-    customerEmail: customerData.email,
-    customerPhone: customerData.phone,
-    customerRoom: customerData.room || customerData.roomLocation,
-    restaurantName: selectedRestaurant,
-    items: cart,
-    deliveryCharge: delivery,
-    packCharge: pack,
-    feeCharge: fee,
-    itemTotal,
-    totalAmount: total,
-    paymentGateway: "manual_bank",
-    paymentStatus: "pending_confirmation",
-    orderStatus: "pending_assignment",
-    createdAt: new Date(),
-    declinedBy: [],
-    customerBankName: custBankName,
-    customerAccountNumber: custAccountNumber,
-    customerAccountName: custAccountName,
-    customerNarration: custNarration,
-    countdownStart: serverTimestamp()
-  });
-
-  savedOrderId = newOrderRef.id;
-
-  // Update the displayed restOrderId (so admin/user sees matching reference)
-  const restOrderIdElem = document.getElementById("restOrderId");
-  if (restOrderIdElem) restOrderIdElem.textContent = savedOrderId;
-
-  // Start countdown persisted to the created order
-  startCountdown(savedOrderId);
-  showPendingAnimation();
-
-  // Now scanning payment_alerts for a match
   try {
-    // query all unprocessed alerts
-    const alertsQ = query(collection(db, "payment_alerts"), where("processed", "==", false));
-    const alertsSnap = await getDocs(alertsQ);
-
-    // helper to normalize strings (account names)
-    function norm(s) {
-      return String(s || "").toLowerCase().replace(/\s+/g, ' ').trim();
+    if (savedOrderId) {
+      alert("Payment is already being processed...");
+      return;
     }
-    const normCustAccName = norm(custAccountName);
+    ivePaidBtn.disabled = true;
 
-    let mainMatch = null; // { docRefId, data }
+    const custBankName = document.getElementById("custBankName")?.value || "";
+    const custAccountNumber = document.getElementById("custAccountNumber")?.value || "";
+    const custAccountName = document.getElementById("custAccountName")?.value || "";
+    const custNarration = document.getElementById("custNarration")?.value || "";
 
-    // iterate to find a match where:
-    // - amount AND account name must match
-    // - AND at least one of: accountNumber match OR bankName match OR narration includes savedOrderId OR timestamp within ±10 minutes
-    for (const aDoc of alertsSnap.docs) {
+    const user = auth.currentUser;
+    if (!user) return alert("You must be logged in.");
+    if (!custBankName || !custAccountNumber || !custAccountName)
+      return alert("Please fill your bank details.");
+
+    const customerSnap = await getDoc(doc(db, "customers", user.uid));
+    if (!customerSnap.exists()) return alert("Customer profile not found.");
+    const customerData = customerSnap.data();
+
+    const itemTotal = Number(orderTotalElem.dataset.itemTotal || 0);
+    const delivery = Number(orderTotalElem.dataset.delivery || 0);
+    const pack = Number(orderTotalElem.dataset.pack || 0);
+    const fee = Number(orderTotalElem.dataset.fee || 0);
+    const total = Number(orderTotalElem.dataset.total || 0);
+
+    const newOrderRef = await addDoc(collection(db, "orders"), {
+      customerId: user.uid,
+      customerName: customerData.fullname,
+      customerUsername: customerData.username,
+      customerEmail: customerData.email,
+      customerPhone: customerData.phone,
+      customerRoom: customerData.room || customerData.roomLocation,
+      restaurantName: selectedRestaurant,
+      items: cart,
+      deliveryCharge: delivery,
+      packCharge: pack,
+      feeCharge: fee,
+      itemTotal,
+      totalAmount: total,
+      paymentGateway: "manual_bank",
+      paymentStatus: "pending_confirmation",
+      orderStatus: "pending_assignment",
+      createdAt: new Date(),
+      declinedBy: [],
+      customerBankName: custBankName,
+      customerAccountNumber: custAccountNumber,
+      customerAccountName: custAccountName,
+      customerNarration: custNarration,
+      countdownStart: serverTimestamp(),
+    });
+
+    savedOrderId = newOrderRef.id;
+    const restOrderIdElem = document.getElementById("restOrderId");
+    if (restOrderIdElem) restOrderIdElem.textContent = savedOrderId;
+
+    showPendingAnimation();
+
+    const normalize = (str) => (str || "").toLowerCase().replace(/\s+/g, " ").trim();
+    const custNorm = normalize(custAccountName);
+    const alertsRef = collection(db, "payment_alerts");
+
+    // ---------------------------
+    // Cancel modal handling
+    // ---------------------------
+    const handleCancelOrder = async () => {
+      const confirmCancel = confirm(
+        "You haven't completed the payment. Closing now will cancel the order. Continue?"
+      );
+      if (!confirmCancel) return false;
+
+      stopCountdown();
+      hidePendingAnimation();
+
+      if (savedOrderId) {
+        const orderRef = doc(db, "orders", savedOrderId);
+        try {
+          const snap = await getDoc(orderRef);
+          if (snap.exists()) {
+            const data = snap.data();
+            await setDoc(doc(db, "trash", "orders", savedOrderId), {
+              ...data,
+              orderStatus: "cancelled",
+              paymentStatus: "cancelled",
+              trashedAt: new Date()
+            });
+            await deleteDoc(orderRef);
+          }
+        } catch (e) {
+          console.error("Failed to cancel order:", e);
+        }
+      }
+
+      savedOrderId = null;
+      return true;
+    };
+
+    // Listen for modal close/cancel button
+    const closeBtns = bankModal.querySelectorAll(".closeModal, .cancelBtn");
+    closeBtns.forEach(btn => {
+      btn.addEventListener("click", async (e) => {
+        e.preventDefault();
+        await handleCancelOrder();
+        bankModal.classList.add("hidden");
+      });
+    });
+
+    // ---------------------------
+    // Existing alert checking & listeners
+    // ---------------------------
+    function showResultAnimation(type, message) {
+      hidePendingAnimation();
+      const overlay = document.createElement("div");
+      Object.assign(overlay.style, {
+        position: "fixed",
+        top: 0,
+        left: 0,
+        width: "100%",
+        height: "100%",
+        background: "rgba(0,0,0,0.6)",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        zIndex: 10000,
+        color: "#fff",
+        flexDirection: "column",
+        fontSize: "1.3rem"
+      });
+    
+      const icon = document.createElement("div");
+      icon.innerHTML = type === "success"
+        ? `<i class="uil uil-check-circle" style="font-size:4rem;color:#0f4e75;"></i>`
+        : `<i class="uil uil-times-circle" style="font-size:4rem;color:#ff4d4f;"></i>`;
+      icon.style.marginBottom = "1rem";
+    
+      const text = document.createElement("div");
+      text.textContent = message;
+    
+      overlay.appendChild(icon);
+      overlay.appendChild(text);
+      document.body.appendChild(overlay);
+    }
+
+    function withinThirtyMinutes(orderStart, alertTime) {
+      if (!orderStart || !alertTime) return false;
+      const alertDate = alertTime instanceof Date ? alertTime : new Date(alertTime);
+      const diff = Math.abs(alertDate.getTime() - orderStart.getTime());
+      return diff <= 30 * 60 * 1000;
+    }
+
+    const orderSnap = await getDoc(doc(db, "orders", savedOrderId));
+    const orderData = orderSnap.data();
+    if (["successful", "refund_required", "refunded"].includes(orderData.paymentStatus)) {
+        // mark alert as duplicate
+        await updateDoc(aDoc.ref, { processed: "duplicate" });
+    }
+    const orderStart = orderData?.countdownStart?.toDate?.() || new Date();
+
+    // Step 1: check old alerts
+    const oldQ = query(alertsRef, where("processed", "==", "false"));
+    const oldSnap = await getDocs(oldQ);
+    for (const aDoc of oldSnap.docs) {
       const a = aDoc.data();
-      const alertId = aDoc.id;
+      if (a.processed === "true") continue;
+      // extract sender name from sender or fallback to narration
+      let senderRaw = a.sender?.trim();
+      if (!senderRaw || senderRaw === "No sender" || senderRaw === "No sender bank") {
+        senderRaw = a.narration || ""; // fallback to narration
+      }
+      const senderNorm = normalize(senderRaw);
+      const createdAt = parseAlertTimestamp(a);
+      const amt = parseFloat(a.amount);
 
-      // fields may vary by bank/email parser; try multiple names
-      const alertAmount = Number(a.amount || a.amt || 0);
-      const alertAccName = norm(a.accountName || a.account_name || a.name || "");
-      const alertAccNumber = String(a.accountNumber || a.account_number || a.accNum || "");
-      const alertBankName = String(a.bankName || a.bank || a.sender || "");
-      const alertNarration = String(a.narration || a.description || a.message || "");
-      const alertTimestamp = a.timestamp ? new Date(a.timestamp) : (a.createdAt ? new Date(a.createdAt.seconds * 1000) : null);
-
-      const amountMatch = (alertAmount === total);
-      const accNameMatch = (alertAccName && normCustAccName && alertAccName === normCustAccName);
-
-      // other matches
-      const accNumberMatch = (alertAccNumber && alertAccNumber === String(custAccountNumber));
-      const bankNameMatch = (alertBankName && norm(alertBankName) === norm(custBankName));
-      const narrationMatch = alertNarration && alertNarration.includes(savedOrderId);
-      const timeMatch = alertTimestamp ? (Math.abs(alertTimestamp.getTime() - custTimestamp.getTime()) <= 1000 * 60 * 10) : false; // ±10 min
-
-      // Require amount + account name then any of otherMatches
-      if (amountMatch && accNameMatch && (accNumberMatch || bankNameMatch || narrationMatch || timeMatch)) {
-        mainMatch = {
-          id: alertId,
-          data: a,
-          computed: { amountMatch, accNameMatch, accNumberMatch, bankNameMatch, narrationMatch, timeMatch, alertAmount }
-        };
-        break;
+      if (senderNorm.includes(custNorm) || custNorm.includes(senderNorm)) {
+        if (!withinThirtyMinutes(orderStart, createdAt)) {
+          await updateDoc(aDoc.ref, { processed: "not_used" });
+          continue;
+        }
+        if (Math.abs(amt - total) < 1) {
+          await runTransaction(db, async (transaction) => {
+            transaction.update(doc(db, "payment_alerts", aDoc.id), { processed: "true" });
+            transaction.update(doc(db, "orders", savedOrderId), {
+              paymentStatus: "successful",
+              paymentMatchedAt: new Date(),
+              matchedByAlertId: aDoc.id
+            });
+          });
+          showResultAnimation("success", "Payment Successful!");
+          setTimeout(() => window.location.href = "pending-orders.html", 2500);
+          return;
+        } else {
+          await runTransaction(db, async (transaction) => {
+            transaction.update(doc(db, "payment_alerts", aDoc.id), { processed: "true" });
+            transaction.update(doc(db, "orders", savedOrderId), {
+              paymentStatus: "refund_required",
+              refundCandidateAlertId: aDoc.id,
+              refundReason: `Amount mismatch: expected ₦${total}, got ₦${amt}`,
+              paymentMatchedAt: new Date()
+            });
+          });
+          showResultAnimation("error", "Refund in Progress...");
+          setTimeout(() => window.location.href = "pending-orders.html", 2500);
+          return;
+        }
       }
     }
 
-    let refundMatch = null;
-    if (!mainMatch) {
-      for (const aDoc of alertsSnap.docs) {
+    // Step 2: listen for new alerts
+    const q = query(alertsRef, where("processed", "==", "false"));
+    const unsubAlerts = onSnapshot(q, async (snap) => {
+      for (const aDoc of snap.docs) {
         const a = aDoc.data();
-        const alertId = aDoc.id;
+        if (a.processed === "true") continue;
+        // extract sender name from sender or fallback to narration
+        let senderRaw = a.sender?.trim();
+        if (!senderRaw || senderRaw === "No sender" || senderRaw === "No sender bank") {
+          senderRaw = a.narration || ""; // fallback to narration
+        }
+        const senderNorm = normalize(senderRaw);
+        const amt = parseFloat(a.amount);
+        const createdAt = parseAlertTimestamp(a);
 
-        const alertAmount = Number(a.amount || a.amt || 0);
-        const alertAccName = norm(a.accountName || a.account_name || a.name || "");
-        const alertAccNumber = String(a.accountNumber || a.account_number || a.accNum || "");
-        const alertBankName = String(a.bankName || a.bank || a.sender || "");
-        const alertNarration = String(a.narration || a.description || a.message || "");
-        const alertTimestamp = a.timestamp ? new Date(a.timestamp) : (a.createdAt ? new Date(a.createdAt.seconds * 1000) : null);
-
-        const accNameMatch = (alertAccName && normCustAccName && alertAccName === normCustAccName);
-        const accNumberMatch = (alertAccNumber && alertAccNumber === String(custAccountNumber));
-        const bankNameMatch = (alertBankName && norm(alertBankName) === norm(custBankName));
-        const narrationMatch = alertNarration && alertNarration.includes(savedOrderId);
-        const timeMatch = alertTimestamp ? (Math.abs(alertTimestamp.getTime() - custTimestamp.getTime()) <= 1000 * 60 * 10) : false; // ±10 min
-
-        // amountMismatch but account name matches AND any other match => refund candidate
-        if (!Number(a.amount || 0) || (Number(a.amount || 0) !== total)) {
-          if (accNameMatch && (accNumberMatch || bankNameMatch || narrationMatch || timeMatch)) {
-            refundMatch = {
-              id: alertId,
-              data: a,
-              computed: { accNameMatch, accNumberMatch, bankNameMatch, narrationMatch, timeMatch, alertAmount: Number(a.amount || 0) }
-            };
-            break;
+        if (senderNorm.includes(custNorm) || custNorm.includes(senderNorm)) {
+          if (!withinThirtyMinutes(orderStart, createdAt)) {
+            await updateDoc(aDoc.ref, { processed: "not_used" });
+            continue;
+          }
+          if (Math.abs(amt - total) < 1) {
+            await runTransaction(db, async (transaction) => {
+              transaction.update(doc(db, "payment_alerts", aDoc.id), { processed: "true" });
+              transaction.update(doc(db, "orders", savedOrderId), {
+                paymentStatus: "successful",
+                paymentMatchedAt: new Date(),
+                matchedByAlertId: aDoc.id
+              });
+            });
+            unsubAlerts();
+            showResultAnimation("success", "Payment Successful!");
+            setTimeout(() => window.location.href = "pending-orders.html", 2500);
+            return;
+          } else {
+            await runTransaction(db, async (transaction) => {
+              transaction.update(doc(db, "payment_alerts", aDoc.id), { processed: "true" });
+              transaction.update(doc(db, "orders", savedOrderId), {
+                paymentStatus: "refund_required",
+                refundCandidateAlertId: aDoc.id,
+                refundReason: `Amount mismatch: expected ₦${total}, got ₦${amt}`,
+                paymentMatchedAt: new Date()
+              });
+            });
+            unsubAlerts();
+            showResultAnimation("error", "Refund in Progress...");
+            setTimeout(() => window.location.href = "pending-orders.html", 2500);
+            return;
           }
         }
       }
-    }
+    });
 
-    // If we have a mainMatch: mark alert.processed via transaction (first-wins) and update order paymentStatus 'successful'
-    if (mainMatch) {
-      const matchedAlertRef = doc(db, "payment_alerts", mainMatch.id);
-      // Use transaction to ensure processed flips atomically
-      await runTransaction(db, async (t) => {
-        const snap = await t.get(matchedAlertRef);
-        if (!snap.exists()) throw "Alert doc gone";
-        const current = snap.data();
-        if (current.processed) {
-          // somebody else already processed it — in that case, stop and inform user
-          throw { code: "ALREADY_PROCESSED" };
-        }
-        t.update(matchedAlertRef, { processed: true, matchedOrder: savedOrderId, matchedAt: new Date() });
-      }).catch(async (err) => {
-        // If already processed by someone else, fall back to searching duplicates marked processed -> treat as matched by others
-        if (err && err.code === "ALREADY_PROCESSED") {
-          // try to find any other unprocessed alert that fits; but for now we'll inform user
-          throw new Error("That payment was already processed by another request. Please check pending orders.");
-        } else {
-          throw err;
-        }
-      });
-      
-            // mark duplicates: query by same amount OR timestamp window OR same reference/sender. Because Firestore doesn't support OR queries easily,
-      // we query candidate duplicates by amount and then filter client side by time/reference/sender.
-      const dupCandidatesQ = query(collection(db, "payment_alerts"), where("processed", "==", false), where("amount", "==", mainMatch.data.amount || mainMatch.computed.alertAmount));
-      const dupSnap = await getDocs(dupCandidatesQ);
-      const dupUpdates = [];
-      dupSnap.forEach(d => {
-        if (d.id === mainMatch.id) return;
-        // simple client-side heuristics: if narration or sender same or timestamp within ±5 minutes, mark processed
-        const candidate = d.data();
-        const candTs = candidate.timestamp ? new Date(candidate.timestamp) : (candidate.createdAt ? new Date(candidate.createdAt.seconds * 1000) : null);
-        const mainTs = mainMatch.data.timestamp ? new Date(mainMatch.data.timestamp) : (mainMatch.data.createdAt ? new Date(mainMatch.data.createdAt.seconds * 1000) : null);
-        const sameNarr = mainMatch.data.narration && candidate.narration && String(candidate.narration).trim() === String(mainMatch.data.narration).trim();
-        const sameSender = (mainMatch.data.sender && candidate.sender && String(candidate.sender).trim() === String(mainMatch.data.sender).trim());
-        const timeClose = candTs && mainTs && (Math.abs(candTs.getTime() - mainTs.getTime()) <= 1000 * 60 * 5);
+    // Step 3: watch order
+    const orderRef = doc(db, "orders", savedOrderId);
+    const unsubOrder = onSnapshot(orderRef, (snap) => {
+      if (!snap.exists()) return;
+      const data = snap.data();
+      const hideStatuses = ["successful", "refund_required", "refunded", "declined", "expired", "cancelled"];
+      if (hideStatuses.includes(data.paymentStatus)) {
+        hidePendingAnimation();
+        unsubOrder();
+        unsubAlerts && unsubAlerts();
+        window.location.href = "pending-orders.html";
+      }
+    });
 
-        if (sameNarr || sameSender || timeClose) {
-          dupUpdates.push(updateDoc(doc(db, "payment_alerts", d.id), { processed: true, matchedOrder: savedOrderId, matchedAt: new Date() }));
-        }
-      });
-      await Promise.all(dupUpdates);
+    // Step 4: timeout after 5 minutes
+    countdownTimeout = setTimeout(async () => {
+      unsubAlerts();
+      await updateDoc(orderRef, { paymentStatus: "manual_required" });
+    }, 5 * 60 * 1000);
 
-      // update order payment status => successful
-      await updateDoc(doc(db, "orders", savedOrderId), {
-        paymentStatus: "successful",
-        paymentMatchedAt: new Date(),
-        matchedByAlertId: mainMatch.id
-      });
-
-      hidePendingAnimation();
-      alert("Payment Successful ✅ — your order will be assigned shortly.");
-      // redirect to pending orders where admin will pick it up
-      window.location.href = "pending-orders.html";
-      return;
-    }
-
-    // If mainMatch not found but refundMatch is found -> mark refund_required
-    if (refundMatch) {
-      // mark the matched alert processed (so it doesn't block future matches)
-      await runTransaction(db, async (t) => {
-        const alertRef = doc(db, "payment_alerts", refundMatch.id);
-        const snap = await t.get(alertRef);
-        if (!snap.exists()) throw "Alert gone";
-        if (!snap.data().processed) {
-          t.update(alertRef, { processed: true, matchedOrder: savedOrderId, matchedAt: new Date(), note: "amount_mismatch" });
-        }
-      }).catch(() => { /* ignore transaction race — we still proceed */ });
-
-      // mark duplicates of that alert (same amount OR time OR sender) as processed (best-effort)
-      const dupCandidatesQ = query(collection(db, "payment_alerts"), where("processed", "==", false), where("amount", "==", refundMatch.data.amount || refundMatch.computed.alertAmount));
-      const dupSnap2 = await getDocs(dupCandidatesQ);
-      const dupUpdates2 = [];
-      dupSnap2.forEach(d => {
-        if (d.id === refundMatch.id) return;
-        // best-effort filter same narration/sender/time
-        dupUpdates2.push(updateDoc(doc(db, "payment_alerts", d.id), { processed: true, matchedOrder: savedOrderId, matchedAt: new Date(), note: "duplicate_of_amount_mismatch" }));
-      });
-      await Promise.all(dupUpdates2);
-
-      // update order to refund_required and include customer bank details so admin can refund
-      await updateDoc(doc(db, "orders", savedOrderId), {
-        paymentStatus: "refund_required",
-        refundReason: "amount_mismatch_but_other_details_match",
-        refundCandidateAlertId: refundMatch.id,
-        refundCustomerBank: {
-          bankName: custBankName,
-          accountNumber: custAccountNumber,
-          accountName: custAccountName
-        }
-      });
-      
-      hidePendingAnimation();
-      alert("Payment found but amount doesn't match. Admin will process a refund. Refund details sent to admin.");
-      window.location.href = "pending-orders.html";
-      return;
-    }
-
-    // No match at all => leave order pending_confirmation (customer can wait / try again)
-    hidePendingAnimation();
-    alert("No matching payment alert was found yet. The system will keep waiting while your session is active.");
-    // keep the bank modal open (if you prefer to close, uncomment next line)
-    // bankModal.classList.add('hidden');
-    return;
+    // clear cart & close modal
+    cart = [];
+    updateOrderButton();
+    closeOrderModal();
 
   } catch (err) {
     console.error("Payment matching error:", err);
     hidePendingAnimation();
-    alert("An error occurred while trying to confirm payment. Try again or contact support.");
-    return;
-  } finally {
-    // clear cart and UI even if no match? The original flow cleared cart when order placed; preserve that:
-    cart = [];
-    updateOrderButton();
-    closeOrderModal();
-    // bankModal stays open if no match (so customer can retry) — but if you want to always close:
-    // bankModal.classList.add('hidden');
+    alert("Error confirming payment. Try again or contact support.");
   }
 });
 
@@ -743,17 +902,42 @@ async function startCountdown(orderId) {
       stopCountdown();
       bankModal.classList.add('hidden');
       floatingGrid.style.display = "none";
-      // optionally set order to cancelled if not paid:
+  
       if (savedOrderId) {
-        updateDoc(doc(db, "orders", savedOrderId), { orderStatus: "cancelled", paymentStatus: "expired" }).catch(()=>{});
+        (async () => {
+          try {
+            const orderRef = doc(db, "orders", savedOrderId);
+            const snap = await getDoc(orderRef);
+            if (snap.exists()) {
+              const data = snap.data();
+              await setDoc(doc(db, "trash", "orders", savedOrderId), {
+                ...data,
+                orderStatus: "cancelled",
+                paymentStatus: "expired",
+                trashedAt: new Date()
+              });
+              await deleteDoc(orderRef);
+            }
+          } catch (e) {
+            console.error("Failed to move expired order:", e);
+          }
+        })();
       }
+  
       alert("Payment window expired.");
     }
   }, 1000);
 }
 
 function stopCountdown() {
-  if (countdownTimer) clearInterval(countdownTimer);
+  if (countdownTimer) {
+    clearInterval(countdownTimer);
+    countdownTimer = null;
+  }
+  if (countdownTimeout) {
+    clearTimeout(countdownTimeout);
+    countdownTimeout = null;
+  }
   floatingGrid.style.display = "none";
 }
 
@@ -786,7 +970,8 @@ function showPendingAnimation() {
     background: "rgba(255,255,255,0.06)", padding: "1.2rem 1.4rem",
     borderRadius: "10px", color: "#fff", textAlign: "center"
   });
-  box.innerHTML = `<div class="spinner" style="margin-bottom:10px;"></div><div>Waiting for payment confirmation…</div>`;
+  box.innerHTML = `<div class="spinner" style="margin-bottom:10px;"></div><div>Waiting for payment confirmation…</div>
+  <div style="color:red;">Do not leave or close this page</div>`;
   overlay.appendChild(box);
   document.body.appendChild(overlay);
 

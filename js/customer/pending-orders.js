@@ -33,20 +33,26 @@ function getBucket(order) {
   const ps = (order.paymentStatus || '').toLowerCase();
   const os = (order.orderStatus || order.status || '').toLowerCase();
 
-  const adminDeclined =
-    os.includes('declined');
-
+  const adminDeclined = os.includes("declined");
   const merchantDone =
-    order.merchantDone === true || os === 'completed' || os === 'delivered';
+    order.merchantDone === true || os === "completed" || os === "delivered";
 
-  // Normalize payment success
-  const paymentOk = ['success','successful','paid'].includes(ps);
+  // ✅ Treat refunded and refund_required as declined for customers
+  if (ps === "refund_required" || ps === "refunded") {
+    return "declined";
+  }
+
+  // ✅ Normal success flow
+  const paymentOk = ["success", "successful", "paid"].includes(ps);
 
   if (paymentOk) {
-    if (adminDeclined) return 'declined';
-    if (merchantDone)  return 'delivered';
-    return 'pending';
+    if (adminDeclined) return "declined";
+    if (merchantDone) return "delivered";
+    return "pending";
   }
+
+  // ✅ If explicitly declined without success
+  if (adminDeclined) return "declined";
 }
 
 function getDeclineReason(order) {
@@ -155,6 +161,15 @@ function createOrderCard(order, bucket) {
 
       overlay.addEventListener('click', () => document.body.removeChild(overlay));
     });
+  }
+  
+  if (bucket === "declined") {
+    if (order.paymentStatus === "refund_required") {
+      reasonPreview += `<p style="color:#e67e22;">Refund Required</p>`;
+    }
+    if (order.paymentStatus === "refunded") {
+      reasonPreview += `<p style="color:#27ae60;">Refunded ✔</p>`;
+    }
   }
 
   return card;
