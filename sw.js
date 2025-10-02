@@ -1,4 +1,4 @@
-const CACHE_NAME = "smartwaste-cache-v1";
+const CACHE_NAME = "Quick Delivery";
 const urlsToCache = [
   "/",
   "/index.html",
