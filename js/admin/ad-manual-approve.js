@@ -21,6 +21,10 @@ function renderPendingCard(order) {
   const card = document.createElement('div');
   card.classList.add('order-card', 'glassy');
 
+  const createdAt = order.createdAt?.toDate 
+    ? order.createdAt.toDate() 
+    : new Date(order.createdAt || Date.now());
+
   card.innerHTML = `
     <div class="order-id">Order #${order.id}</div>
     <div class="order-owner">Customer: ${order.customerUsername || ''}</div>
@@ -30,13 +34,14 @@ function renderPendingCard(order) {
       <p><strong>Account Name:</strong> ${order.customerAccountName || '—'}</p>
       <p><strong>Account Number:</strong> ${order.customerAccountNumber || '—'}</p>
     </div>
+    <div class="order-time"><strong>Created:</strong> ${createdAt.toLocaleString()}</div>
     <div class="actions">
       <button class="approve-btn">Approve</button>
       <button class="decline-btn">Decline</button>
     </div>
   `;
 
-  // ✅ Modified Approve Button
+  // ✅ Approve button
   card.querySelector('.approve-btn').addEventListener('click', async () => {
     try {
       await runTransaction(db, async (transaction) => {
@@ -45,12 +50,12 @@ function renderPendingCard(order) {
         if (!orderSnap.exists()) throw new Error("Order not found");
         const orderData = orderSnap.data();
 
-        // Look for linked payment_alert
+        // linked alert cleanup
         const alertId = orderData.matchedByAlertId || orderData.refundCandidateAlertId;
         if (alertId) {
           const alertRef = doc(db, "payment_alerts", alertId);
           const alertSnap = await transaction.get(alertRef);
-          if (alertSnap.exists() && !alertSnap.data().processed === "false") {
+          if (alertSnap.exists() && alertSnap.data().processed !== "true") {
             transaction.update(alertRef, { processed: "true" });
           }
         }
@@ -69,8 +74,27 @@ function renderPendingCard(order) {
     }
   });
 
-  // ✅ Decline (unchanged)
-  card.querySelector('.decline-btn').addEventListener('click', async () => {
+  // ✅ Decline Button with 10-min cooldown (based on createdAt)
+  const declineBtn = card.querySelector('.decline-btn');
+  const cooldownMs = 15 * 60 * 1000;
+  const readyAt = createdAt.getTime() + cooldownMs;
+
+  function updateDeclineButton() {
+    let now = Date.now();
+    if (now >= readyAt) {
+      declineBtn.disabled = false;
+      declineBtn.textContent = "Decline";
+    } else {
+      declineBtn.disabled = true;
+      let remaining = Math.ceil((readyAt - now) / 60000);
+      declineBtn.textContent = `Decline (available in ${remaining}m)`;
+      setTimeout(updateDeclineButton, 30000);
+    }
+  }
+  updateDeclineButton();
+
+  declineBtn.addEventListener('click', async () => {
+    if (declineBtn.disabled) return;
     await updateDoc(doc(db, "orders", order.id), { paymentStatus: "declined" });
     alert("Payment declined.");
     card.remove();
