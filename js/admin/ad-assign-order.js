@@ -8,7 +8,8 @@ import {
   updateDoc,
   doc,
   getDocs,
-  getDoc
+  getDoc,
+  getCountFromServer
 } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
 
 const ordersList = document.querySelector('.orders-list');
@@ -187,7 +188,6 @@ async function openMerchantListModal(order) {
   const merchantsSnap = await getDocs(collection(db, "merchants"));
   assignModal.content.innerHTML = `<h4>Available Merchants</h4>`;
 
-  const isHostelOrder = order.tag?.toLowerCase() === "potters lodge";
   let anyShown = false;
 
   for (const mDoc of merchantsSnap.docs) {
@@ -195,13 +195,6 @@ async function openMerchantListModal(order) {
 
     // Skip merchants who declined
     if (order.declinedBy && order.declinedBy.includes(m.id)) continue;
-
-    // Hostel vs normal filter
-    if (isHostelOrder) {
-      if (m.role?.toLowerCase() !== "hostel") continue;
-    } else {
-      if (m.role?.toLowerCase() === "hostel") continue;
-    }
 
     // Availability + duty check
     let onDuty = await isMerchantOnDuty(m.id);
@@ -213,13 +206,19 @@ async function openMerchantListModal(order) {
       continue;
     }
 
-    // Distance
-    let distanceText = '';
-    if (m.lat && m.lng && resLat && resLng) {
-      const km = calculateDistance(m.lat, m.lng, resLat, resLng);
-      if (km) distanceText = `Distance: ${km} km`;
+  let activeOrdersCount = 0;
+    try {
+      const q = query(
+        collection(db, "orders"),
+        where("assignedMerchantId", "==", m.id),
+        where("orderStatus", "==", "accepted")
+      );
+      const snap = await getCountFromServer(q);
+      activeOrdersCount = snap.data().count;
+    } catch (err) {
+      console.error("Error counting orders for merchant", m.id, err);
     }
-
+    
     // Build card
     const div = document.createElement('div');
     Object.assign(div.style, {
@@ -229,18 +228,9 @@ async function openMerchantListModal(order) {
       color: "#fff"
     });
 
-    if (m.role?.toLowerCase() === "hostel") {
-      div.style.background = m.gender?.toLowerCase() === "male"
-        ? "rgba(0,123,255,0.6)"
-        : "rgba(255,105,180,0.6)";
-    } else {
-      div.style.background = "rgba(255,255,255,0.08)";
-    }
-
     div.innerHTML = `
       <strong>${m.fullname || m.username || 'Merchant'}</strong>
-      <span>Orders: ${m.activeOrders || 0}</span>
-      <span>${distanceText}</span>
+      <span>Orders: ${activeOrdersCount}</span>
     `;
 
     div.addEventListener('click', async () => {
