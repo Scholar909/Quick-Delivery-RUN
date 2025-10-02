@@ -852,7 +852,32 @@ ivePaidBtn.addEventListener("click", async () => {
     const unsubOrder = onSnapshot(orderRef, (snap) => {
       if (!snap.exists()) return;
       const data = snap.data();
-      const hideStatuses = ["successful", "refund_required", "refunded", "declined", "expired", "cancelled"];
+    
+      // ✅ Success (either from admin or system)
+      if (data.paymentStatus === "successful") {
+        hidePendingAnimation();
+        unsubOrder();
+        unsubAlerts && unsubAlerts();
+        showResultAnimation("success", "Payment Successful!");
+        setTimeout(() => window.location.href = "pending-orders.html", 2500);
+        return;
+      }
+    
+      // ❌ Declined (admin decision)
+      if (data.paymentStatus === "declined") {
+        hidePendingAnimation();
+        unsubOrder();
+        unsubAlerts && unsubAlerts();
+        showResultAnimation(
+          "error",
+          "Payment Declined. If you already made the payment, please contact support or file a complaint."
+        );
+        setTimeout(() => window.location.href = "complaints.html", 5000);
+        return;
+      }
+    
+      // Refunds, expiry, cancellations
+      const hideStatuses = ["refund_required", "refunded", "expired", "cancelled"];
       if (hideStatuses.includes(data.paymentStatus)) {
         hidePendingAnimation();
         unsubOrder();
