@@ -24,7 +24,7 @@ async function loadCleanupData() {
   const ordersRef = collection(db, "orders");
   const pendingOrdersQ = query(
     ordersRef,
-    where("paymentStatus", "==", "pending_confirmation"),
+    where("paymentStatus", "in", ["pending_confirmation", "declined"]),
     where("orderStatus", "==", "pending_assignment")
   );
   const pendingOrdersSnap = await getDocs(pendingOrdersQ);
