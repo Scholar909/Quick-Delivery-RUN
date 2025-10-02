@@ -81,6 +81,7 @@
       <!-- Step 1: Customer Input -->
       <div id="bankStep1">
         <h3>Your Bank Details</h3>
+        <p>Enter the details of the bank you will be transferring from</p>
         <label>Choose Bank</label>
         <select id="custBankName"></select>
 
@@ -88,7 +89,7 @@
         <input type="text" id="custAccountNumber" placeholder="Enter your account number"/>
 
         <label>Account Name</label>
-        <input type="text" id="custAccountName" placeholder="Autofilled" disabled/>
+        <input type="text" id="custAccountName" placeholder="Enter your account name"/>
 
         <div style="margin-top:15px; display:flex; justify-content:space-between;">
           <button id="cancelStep1" class="pay-btn" style="background:#aaa;">Cancel</button>
@@ -126,23 +127,24 @@
   </div>
 
   <!-- Drawer -->
-  <div class="drawer glassy">
-    <div class="drawer-header">
-      <h3>Customers Menu</h3>
-      <i class="uil uil-times close-drawer"></i>
-    </div>
-    <ul class="drawer-links">
-      <li><a href="dashboard.html"><i class="uil uil-apps"></i> Dashboard</a></li>
-      <li><a href="profile.html"><i class="uil uil-user"></i> Profile</a></li>
-      <li><a href="menu-place-order.html"><i class="uil uil-utensils"></i> Menu/Place Order</a></li>
-      <li><a href="alerts.html"><i class="uil uil-envelope"></i> Alerts</a></li>
-      <li><a href="complaints.html"><i class="uil uil-exclamation"></i> Complaints</a></li>
-      <li><a href="pending-orders.html"><i class="uil uil-clipboard-alt"></i> Order History</a></li>
-    </ul>
-    <div class="logout-section">
-      <a href="../cust-auth.html" class="logout-btn"><i class="uil uil-signout"></i> Logout</a>
-    </div>
+<div class="drawer glassy">
+  <div class="drawer-header">
+    <h3>Customers Menu</h3>
+    <i class="uil uil-times close-drawer"></i>
   </div>
+  <ul class="drawer-links">
+    <li><a href="dashboard.html"><i class="uil uil-apps"></i> Dashboard</a></li>
+    <li><a href="profile.html"><i class="uil uil-user"></i> Profile</a></li>
+    <li><a href="menu-place-order.html"><i class="uil uil-utensils"></i> Menu/Place Order</a></li>
+    <li><a href="rec.html"><i class="uil uil-lightbulb-alt"></i> Combo and Recommendations</a></li>
+    <li><a href="alerts.html"><i class="uil uil-envelope"></i> Alerts</a></li>
+    <li><a href="complaints.html"><i class="uil uil-exclamation"></i> Complaints</a></li>
+    <li><a href="pending-orders.html"><i class="uil uil-clipboard-alt"></i> Order History</a></li>
+  </ul>
+  <div class="logout-section">
+    <a href="../cust-auth.html" class="logout-btn"><i class="uil uil-signout"></i> Logout</a>
+  </div>
+</div>
 
   <!-- Footer Navigation -->
   <footer class="footer-nav">
