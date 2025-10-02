@@ -34,7 +34,7 @@ function renderPendingCard(order) {
       <p><strong>Account Name:</strong> ${order.customerAccountName || '—'}</p>
       <p><strong>Account Number:</strong> ${order.customerAccountNumber || '—'}</p>
     </div>
-    <div class="order-time"><strong>Created:</strong> ${createdAt.toLocaleString()}</div>
+    <div class="order-time"><strong>Placed:</strong> ${createdAt.toLocaleString()}</div>
     <div class="actions">
       <button class="approve-btn">Approve</button>
       <button class="decline-btn">Decline</button>
@@ -76,7 +76,7 @@ function renderPendingCard(order) {
 
   // ✅ Decline Button with 10-min cooldown (based on createdAt)
   const declineBtn = card.querySelector('.decline-btn');
-  const cooldownMs = 15 * 60 * 1000;
+  const cooldownMs = 10 * 60 * 1000;
   const readyAt = createdAt.getTime() + cooldownMs;
 
   function updateDeclineButton() {
@@ -87,7 +87,7 @@ function renderPendingCard(order) {
     } else {
       declineBtn.disabled = true;
       let remaining = Math.ceil((readyAt - now) / 60000);
-      declineBtn.textContent = `Decline (available in ${remaining}m)`;
+      declineBtn.textContent = `Decline in ${remaining}m`;
       setTimeout(updateDeclineButton, 30000);
     }
   }
