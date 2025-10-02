@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Customer Recommendations & Combos</title>
+  <link rel="stylesheet" href="../css/customers/cust-rec.css" />
+  <link rel="stylesheet" href="../css/drawer.css">
+  <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.8/css/line.css">
+</head>
+<body data-role="customer">
+
+  <!-- Header -->
+  <header class="header">
+    <h2>Recommendations & Combos</h2>
+  </header>
+
+  <!-- 🔹 Search -->
+  <section class="search-section">
+    <input type="text" id="searchAll" placeholder="Search by restaurant, time, or food...">
+  </section>
+
+  <!-- 🔹 Tabs -->
+  <div class="tabs-container">
+    <button class="tab active" data-tab="combos">Combos</button>
+    <button class="tab" data-tab="recommendations">Recommendations</button>
+  </div>
+
+  <!-- 🔹 Content Sections -->
+  <main class="tab-content">
+
+    <!-- Combos Section -->
+    <section id="combos" class="content-section active">
+      <div id="combos-list" class="cards-container">
+        Loading combos...
+      </div>
+    </section>
+
+    <!-- Recommendations Section -->
+    <section id="recommendations" class="content-section">
+      <div id="recommendations-list" class="cards-container">
+        Loading recommendations...
+      </div>
+    </section>
+  </main>
+
+  <!-- Drawer -->
+<div class="drawer glassy">
+  <div class="drawer-header">
+    <h3>Customers Menu</h3>
+    <i class="uil uil-times close-drawer"></i>
+  </div>
+  <ul class="drawer-links">
+    <li><a href="dashboard.html"><i class="uil uil-apps"></i> Dashboard</a></li>
+    <li><a href="profile.html"><i class="uil uil-user"></i> Profile</a></li>
+    <li><a href="menu-place-order.html"><i class="uil uil-utensils"></i> Menu/Place Order</a></li>
+    <li><a href="rec.html"><i class="uil uil-lightbulb-alt"></i> Combo and Recommendations</a></li>
+    <li><a href="alerts.html"><i class="uil uil-envelope"></i> Alerts</a></li>
+    <li><a href="complaints.html"><i class="uil uil-exclamation"></i> Complaints</a></li>
+    <li><a href="pending-orders.html"><i class="uil uil-clipboard-alt"></i> Order History</a></li>
+  </ul>
+  <div class="logout-section">
+    <a href="../cust-auth.html" class="logout-btn"><i class="uil uil-signout"></i> Logout</a>
+  </div>
+</div>
+
+  <!-- Footer Navigation -->
+  <footer class="footer-nav">
+    <div class="nav-item">
+      <i class="uil uil-bars"></i>
+      <span>Menu</span>
+    </div>
+    <a href="complaints.html"><div class="nav-item">
+      <i class="uil uil-comment-question"></i>
+      <span>Complaints</span>
+    </div></a>
+    <a href="dashboard.html"><div class="nav-item">
+      <i class="uil uil-home"></i>
+      <span>Home</span>
+    </div></a>
+    <a href="alerts.html"><div class="nav-item">
+      <i class="uil uil-envelope"></i>
+      <span>Alerts</span>
+    </div></a>
+    <a href="pending-orders.html"><div class="nav-item">
+      <i class="uil uil-history"></i>
+      <span>History</span>
+    </div></a>
+  </footer>
+
+  <script type="module" src="../js/drawer.js"></script>
+  <script type="module" src="../js/customer/cust-rec.js"></script>
+</body>
+</html>
