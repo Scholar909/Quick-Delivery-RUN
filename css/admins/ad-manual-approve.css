@@ -1,0 +1,85 @@
+/* Use same base as ad-assign-orders.css */
+@import url('ad-assign-orders.css');
+
+/* Tabs */
+.tabs {
+  display: flex;
+  justify-content: center;
+  margin: 1rem 0;
+  gap: 1rem;
+}
+
+.tab-link {
+  background: rgba(255, 255, 255, 0.08);
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 10px;
+  cursor: pointer;
+  color: #ccc;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.tab-link i {
+  margin-right: 6px;
+}
+
+.tab-link.active,
+.tab-link:hover {
+  background: #0f4e75;
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  padding: 1.5rem;
+  animation: fadeIn 0.4s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Buttons in cards */
+.approve-btn,
+.decline-btn,
+.refund-btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  color: white;
+}
+
+.approve-btn {
+  background-color: #0f4e75;
+}
+.approve-btn:hover {
+  background-color: #0c3b59;
+}
+
+.decline-btn {
+  background-color: crimson;
+}
+.decline-btn:hover {
+  background-color: darkred;
+}
+
+.refund-btn {
+  background-color: #555;
+}
+.refund-btn:hover {
+  background-color: #777;
+}
