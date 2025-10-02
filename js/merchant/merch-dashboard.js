@@ -20,8 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const statusMsgEl = document.getElementById("status-msg");
   const welcomeMsgEl = document.getElementById("welcome-msg");
 
-  let allShiftsForToday = []; // store shifts for modal display
-  let isHostelMerchant = false;
+  let allShiftsForToday = [];
 
   /* ------------------------------
      HELPERS
@@ -56,62 +55,27 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeout(() => tip.remove(), 4000);
   }
 
-  async function checkHostelMerchant(uid) {
-    const snap = await getDoc(doc(db, "hostelMerchants", uid));
-    isHostelMerchant = snap.exists();
-  }
-
   /* ------------------------------
      COMPLETED ORDERS LOADER
   ------------------------------ */
   async function loadCompletedOrders(merchantId) {
     try {
-      if (isHostelMerchant) {
-        // hostel merchant → only count delivered assigned to them
-        const qDelivered = query(
-          collection(db, "orders"),
-          where("assignedMerchantId", "==", merchantId),
-          where("orderStatus", "==", "delivered")
-        );
-        const snap = await getDocs(qDelivered);
-        const count = snap.size;
+      // Count all delivered orders assigned to this merchant
+      const qDelivered = query(
+        collection(db, "orders"),
+        where("assignedMerchantId", "==", merchantId),
+        where("orderStatus", "==", "delivered")
+      );
+      const snap = await getDocs(qDelivered);
+      const count = snap.size;
 
-        completedCountEl.innerHTML = `
-          <span style="color:limegreen;font-weight:bold;">${count}</span>
-        `;
+      completedCountEl.innerHTML = `
+        <span style="color:limegreen;font-weight:bold;">${count}</span>
+      `;
 
-        completedCountEl.style.cursor = "pointer";
-        completedCountEl.onclick = () =>
-          createTooltip("Green = Total orders delivered (Hostel Merchant)");
-      } else {
-        // normal merchant: direct vs potters
-        const qDirect = query(
-          collection(db, "orders"),
-          where("assignedMerchantId", "==", merchantId),
-          where("orderStatus", "==", "delivered"),
-          where("deliveredTo", "==", "Room directly")
-        );
-        const directSnap = await getDocs(qDirect);
-        const directCount = directSnap.size;
-
-        const qPotters = query(
-          collection(db, "orders"),
-          where("fromMerchantId", "==", merchantId),
-          where("orderStatus", "==", "delivered"),
-          where("deliveredTo", ">=", "Potters lodge")
-        );
-        const pottersSnap = await getDocs(qPotters);
-        const pottersCount = pottersSnap.size;
-
-        completedCountEl.innerHTML = `
-          <span style="color:limegreen;font-weight:bold;">${directCount}</span> +
-          <span style="color:orange;font-weight:bold;">${pottersCount}</span>
-        `;
-
-        completedCountEl.style.cursor = "pointer";
-        completedCountEl.onclick = () =>
-          createTooltip("Green = Room directly deliveries, Orange = Dropped at Potters Lodge");
-      }
+      completedCountEl.style.cursor = "pointer";
+      completedCountEl.onclick = () =>
+        createTooltip("Green = Total orders delivered");
     } catch (err) {
       console.error("Error loading completed orders:", err);
       completedCountEl.textContent = "—";
@@ -246,7 +210,6 @@ document.addEventListener("DOMContentLoaded", () => {
           modalContent.style.boxShadow = "0 4px 20px rgba(0,0,0,0.15)";
           modalContent.style.minWidth = "280px";
           modalContent.style.position = "relative";
-          modalContent.style.fontFamily = "sans-serif";
 
           const closeBtn = document.createElement("span");
           closeBtn.textContent = "×";
@@ -292,10 +255,8 @@ document.addEventListener("DOMContentLoaded", () => {
   ------------------------------ */
   onAuthStateChanged(auth, async (user) => {
     if (user) {
-      await checkHostelMerchant(user.uid);
-
       try {
-        // 🔹 fetch merchant profile
+        // fetch merchant profile
         const docSnap = await getDoc(doc(db, "merchants", user.uid));
         if (docSnap.exists()) {
           const userData = docSnap.data();

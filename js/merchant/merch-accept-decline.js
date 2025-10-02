@@ -1,20 +1,10 @@
+// File: merch-accept-orders.js
 import { auth, db } from '../firebase.js';
 import {
   collection, query, where, onSnapshot,
   updateDoc, doc, getDocs, getDoc, serverTimestamp, arrayUnion
 } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
-
-async function isHostelFlow(order, user) {
-  // Check merchant role
-  const userDoc = await getDoc(doc(db, "merchants", user.uid));
-  const role = userDoc.exists() ? userDoc.data().role?.toLowerCase() : "";
-
-  // Check order tag
-  const tag = order.tag?.toLowerCase() || "";
-
-  return role === "hostel" || tag === "potters lodge";
-}
 
 const ordersList = document.querySelector('.orders-list');
 let timers = {}; // auto-accept timeout
@@ -98,7 +88,6 @@ function handleAutoAccept(order, user) {
   const expiryMs = baseTime.getTime() + (3 * 60 * 1000); // 3 mins
   const now = Date.now();
 
-  // If already past deadline → accept immediately
   if (now >= expiryMs) {
     if (order.orderStatus === "pending") {
       console.log("⚡ Order already expired, auto-accepting:", order.id);
@@ -107,7 +96,6 @@ function handleAutoAccept(order, user) {
     return;
   }
 
-  // Otherwise schedule timeout if not already
   if (!timers[order.id]) {
     const delay = expiryMs - now;
     timers[order.id] = setTimeout(() => autoAccept(order, user), delay);
@@ -121,9 +109,8 @@ function renderOrderCard(order, user) {
   const card = document.createElement("div");
   card.classList.add("order-card", "glassy");
 
-  // Countdown reference
   const baseTime = order.assignedAt?.toDate?.() || order.createdAt?.toDate?.() || new Date();
-  const expiryMs = baseTime.getTime() + (3 * 60 * 1000); // 5 mins
+  const expiryMs = baseTime.getTime() + (3 * 60 * 1000);
   const delay = Math.max(0, expiryMs - Date.now());
 
   if (!timers[order.id]) {
@@ -155,11 +142,11 @@ function renderOrderCard(order, user) {
 /* ------------------------------
 ORDER ACTIONS
 ------------------------------ */
-
 async function acceptOrder(order, user, auto = false) {
   clearTimeout(timers[order.id]);
 
-  // For hostel merchants: skip extra merchant notifications
+  const orderRef = doc(db, "orders", order.id);
+
   const updateData = {
     orderStatus: "accepted",
     acceptedAt: serverTimestamp(),
@@ -167,68 +154,12 @@ async function acceptOrder(order, user, auto = false) {
     assignedMerchantName: user.displayName || "Merchant"
   };
 
-  if (await isHostelFlow(order, user)) {
-    await updateDoc(doc(db, "orders", order.id), updateData);
-    alert(auto ? "✅ Hostel order auto-accepted!" : `✅ Hostel order accepted! Customer room: ${order.customerRoom || 'N/A'}`);
-  } else {
-    await updateDoc(doc(db, "orders", order.id), updateData);
-    await sendOrderToExtraMerchants(order.id);
-    await notifyReceiptMerchant(order, user);
-    alert(auto ? "✅ Order auto-accepted and notification sent!" : "✅ Order accepted!");
-  }
-}
+  await updateDoc(orderRef, updateData);
 
-/**
- * Send accepted order to all linked extra merchants
- */
-export async function sendOrderToExtraMerchants(orderId) {
-  try {
-    const orderRef = doc(db, "orders", orderId);
-    const orderSnap = await getDoc(orderRef);
-    if (!orderSnap.exists()) return;
+  // ✅ notify extra merchants (only once)
+  await notifyReceiptMerchants(order, user, orderRef);
 
-    const order = orderSnap.data();
-    
-    // Check hostel by tag only (no user available here)
-    if (order.tag?.toLowerCase() === "potters lodge") {
-      console.log("Skip CallMeBot alert for hostel order:", orderId);
-      return;
-    }
-    
-    if (order.extraSent) return; // Already sent
-
-    if (!order.restaurantName) {
-      console.warn("⚠️ Order has no restaurantName:", orderId, order);
-      return;
-    }
-
-    // Find extra merchants linked to the restaurant
-    const q = query(collection(db, "extraMerchants"), where("restaurantName", "==", order.restaurantName));
-    const snap = await getDocs(q);
-    if (snap.empty) {
-      console.warn("⚠️ No extraMerchants found for restaurantName:", order.restaurantName);
-      return;
-    }
-
-    for (const docSnap of snap.docs) {
-      const extra = docSnap.data();
-      if (!extra.phone || !extra.apiCode) continue;
-
-      const msg = `📦 New Order!\n🍴 Restaurant: ${order.restaurantName}\n🆔 Order ID: ${order.id}\n👤 By: ${order.customerUsername || ''}`;
-      const url = `https://api.callmebot.com/whatsapp.php?phone=${extra.phone}&text=${encodeURIComponent(msg)}&apikey=${extra.apiCode}`;
-
-      // Fire-and-forget: no CORS issue
-      const img = new Image();
-      img.src = url;
-      
-      console.log("📲 Receipt merchant notified (img method):", data.phone);
-    }
-
-    // Mark order so it won’t send again
-    await updateDoc(orderRef, { extraSent: true });
-  } catch (err) {
-    console.error("❌ Error sending order to extra merchants:", err);
-  }
+  alert(auto ? "✅ Order auto-accepted and notifications sent!" : "✅ Order accepted!");
 }
 
 async function declineOrder(order, user, reason) {
@@ -247,13 +178,13 @@ async function declineOrder(order, user, reason) {
     }
   });
 
+  // ❌ no notifyReceiptMerchants here
   alert("❌ Order declined and returned for reassignment.");
 }
 
 async function autoAccept(order, user) {
   console.log("⏰ Auto-accept triggered:", order.id);
   await acceptOrder(order, user, true);
-  alert(auto ? "✅ Order auto-accepted and notification sent!" : "✅ Order accepted!");
 }
 
 /* ------------------------------
@@ -278,39 +209,39 @@ function openDeclineModal(order, user) {
 }
 
 /* ------------------------------
-CALLMEBOT RECEIPT NOTIFY
+NOTIFY EXTRA MERCHANTS (restaurant.merchants array)
 ------------------------------ */
-
-/* ------------------------------
-SEND TO ALL EXTRA MERCHANTS FOR RESTAURANT
------------------------------- */
-async function notifyReceiptMerchant(orderData, merchantUser) {
+async function notifyReceiptMerchants(orderData, merchantUser, orderRef) {
   try {
-    
-    // Check hostel by tag only (no user object here)
-    if (orderData.tag?.toLowerCase() === "potters lodge") {
-      console.log("Skip CALLMEBOT notify for hostel order:", orderData.id);
+    const freshSnap = await getDoc(orderRef);
+    if (!freshSnap.exists()) return;
+    const order = freshSnap.data();
+
+    // Skip if already sent
+    if (order.extraSent) {
+      console.log("ℹ️ Notifications already sent for:", orderData.id);
       return;
     }
-    
+
     if (!orderData.restaurantName) {
       console.warn("⚠️ Order missing restaurantName:", orderData.id);
       return;
     }
 
-    // Find merchants linked to this restaurant
-    const q = query(
-      collection(db, "extraMerchants"),
-      where("restaurantName", "==", orderData.restaurantName)
-    );
+    const q = query(collection(db, "restaurants"), where("name", "==", orderData.restaurantName));
     const snap = await getDocs(q);
-
     if (snap.empty) {
-      console.warn("⚠️ No receipt merchant for:", orderData.restaurantName);
+      console.warn("⚠️ No restaurant found:", orderData.restaurantName);
       return;
     }
 
-    // 🧾 Build detailed receipt message
+    const restaurantDoc = snap.docs[0];
+    const data = restaurantDoc.data();
+    if (!data.merchants || data.merchants.length === 0) {
+      console.warn("⚠️ No extra merchants linked:", orderData.restaurantName);
+      return;
+    }
+
     const header = `📦 New Order Accepted!
 🍴 Restaurant: ${orderData.restaurantName}
 🆔 Order ID: ${orderData.id}
@@ -319,7 +250,6 @@ async function notifyReceiptMerchant(orderData, merchantUser) {
 🏠 Room: ${orderData.customerRoom || "N/A"}
 `;
 
-    // Group items by category
     const grouped = {};
     let grandTotal = 0;
 
@@ -338,16 +268,14 @@ async function notifyReceiptMerchant(orderData, merchantUser) {
       grandTotal += lineTotal;
     });
 
-    // Build section text
     let sections = "";
     for (const [category, data] of Object.entries(grouped)) {
-      sections += `\n${category} (Total ₦${data.total})\n`;
+      sections += `\n${category} (₦${data.total})\n`;
       data.items.forEach(it => {
         sections += `  • ${it.name} x${it.qty} = ₦${it.total}\n`;
       });
     }
 
-    // ➕ Add pack cost if available
     let packLine = "";
     if (orderData.packCharge && orderData.packCharge > 0) {
       packLine = `\n• Pack = ₦${orderData.packCharge}`;
@@ -355,23 +283,20 @@ async function notifyReceiptMerchant(orderData, merchantUser) {
     }
 
     const footer = `${packLine}\n\n💰 Grand Total: ₦${grandTotal}`;
-
     const msg = header + sections + footer;
 
-    // Send to each linked merchant via CallMeBot
-    for (const docSnap of snap.docs) {
-      const data = docSnap.data();
-      if (!data.phone || !data.apiCode) continue;
-
-      const url = `https://api.callmebot.com/whatsapp.php?phone=${data.phone}&text=${encodeURIComponent(msg)}&apikey=${data.apiCode}`;
-
-      // Fire-and-forget via <img> to bypass CORS
+    for (const m of data.merchants) {
+      if (!m.phone || !m.apiCode) continue;
+      const url = `https://api.callmebot.com/whatsapp.php?phone=${m.phone}&text=${encodeURIComponent(msg)}&apikey=${m.apiCode}`;
       const img = new Image();
       img.src = url;
-
-      console.log("📲 Receipt merchant notified (img method):", data.phone);
+      console.log("📲 Extra merchant notified:", m.phone);
     }
+
+    // ✅ Mark so it won’t be sent again
+    await updateDoc(orderRef, { extraSent: true });
+
   } catch (err) {
-    console.error("❌ CallMeBot error:", err);
+    console.error("❌ Error notifying merchants:", err);
   }
 }

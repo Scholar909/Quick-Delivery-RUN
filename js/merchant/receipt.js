@@ -122,9 +122,7 @@ function renderReceipt(data, idFromUrl) {
   itemTotal += pack;
 
   const delivery = Number(data.deliveryCharge ?? 0);
-  const fee = Number(
-    data.fee ?? Math.round((itemTotal + delivery) * 0.015)
-  );
+  const fee = Number(data.feeCharge ?? 0); // Use stored feeCharge
   const totalAll = Number(
     data.totalAmount ?? (itemTotal + delivery + fee)
   );
