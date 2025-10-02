@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manual Cleanup Dashboard</title>
+<script type="module">
+import { db } from '../js/firebase.js';
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  getDoc,
+  setDoc,
+  doc,
+  deleteDoc,
+} from 'https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js';
+
+async function loadCleanupData() {
+  const now = new Date();
+  const cutoff = new Date(now.getTime() - 30*60*1000); // 30 min ago
+
+  const ordersRef = collection(db, "orders");
+  const pendingOrdersQ = query(
+    ordersRef,
+    where("paymentStatus", "==", "pending_confirmation"),
+    where("orderStatus", "==", "pending_assignment")
+  );
+  const pendingOrdersSnap = await getDocs(pendingOrdersQ);
+
+  const ordersList = document.getElementById("ordersList");
+  ordersList.innerHTML = "";
+
+  // Add "Select All" checkbox
+  const selectAllOrders = document.createElement("li");
+  selectAllOrders.innerHTML = `<input type="checkbox" id="selectAllOrders"> <strong>Select All</strong>`;
+  ordersList.appendChild(selectAllOrders);
+  document.getElementById("selectAllOrders").addEventListener("change", (e) => {
+    document.querySelectorAll("#ordersList input[type=checkbox]").forEach(cb => {
+      if (cb !== e.target) cb.checked = e.target.checked;
+    });
+  });
+
+  pendingOrdersSnap.forEach(docSnap => {
+    const order = docSnap.data();
+    const createdAt = order.createdAt?.toDate?.() || new Date();
+    if (createdAt <= cutoff) {
+      const li = document.createElement("li");
+      li.innerHTML = `<input type="checkbox" data-id="${docSnap.id}"> Order #${docSnap.id} - ${order.customerName} - ₦${order.totalAmount}`;
+      ordersList.appendChild(li);
+    }
+  });
+
+  // Payment Alerts
+  const alertsRef = collection(db, "payment_alerts");
+  const alertsQ = query(alertsRef, where("processed", "in", ["duplicate","not_used"]));
+  const alertsSnap = await getDocs(alertsQ);
+
+  const alertsList = document.getElementById("alertsList");
+  alertsList.innerHTML = "";
+
+  // Add "Select All" checkbox
+  const selectAllAlerts = document.createElement("li");
+  selectAllAlerts.innerHTML = `<input type="checkbox" id="selectAllAlerts"> <strong>Select All</strong>`;
+  alertsList.appendChild(selectAllAlerts);
+  document.getElementById("selectAllAlerts").addEventListener("change", (e) => {
+    document.querySelectorAll("#alertsList input[type=checkbox]").forEach(cb => {
+      if (cb !== e.target) cb.checked = e.target.checked;
+    });
+  });
+
+  alertsSnap.forEach(docSnap => {
+    const alert = docSnap.data();
+    const li = document.createElement("li");
+    li.innerHTML = `<input type="checkbox" data-id="${docSnap.id}"> Alert #${docSnap.id} - ${alert.sender || alert.narration} - ₦${alert.amount}`;
+    alertsList.appendChild(li);
+  });
+}
+
+// Attach function to window for onclick
+window.deleteSelected = async function() {
+  const orderCheckboxes = Array.from(document.querySelectorAll("#ordersList input[type=checkbox]:checked"))
+    .filter(cb => cb.dataset.id);
+  const alertCheckboxes = Array.from(document.querySelectorAll("#alertsList input[type=checkbox]:checked"))
+    .filter(cb => cb.dataset.id);
+
+  // Delete Orders
+  const orderDeletes = orderCheckboxes.map(async cb => {
+    const orderId = cb.dataset.id;
+    const orderRef = doc(db, "orders", orderId);
+    const orderSnap = await getDoc(orderRef);
+    const orderData = orderSnap.data();
+    if (!orderData) return;
+    await setDoc(doc(db, "trash", orderId), {
+      ...orderData,
+      orderStatus: "cancelled",
+      paymentStatus: "expired",
+      trashedAt: new Date()
+    });
+    await deleteDoc(orderRef);
+  });
+
+  // Delete Alerts
+  const alertDeletes = alertCheckboxes.map(async cb => {
+    const alertId = cb.dataset.id;
+    await deleteDoc(doc(db, "payment_alerts", alertId));
+  });
+
+  // Run all deletions in parallel for speed
+  await Promise.all([...orderDeletes, ...alertDeletes]);
+
+  alert(`Cleanup complete!\nOrders deleted: ${orderDeletes.length}\nAlerts deleted: ${alertDeletes.length}`);
+  loadCleanupData(); // refresh lists
+}
+
+// Initial load
+window.onload = loadCleanupData;
+</script>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #f0f4f7;
+  padding: 2rem;
+}
+h1 { color: #0f4e75; }
+section { margin-bottom: 2rem; }
+ul { list-style:none; padding:0; }
+li { margin: 0.5rem 0; padding: 0.5rem; background: #fff; border-radius: 6px; display:flex; align-items:center; }
+button {
+  padding: 0.8rem 1.2rem;
+  background: #0f4e75;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 1rem;
+}
+button:hover { background: #0c3d5a; }
+</style>
+</head>
+<body>
+
+<h1>Manual Cleanup Dashboard</h1>
+
+<section>
+  <h2>Stale Orders (>30 min)</h2>
+  <ul id="ordersList">Loading...</ul>
+</section>
+
+<section>
+  <h2>Payment Alerts (duplicate / not_used)</h2>
+  <ul id="alertsList">Loading...</ul>
+</section>
+
+<button onclick="deleteSelected()">Delete Selected</button>
+
+</body>
+</html>

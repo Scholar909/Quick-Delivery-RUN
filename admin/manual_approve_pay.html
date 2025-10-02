@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Assign Orders</title>
-  <link rel="stylesheet" href="../css/admins/ad-assign-orders.css" />
+  <title>Manual Approve Payments</title>
+  <link rel="stylesheet" href="../css/admins/ad-manual-approve.css" />
   <link rel="stylesheet" href="../css/drawer.css">
   <link href="https://unicons.iconscout.com/release/v4.0.8/css/line.css" rel="stylesheet"/>
 </head>
@@ -12,54 +12,29 @@
 
   <!-- Header -->
   <header class="header glassy">
-    <h2>Assign Orders</h2>
+    <h2>Manual Approve Payments</h2>
   </header>
 
-  <!-- Orders List -->
-  <section class="orders-list">
-    <!-- Order Card Example -->
-    Loading...
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-link active" data-tab="pendingTab">
+      <i class="uil uil-clock"></i> Pending
+    </button>
+    <button class="tab-link" data-tab="refundTab">
+      <i class="uil uil-transaction"></i> Refunds
+    </button>
+  </div>
 
-    <!-- Add more cards dynamically -->
+  <!-- Orders List -->
+  <section class="orders-list tab-content active" id="pendingTab">
+    Loading pending payments...
   </section>
 
-  <!-- Assign Modal -->
-  <div class="modal-overlay hidden">
-    <div class="modal glassy">
-      <h3>Select Merchant</h3>
-      <div class="merchant-list">
-        <div class="merchant-item">
-          <span>Merchant A</span>
-          <span class="order-count">Orders: 3</span>
-        </div>
-        <div class="merchant-item">
-          <span>Merchant B</span>
-          <span class="order-count">Orders: 1</span>
-        </div>
-        <!-- More merchants -->
-      </div>
-      <button class="close-modal">Close</button>
-    </div>
-  </div>
-  
-    <div class="modal-overlay hidden">
-    <div class="modal glassy">
-      <h3>Select Hostel Merchant</h3>
-      <div class="hostel-merchant-list">
-        <div class="hostel-merchant-item">
-          <span>Merchant A</span>
-          <span class="order-count">Orders: 3</span>
-        </div>
-        <div class="hostel-merchant-item">
-          <span>Merchant B</span>
-          <span class="order-count">Orders: 1</span>
-        </div>
-        <!-- More merchants -->
-      </div>
-      <button class="close-modal">Close</button>
-    </div>
-  </div>
-  
+  <section class="orders-list tab-content" id="refundTab">
+    Loading refund requests...
+  </section>
+
+  <!-- Drawer -->
 <div class="drawer glassy">
   <div class="drawer-header">
     <h3>Admin Menu</h3>
@@ -95,7 +70,7 @@
       <i class="uil uil-comment-question"></i>
       <span>Complaints</span>
     </div></a>
-    <a href="dashboard.html"><div class="nav-item active">
+    <a href="dashboard.html"><div class="nav-item">
       <i class="uil uil-home"></i>
       <span>Home</span>
     </div></a>
@@ -108,8 +83,22 @@
       <span>History</span>
     </div></a>
   </footer>
-  
-<script type="module" src="../js/drawer.js"></script>
-<script type="module" src="../js/admin/ad-assign-order.js"></script>
+
+  <script type="module" src="../js/drawer.js"></script>
+  <script type="module" src="../js/admin/ad-manual-approve.js"></script>
+  <script>
+    // Tab switching
+    const tabLinks = document.querySelectorAll('.tab-link');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabLinks.forEach(link => {
+      link.addEventListener('click', () => {
+        tabLinks.forEach(l => l.classList.remove('active'));
+        tabContents.forEach(c => c.classList.remove('active'));
+        link.classList.add('active');
+        document.getElementById(link.dataset.tab).classList.add('active');
+      });
+    });
+  </script>
 </body>
 </html>

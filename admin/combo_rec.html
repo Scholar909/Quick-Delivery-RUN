@@ -3,55 +3,73 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin Menu List</title>
-  <link rel="stylesheet" href="../css/admins/ad-menu.css" />
+  <title>Admin Combos & Recommendations</title>
+  <link rel="stylesheet" href="../css/admins/ad-combo-rec.css" />
   <link rel="stylesheet" href="../css/drawer.css">
   <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.8/css/line.css" />
 </head>
-<body class="menu-body" data-role="admin">
+<body data-role="admin">
 
   <!-- Header -->
-  <header class="menu-header">
-    <h2>Menu List</h2>
-    <div class="icons">
-      <i class="uil uil-plus" id="add-btn"></i>
-    </div>
+  <header class="header">
+    <h2>Combos & Recommendations</h2>
   </header>
 
-  <!-- Add New Food Item Button -->
-  <section class="add-food-section">
-    <input type="text" id="searchAll" placeholder="Search by All...">
-  </section>
+  <!-- Tabs -->
+  <div class="tabs-container">
+    <button class="tab active" data-tab="combos">Combos</button>
+    <button class="tab" data-tab="recommendations">Recommendations</button>
+  </div>
 
-  <!-- Add Food Item Form (hidden by default) -->
-  <section id="addFormSection" class="form-section hidden">
-    <form id="menuForm" class="menu-form">
-      <select id="restaurantSelect">
-        <option value="">-- Select Restaurant --</option>
-        <!-- Dynamically filled -->
-      </select>
-      <input type="text" id="restaurantName" placeholder="Or Enter New Restaurant Name" />
+  <!-- Content Sections -->
+  <main class="tab-content">
 
-      <!-- 🔹 New Bank Detail Fields -->
-      <input type="text" id="restaurantBankName" placeholder="Bank Name" />
-      <input type="text" id="restaurantAccountName" placeholder="Account Name" />
-      <input type="text" id="restaurantAccountNumber" placeholder="Account Number" />
+    <!-- Combos Management -->
+    <section id="combos" class="management-section active">
+      <div class="section-header">
+        <h3>Combos Management</h3>
+        <button class="add-btn" id="add-combo-btn"><i class="uil uil-plus"></i></button>
+      </div>
+      <section id="comboFormSection" class="form-section hidden">
+        <form id="combo-form" class="manage-form">
+          <select id="comboRestaurantSelect" required>
+            <option value="">-- Select Restaurant --</option>
+          </select>
+          <input type="text" id="comboFood" placeholder="Food Name" required />
+          <input type="number" id="comboPrice" placeholder="Price" required />
+          <select id="comboType" required>
+            <option value="">-- Select Type --</option>
+            <option value="Morning">Morning</option>
+            <option value="Afternoon">Afternoon</option>
+            <option value="Evening">Evening</option>
+          </select>
+          <button type="submit">Save</button>
+        </form>
+      </section>
+      <div id="combo-cards" class="cards-container">Loading combos...</div>
+    </section>
 
-      <input type="text" id="itemName" placeholder="Food/Item Name" required />
-      <select id="itemCategory" required>
-        <option value="">-- Select Category --</option>
-        <option value="food">Food</option>
-        <option value="drink">Drink</option>
-        <option value="snack">Snack</option>
-      </select>
-      <input type="number" id="itemPrice" placeholder="Food/Item Price" required />
-      <button type="submit">Save</button>
-    </form>
-  </section>
+    <!-- Recommendations Management -->
+    <section id="recommendations" class="management-section">
+      <div class="section-header">
+        <h3>Recommendations Management</h3>
+        <button class="add-btn" id="add-rec-btn"><i class="uil uil-plus"></i></button>
+      </div>
+      <section id="recFormSection" class="form-section hidden">
+        <form id="rec-form" class="manage-form">
+          <select id="recRestaurantSelect" required>
+            <option value="">-- Select Restaurant --</option>
+          </select>
+          <input type="text" id="recFood" placeholder="Food Name" required />
+          <input type="number" id="recPrice" placeholder="Price" required />
+          <button type="submit">Save</button>
+        </form>
+      </section>
+      <div id="rec-cards" class="cards-container">Loading recommendations...</div>
+    </section>
 
-  <!-- Food Item Cards -->
-  <section id="food-items">Loading...</section>
-  
+  </main>
+
   <!-- Drawer -->
 <div class="drawer glassy">
   <div class="drawer-header">
@@ -101,8 +119,8 @@
       <span>History</span>
     </div></a>
   </footer>
-  
+
   <script type="module" src="../js/drawer.js"></script>
-  <script type="module" src="../js/admin/ad-menu.js"></script>
+  <script type="module" src="../js/admin/ad-combo-rec.js"></script>
 </body>
 </html>
