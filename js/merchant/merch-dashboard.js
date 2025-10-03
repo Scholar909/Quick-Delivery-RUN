@@ -55,32 +55,116 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeout(() => tip.remove(), 4000);
   }
 
-  /* ------------------------------
-     COMPLETED ORDERS LOADER
-  ------------------------------ */
-  async function loadCompletedOrders(merchantId) {
-    try {
-      // Count all delivered orders assigned to this merchant
-      const qDelivered = query(
-        collection(db, "orders"),
-        where("assignedMerchantId", "==", merchantId),
-        where("orderStatus", "==", "delivered")
-      );
-      const snap = await getDocs(qDelivered);
-      const count = snap.size;
+/* ------------------------------
+   COMPLETED ORDERS LOADER
+------------------------------ */
+async function loadCompletedOrders(merchantId) {
+  try {
+    // --- Query counts ---
+    const qCompleted = query(
+      collection(db, "orders"),
+      where("assignedMerchantId", "==", merchantId),
+      where("orderStatus", "==", "delivered")
+    );
+    const qPending = query(
+      collection(db, "orders"),
+      where("assignedMerchantId", "==", merchantId),
+      where("orderStatus", "==", "accepted")
+    );
+    const qDeclined = query(
+      collection(db, "orders"),
+      where("declinedBy", "array-contains", merchantId)
+    );
 
-      completedCountEl.innerHTML = `
-        <span style="color:limegreen;font-weight:bold;">${count}</span>
+    const [snapCompleted, snapPending, snapDeclined] = await Promise.all([
+      getDocs(qCompleted),
+      getDocs(qPending),
+      getDocs(qDeclined)
+    ]);
+
+    const completedCount = snapCompleted.size;
+    const pendingCount = snapPending.size;
+    const declinedCount = snapDeclined.size;
+
+    const totalAssigned = completedCount + pendingCount + declinedCount;
+    const totalAccepted = completedCount + pendingCount;
+
+    // Display completed count in dashboard
+    completedCountEl.innerHTML = `
+      <span style="color:limegreen;font-weight:bold;">${completedCount}</span>
+    `;
+
+    // Add click → show modal with all stats
+    completedCountEl.style.cursor = "pointer";
+    completedCountEl.onclick = () => {
+      const existing = document.getElementById("orders-stats-modal");
+      if (existing) existing.remove();
+
+      const overlay = document.createElement("div");
+      overlay.id = "orders-stats-modal";
+      Object.assign(overlay.style, {
+        position: "fixed",
+        top: 0,
+        left: 0,
+        width: "100%",
+        height: "100%",
+        background: "rgba(0,0,0,0.4)",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        zIndex: 9999,
+        backdropFilter: "blur(4px)"
+      });
+
+      const modal = document.createElement("div");
+      Object.assign(modal.style, {
+        background: "#111",
+        color: "#fff",
+        padding: "20px",
+        borderRadius: "12px",
+        minWidth: "300px",
+        textAlign: "center",
+        boxShadow: "0 6px 18px rgba(0,0,0,0.3)",
+        position: "relative"
+      });
+
+      const closeBtn = document.createElement("span");
+      closeBtn.textContent = "×";
+      Object.assign(closeBtn.style, {
+        position: "absolute",
+        top: "10px",
+        right: "15px",
+        cursor: "pointer",
+        fontSize: "20px",
+        fontWeight: "bold",
+        color: "#fff"
+      });
+
+      modal.innerHTML = `
+        <h3 style="margin-bottom:15px;">Order Stats</h3>
+        <div style="text-align:left;">
+          <p><span style="color:limegreen;">●</span> Completed: <strong>${completedCount}</strong></p>
+          <p><span style="color:orange;">●</span> Pending: <strong>${pendingCount}</strong></p>
+          <p><span style="color:red;">●</span> Declined: <strong>${declinedCount}</strong></p>
+          <p><span style="color:dodgerblue;">●</span> Total Accepted: <strong>${totalAccepted}</strong></p>
+          <p><span style="color:white;">●</span> Total Assigned: <strong>${totalAssigned}</strong></p>
+        </div>
       `;
 
-      completedCountEl.style.cursor = "pointer";
-      completedCountEl.onclick = () =>
-        createTooltip("Green = Total orders delivered");
-    } catch (err) {
-      console.error("Error loading completed orders:", err);
-      completedCountEl.textContent = "—";
-    }
+      modal.appendChild(closeBtn);
+      overlay.appendChild(modal);
+      document.body.appendChild(overlay);
+
+      closeBtn.addEventListener("click", () => overlay.remove());
+      overlay.addEventListener("click", (e) => {
+        if (e.target === overlay) overlay.remove();
+      });
+    };
+  } catch (err) {
+    console.error("Error loading completed orders:", err);
+    completedCountEl.textContent = "—";
   }
+}
 
   /* ------------------------------
      MERCHANT ANNOUNCEMENT
