@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Customer Login / Sign Up</title>
   <link rel="stylesheet" href="css/auth.css" />
+  <link href="https://unicons.iconscout.com/release/v4.0.0/css/line.css" rel="stylesheet">
 </head>
 <body class="login-body">
 
@@ -74,8 +75,19 @@
         </div>
 
         <div class="form-group">
+          <label for="signup-location">Hostel Location</label>
+          <select id="signup-hostel" name="signupHostel" required>
+            <option value="">Choose Location</option>
+            <option value="Engineering Hostel">Engineering Hostel</option>
+            <option value="Extension Hostel">Extension Hostel</option>
+            <option value="Prophet Moses Hall">Prophet Moses Hall</option>
+            <option value="Queen Esther Hall">Queen Esther Hall</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
           <label for="signup-room">Room Number</label>
-          <input type="text" id="signup-room" placeholder="Room number" required />
+          <input type="text" id="signup-room" name="signupRoom" placeholder="Block/Room" required />
         </div>
 
         <div class="form-group">
@@ -108,6 +120,11 @@
     </div>
   </div>
   
+  <!-- Install App Button -->
+<button id="install-btn" class="install-btn">
+  <i class="fas fa-download"></i> Install App
+</button>
+  
   <script>
     const loginForm = document.getElementById("loginForm");
     const signupForm = document.getElementById("signupForm");
@@ -132,6 +149,6 @@
     });
   </script>
 
-  <script type="module" src="./js/cust-auth.js"></script>
+  <script type="module" src="./js/cust-auth.js?v=3"></script>
 </body>
 </html>
