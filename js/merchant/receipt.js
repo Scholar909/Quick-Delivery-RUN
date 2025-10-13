@@ -69,8 +69,10 @@ function renderReceipt(data, idFromUrl) {
   $('custName').textContent = data.customerName || '—';
   $('orderId').textContent = data.orderId || idFromUrl || '—';
 
+  const hostel = data.hostel || data.customerRoomLocation || '';
+  const room = data.roomNumber || data.customerRoom || '';
   $('roomLocation').textContent =
-    data.room || data.roomLocation || data.customerRoom || '—';
+    hostel || room ? `${hostel}${room ? ' - ' + room : ''}` : '—';
 
   $('merchantUsername').textContent =
     data.assignedMerchantName ||

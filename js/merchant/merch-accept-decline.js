@@ -247,6 +247,7 @@ async function notifyReceiptMerchants(orderData, merchantUser, orderRef) {
 🆔 Order ID: ${orderData.id}
 👤 Accepted by: ${merchantUser.displayName || "Merchant"}
 👤 Customer: ${orderData.customerUsername || "N/A"}
+🏠 Hostel: ${orderData.customerRoomLocation || "N/A"}
 🏠 Room: ${orderData.customerRoom || "N/A"}
 `;
 
