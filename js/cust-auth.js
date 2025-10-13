@@ -115,11 +115,12 @@ signupForm.addEventListener("submit", async (e) => {
   const fullname = signupForm["signup-fullname"].value.trim();
   const usernameRaw = signupForm["signup-username"].value.trim();
   const username = usernameRaw.toLowerCase();
-  const gender = signupForm["gender"].value;
+  const gender = signupForm["gender"].value.trim().toLowerCase();
   const email = signupForm["signup-email"].value.trim();
   const matricRaw = signupForm["signup-matric"].value.trim();
   const matric = matricRaw.toUpperCase();
-  const room = signupForm["signup-room"].value.trim();
+  const hostel = document.getElementById("signup-hostel")?.value?.trim().toLowerCase() || "Not provided";
+  const roomNumber = document.getElementById("signup-room").value.trim();
   const password = signupForm["signup-password"].value;
   const confirm = signupForm["signup-confirm"].value;
   const phone = signupForm["signup-phone"].value.trim();
@@ -175,14 +176,14 @@ signupForm.addEventListener("submit", async (e) => {
       email,
       phone,
       matric,
-      room,
-      roomLocation: room,
+      hostel,
+      roomNumber,
       accountDetails: "",
       profileImage: "",
       role: "customer",
       createdAt: serverTimestamp(),
       active: true
-    });
+    }, { merge: false });
 
     showMessage(signupForm, "Account created successfully! Redirecting...", "success");
     signupForm.reset();
@@ -222,3 +223,4 @@ customerUsernameInput.addEventListener("input", async () => {
     msg.style.color = "red";
   }
 });
+

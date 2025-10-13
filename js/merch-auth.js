@@ -302,3 +302,4 @@ merchantUsernameInput.addEventListener("input", async () => {
         msg.style.color = "red";
     }
 });
+
