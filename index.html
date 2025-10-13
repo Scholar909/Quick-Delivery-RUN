@@ -349,7 +349,7 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 <script>
-fetch("/pwa-install.html")
+fetch("pwa-install.html")
   .then(r => r.text())
   .then(html => {
     const div = document.createElement("div");
