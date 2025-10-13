@@ -50,14 +50,16 @@ auth.onAuthStateChanged(async (user) => {
 
   // Fill UI
   profileImage.src = customerData.profileImage || '../images/default-avatar.png';
-  document.querySelector('.username-email').innerHTML =
-    `<strong>${customerData.username}</strong> | ${customerData.email}`;
-  document.querySelector('.profile-info').innerHTML +=
-    `<p><strong>Full Name:</strong> ${customerData.fullname}</p>
-     <p><strong>Matric Number:</strong> ${customerData.matric}</p>
-     <p><strong>Gender:</strong> ${customerData.gender}</p>
-     <p><strong>Phone Number:</strong> ${customerData.phone || 'Not added'}</p>
-     <p><strong>Room Number:</strong> ${customerData.room || 'Not provided'}</p>`;
+  const infoContainer = document.querySelector('.profile-info');
+  infoContainer.innerHTML = `
+    <p class="username-email"><strong>${customerData.username}</strong> | ${customerData.email}</p>
+    <p><strong>Full Name:</strong> ${customerData.fullname}</p>
+    <p><strong>Matric Number:</strong> ${customerData.matric}</p>
+    <p><strong>Gender:</strong> ${customerData.gender}</p>
+    <p><strong>Phone Number:</strong> ${customerData.phone || 'Not added'}</p>
+    <p><strong>Hostel:</strong> ${customerData.hostel || 'Not provided'}</p>
+    <p><strong>Room Number:</strong> ${customerData.roomNumber || 'Not provided'}</p>
+  `;
 
   if (customerData.extraPhone) {
     extraNumber.value = customerData.extraPhone;

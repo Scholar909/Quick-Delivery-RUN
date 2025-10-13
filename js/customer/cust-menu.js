@@ -70,7 +70,7 @@ const cancelStep1 = document.getElementById("cancelStep1");
 const prevBtn = document.getElementById("prevToStep1");
 
 // Charges
-const DELIVERY_CHARGE = 300;
+let DELIVERY_CHARGE = 300;
 const PACK_CHARGE = 200;
 const FEE_CHARGE = 50;
 
@@ -464,6 +464,31 @@ restaurantSelect.addEventListener('change', async () => {
       currentRestaurantData = restSnap.data();
     }
   }
+  
+  // Fetch dynamic delivery charge
+  const user = auth.currentUser;
+  if (user) {
+    const custSnap = await getDoc(doc(db, "customers", user.uid));
+    const custData = custSnap.data();
+    const q = query(
+      collection(db, "deliveryCharges"),
+      where("restaurant", "==", selectedRestaurant.toLowerCase()),
+      where("gender", "==", custData.gender.toLowerCase()),
+      where("hostel", "==", custData.hostel.toLowerCase())
+    );
+    const snap = await getDocs(q);
+    if (!snap.empty) {
+      DELIVERY_CHARGE = Number(snap.docs[0].data().charge);
+      console.log("✅ Found dynamic delivery charge:", DELIVERY_CHARGE);
+    } else {
+      DELIVERY_CHARGE = 300;
+      console.warn("⚠️ No match found — fallback delivery charge:", DELIVERY_CHARGE);
+    }
+    
+    // 🔹 Re-render so modal shows the new charge immediately
+    updateTotal();
+    renderOrderTable();
+  }
 });
 
 orderButton.addEventListener('click', openOrderModal);
@@ -620,7 +645,8 @@ ivePaidBtn.addEventListener("click", async () => {
       customerUsername: customerData.username,
       customerEmail: customerData.email,
       customerPhone: customerData.phone,
-      customerRoom: customerData.room || customerData.roomLocation,
+      hostel: customerData.hostel,
+      roomNumber: customerData.roomNumber,
       restaurantName: selectedRestaurant,
       items: cart,
       deliveryCharge: delivery,
