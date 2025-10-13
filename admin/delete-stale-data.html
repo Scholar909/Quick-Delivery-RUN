@@ -54,7 +54,7 @@ async function loadCleanupData() {
 
   // Payment Alerts
   const alertsRef = collection(db, "payment_alerts");
-  const alertsQ = query(alertsRef, where("processed", "in", ["duplicate","not_used","false"]));
+  const alertsQ = query(alertsRef, where("processed", "in", ["duplicate","not_used", "false"]));
   const alertsSnap = await getDocs(alertsQ);
 
   const alertsList = document.getElementById("alertsList");

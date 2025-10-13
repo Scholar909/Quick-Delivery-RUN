@@ -2,64 +2,48 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Assign Orders</title>
-  <link rel="stylesheet" href="../css/admins/ad-assign-orders.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manage Delivery Charges</title>
+  <link rel="stylesheet" href="../css/admins/ad-charges.css" />
   <link rel="stylesheet" href="../css/drawer.css">
   <link href="https://unicons.iconscout.com/release/v4.0.8/css/line.css" rel="stylesheet"/>
 </head>
-<body data-role="admin">
+<body>
 
-  <!-- Header -->
-  <header class="header glassy">
-    <h2>Assign Orders</h2>
-  </header>
-
-  <!-- Orders List -->
-  <section class="orders-list">
-    <!-- Order Card Example -->
-    Loading...
-
-    <!-- Add more cards dynamically -->
-  </section>
-
-  <!-- Assign Modal -->
-  <div class="modal-overlay hidden">
-    <div class="modal glassy">
-      <h3>Select Merchant</h3>
-      <div class="merchant-list">
-        <div class="merchant-item">
-          <span>Merchant A</span>
-          <span class="order-count">Orders: 3</span>
-        </div>
-        <div class="merchant-item">
-          <span>Merchant B</span>
-          <span class="order-count">Orders: 1</span>
-        </div>
-        <!-- More merchants -->
-      </div>
-      <button class="close-modal">Close</button>
-    </div>
+  <div class="header">
+    <h2>Set Delivery Charges</h2>
   </div>
-  
-    <div class="modal-overlay hidden">
-    <div class="modal glassy">
-      <h3>Select Hostel Merchant</h3>
-      <div class="hostel-merchant-list">
-        <div class="hostel-merchant-item">
-          <span>Merchant A</span>
-          <span class="order-count">Orders: 3</span>
-        </div>
-        <div class="hostel-merchant-item">
-          <span>Merchant B</span>
-          <span class="order-count">Orders: 1</span>
-        </div>
-        <!-- More merchants -->
-      </div>
-      <button class="close-modal">Close</button>
-    </div>
+
+  <div class="tabs-container">
+    <button class="tab active">Charges</button>
   </div>
-  
+
+  <div class="tab-content">
+    <div class="announce-form">
+      <form id="chargeForm">
+        <select id="genderSelect" required>
+          <option value="">Select Gender</option>
+          <option value="male">male</option>
+          <option value="female">female</option>
+        </select>
+
+        <select id="hostelSelect" required>
+          <option value="">Select Hostel</option>
+        </select>
+
+        <select id="restaurantSelect" required>
+          <option value="">Select Restaurant</option>
+        </select>
+
+        <input type="number" id="chargeAmount" placeholder="Enter Charge Amount (₦)" required />
+
+        <button type="submit">Save Charge</button>
+      </form>
+    </div>
+
+    <div class="cards-container" id="chargesList"></div>
+  </div>
+
 <div class="drawer glassy">
   <div class="drawer-header">
     <h3>Admin Menu</h3>
@@ -109,8 +93,8 @@
       <span>History</span>
     </div></a>
   </footer>
-  
-<script type="module" src="../js/drawer.js"></script>
-<script type="module" src="../js/admin/ad-assign-order.js"></script>
+
+  <script type="module" src="../js/admin/charges.js?v=4"></script>
+  <script type="module" src="../js/drawer.js"></script>
 </body>
 </html>
