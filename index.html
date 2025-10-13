@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Quick Delivery - Home</title>
 <link href="https://unicons.iconscout.com/release/v4.0.0/css/line.css" rel="stylesheet">
-<link rel="manifest" href="/manifest.json">
+<link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0f4e75">
 <style>
 /* Reset & Base */
@@ -37,7 +37,6 @@ body {
 
   /* fixes */
   overflow: visible;
-}
 }
 
 /* Rotating Background Glow */
@@ -342,21 +341,54 @@ body {
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker
-      .register("/sw.js")
+      .register("sw.js")
       .then(() => console.log("✅ Service Worker Registered"))
       .catch((err) => console.log("SW Registration Failed:", err));
   });
 }
 </script>
 <script>
-fetch("pwa-install.html")
-  .then(r => r.text())
-  .then(html => {
-    const div = document.createElement("div");
-    div.innerHTML = html;
-    document.body.appendChild(div);
-  })
-  .catch(err => console.error("Failed to load PWA button:", err));
+  
+self.addEventListener('install', (event) => {
+  console.log('Service Worker installed');
+});
+
+self.addEventListener('activate', (event) => {
+  console.log('Service Worker activated');
+});
+
+self.addEventListener('fetch', (event) => {
+  // respondWith() required for full PWA installability
+  event.respondWith(fetch(event.request));
+});
+  
+// --- PWA Install Button Logic ---
+let deferredPrompt;
+const installBtn = document.getElementById('install-btn');
+
+// Listen for the 'beforeinstallprompt' event
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  // Show the install button
+  installBtn.style.display = 'flex';
+});
+
+// When the user clicks the install button
+installBtn.addEventListener('click', async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  console.log(`User response to install prompt: ${outcome}`);
+  deferredPrompt = null;
+  installBtn.style.display = 'none';
+});
+
+// Optionally hide the button after app is installed
+window.addEventListener('appinstalled', () => {
+  console.log('✅ PWA installed');
+  installBtn.style.display = 'none';
+});
 </script>
 </body>
 </html>
