@@ -357,11 +357,11 @@ self.addEventListener('activate', (event) => {
   console.log('Service Worker activated');
 });
 
-self.addEventListener('fetch', (event) => {
-  // respondWith() required for full PWA installability
-  event.respondWith(fetch(event.request));
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    fetch(event.request).catch(() => caches.match(OFFLINE_URL))
+  );
 });
-  
 // --- PWA Install Button Logic ---
 let deferredPrompt;
 const installBtn = document.getElementById('install-btn');

@@ -1,13 +1,14 @@
-const CACHE_NAME = "site-cache-v1";
-const OFFLINE_URL = "offline.html";
+const CACHE_NAME = "site-cache-v2";
+const BASE_URL = "./";
+const OFFLINE_URL = BASE_URL + "offline.html";
 
-// install: cache shell + offline page
+// Install: cache core files
 self.addEventListener("install", event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
       return cache.addAll([
-        "/", 
-        "/manifest.json",
+        BASE_URL,
+        BASE_URL + "manifest.json",
         OFFLINE_URL
       ]);
     })
@@ -15,7 +16,7 @@ self.addEventListener("install", event => {
   self.skipWaiting();
 });
 
-// activate: cleanup old caches
+// Activate: remove old caches
 self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys().then(keys =>
@@ -25,30 +26,29 @@ self.addEventListener("activate", event => {
   self.clients.claim();
 });
 
-// fetch: network-first, then cache, then offline fallback
+// Fetch: network-first for navigation, cache-first for assets
 self.addEventListener("fetch", event => {
   if (event.request.mode === "navigate") {
-    // for page navigations
     event.respondWith(
       fetch(event.request)
         .then(response => {
-          let clone = response.clone();
+          const clone = response.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
           return response;
         })
-        .catch(() =>
-          caches.match(event.request).then(resp => resp || caches.match(OFFLINE_URL))
-        )
+        .catch(() => caches.match(event.request).then(resp => resp || caches.match(OFFLINE_URL)))
     );
   } else {
-    // for assets (CSS, JS, images)
     event.respondWith(
       caches.match(event.request).then(cachedResp => {
-        return cachedResp || fetch(event.request).then(networkResp => {
-          let clone = networkResp.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-          return networkResp;
-        }).catch(() => cachedResp);
+        return (
+          cachedResp ||
+          fetch(event.request).then(networkResp => {
+            const clone = networkResp.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+            return networkResp;
+          }).catch(() => cachedResp)
+        );
       })
     );
   }
