@@ -21,7 +21,8 @@ onAuthStateChanged(auth, async (user) => {
   if (user) {
     listenToRestaurants();
     listenToFoodItems();
-    listenToBuyNowCart(user.uid); // ✅ NEW: listen for Buy Now redirect data
+    listenToBuyNowCart(user.uid);
+    await loadToLocations(); // NEW: load all available destination options
     if (auth.currentUser) {
       await clearBuyNowCart(auth.currentUser.uid);
     }
@@ -50,6 +51,9 @@ async function clearBuyNowCart(userId) {
 // DOM Elements & Constants (same as before)
 // -------------------------------------------------
 const restaurantSelect = document.getElementById('restaurantSelect');
+// NEW: destination selector reference
+const toLocationSelect = document.getElementById('toLocationSelect');
+toLocationSelect.disabled = true;
 const foodItemsContainer = document.getElementById('food-items');
 const orderButton = document.getElementById('orderButton');
 const orderCount = document.getElementById('orderCount');
@@ -270,6 +274,46 @@ const listenToFoodItems = () => {
   });
 };
 
+// -----------------------------
+// NEW: Load To Locations
+// -----------------------------
+async function loadToLocations() {  
+  try {  
+    const user = auth.currentUser;  
+    if (!user) return;  
+
+    const custSnap = await getDoc(doc(db, "customers", user.uid));  
+    const custData = custSnap.exists() ? custSnap.data() : {};  
+
+    // ✅ Store real hostel/room as default value but show "My Room"
+    const realRoomLocation = custData?.hostel || "Unknown Location";
+
+    // collect all to-locations from deliveryCharges collection  
+    const allLocs = new Set(["__myRoom__"]); // placeholder for "My Room"  
+    const chargesSnap = await getDocs(collection(db, "deliveryCharges"));  
+    chargesSnap.forEach(ch => {  
+      const data = ch.data();  
+      if (data.toLocation) allLocs.add(data.toLocation);  
+    });  
+
+    // populate dropdown  
+    toLocationSelect.innerHTML = `<option value="">Choose Location</option>`;  
+    allLocs.forEach(loc => {  
+      const opt = document.createElement("option");  
+      if (loc === "__myRoom__") {  
+        opt.value = realRoomLocation;      // 🔹 actual value (e.g. hostel)  
+        opt.textContent = "My Room";       // 🔹 what user sees  
+      } else {  
+        opt.value = loc;  
+        opt.textContent = loc;  
+      }  
+      toLocationSelect.appendChild(opt);  
+    });  
+  } catch (err) {  
+    console.error("Failed to load to-locations:", err);  
+  }  
+}
+
 // -------------------------------------------------
 // Checkout Time Restriction (e.g. 8am–9pm only)
 // -------------------------------------------------
@@ -294,7 +338,11 @@ checkOrderWindow();
 // -------------------------------------------------
 const renderMenu = () => {
   foodItemsContainer.innerHTML = '';
-  if (!selectedRestaurant) return;
+  // prevent showing menu until both from & to location selected
+  if (!selectedRestaurant || !toLocationSelect.value) {
+    foodItemsContainer.innerHTML = `<p style="text-align:center;color:grey;margin-top:2rem;">Please select both restaurant and destination to view menu.</p>`;
+    return;
+  }
 
   const items = allFoodItems.filter(item => item.restaurantName === selectedRestaurant);
   if (!items.length) {
@@ -448,13 +496,26 @@ orderTableBody.addEventListener('click', (e) => {
 // -------------------------------------------------
 restaurantSelect.addEventListener('change', async () => {
   selectedRestaurant = restaurantSelect.value;
+
+  // 🔹 Disable/Enable To-location dropdown depending on selection
+  if (!selectedRestaurant) {
+    toLocationSelect.disabled = true;
+    toLocationSelect.value = "";
+    DELIVERY_CHARGE = 300; // reset default
+    updateTotal();
+  } else {
+    toLocationSelect.disabled = false;
+  }
+
+  // 🔹 If restaurant changed, clear cart
   if (cart.length) {
-    if (!confirm('Changing restaurant clears your cart. Continue?')) {
-      return;
-    }
+    if (!confirm('Changing restaurant clears your cart. Continue?')) return;
     cart = [];
     updateOrderButton();
   }
+
+  // 🔹 Clear toLocation when restaurant changes
+  toLocationSelect.value = "";
   renderMenu();
 
   if (selectedRestaurant) {
@@ -489,6 +550,55 @@ restaurantSelect.addEventListener('change', async () => {
     updateTotal();
     renderOrderTable();
   }
+});
+
+// -----------------------------
+// NEW: when To Location changes
+// -----------------------------
+toLocationSelect.addEventListener('change', async () => {
+  const toLoc = toLocationSelect.value;
+
+  // 🔹 Prevent using To-location before From-location
+  if (!selectedRestaurant) {
+    alert("Please choose a restaurant (From Location) first.");
+    toLocationSelect.value = "";
+    return;
+  }
+
+  // 🔹 If cleared, reset delivery and menu view
+  if (!toLoc) {
+    DELIVERY_CHARGE = 300;
+    updateTotal();
+    renderMenu();
+    return;
+  }
+
+  // 🔹 Fetch proper charge dynamically every time
+  const user = auth.currentUser;
+  if (!user) return;
+  const custSnap = await getDoc(doc(db, "customers", user.uid));
+  const custData = custSnap.exists() ? custSnap.data() : {};
+  const gender = (custData.gender || "").toLowerCase();
+
+  const q = query(
+    collection(db, "deliveryCharges"),
+    where("gender", "==", gender),
+    where("fromLocation", "==", selectedRestaurant),
+    where("toLocation", "==", toLoc)
+  );
+
+  const snap = await getDocs(q);
+  if (!snap.empty) {
+    DELIVERY_CHARGE = Number(snap.docs[0].data().charge);
+    console.log("✅ Delivery charge found:", DELIVERY_CHARGE);
+  } else {
+    DELIVERY_CHARGE = 300;
+    console.warn("⚠️ No charge found — defaulting to ₦300");
+  }
+
+  // 🔹 Auto-refresh prices and menu
+  updateTotal();
+  renderMenu();
 });
 
 orderButton.addEventListener('click', openOrderModal);
@@ -647,6 +757,11 @@ ivePaidBtn.addEventListener("click", async () => {
       customerPhone: customerData.phone,
       hostel: customerData.hostel,
       roomNumber: customerData.roomNumber,
+      // ✅ If "My Room" selected, combine hostel + room number
+      toLocation:
+        toLocationSelect.options[toLocationSelect.selectedIndex]?.textContent === "My Room"
+          ? `${customerData.hostel} Room ${customerData.roomNumber}`
+          : toLocationSelect.value,
       restaurantName: selectedRestaurant,
       items: cart,
       deliveryCharge: delivery,
@@ -770,7 +885,9 @@ ivePaidBtn.addEventListener("click", async () => {
         // mark alert as duplicate
         await updateDoc(aDoc.ref, { processed: "duplicate" });
     }
-    const orderStart = orderData?.countdownStart?.toDate?.() || new Date();
+    const orderStart = orderData?.countdownStart?.toDate?.() 
+  ? orderData.countdownStart.toDate() 
+  : new Date();
 
     // Step 1: check old alerts
     const oldQ = query(alertsRef, where("processed", "==", "false"));
@@ -784,10 +901,11 @@ ivePaidBtn.addEventListener("click", async () => {
         senderRaw = a.narration || ""; // fallback to narration
       }
       const senderNorm = normalize(senderRaw);
-      const createdAt = parseAlertTimestamp(a);
+      const createdAt = a.timestamp?.toDate?.() || new Date(a.timestamp);
       const amt = parseFloat(a.amount);
 
-      if (senderNorm.includes(custNorm) || custNorm.includes(senderNorm)) {
+      if (senderNorm.replace(/\s+/g,"").includes(custNorm.replace(/\s+/g,"")) || 
+      custNorm.replace(/\s+/g,"").includes(senderNorm.replace(/\s+/g,""))) {
         if (!withinThirtyMinutes(orderStart, createdAt)) {
           await updateDoc(aDoc.ref, { processed: "not_used" });
           continue;
@@ -834,9 +952,10 @@ ivePaidBtn.addEventListener("click", async () => {
         }
         const senderNorm = normalize(senderRaw);
         const amt = parseFloat(a.amount);
-        const createdAt = parseAlertTimestamp(a);
+        const createdAt = a.timestamp?.toDate?.() || new Date(a.timestamp);
 
-        if (senderNorm.includes(custNorm) || custNorm.includes(senderNorm)) {
+        if (senderNorm.replace(/\s+/g,"").includes(custNorm.replace(/\s+/g,"")) || 
+        custNorm.replace(/\s+/g,"").includes(senderNorm.replace(/\s+/g,""))) {
           if (!withinThirtyMinutes(orderStart, createdAt)) {
             await updateDoc(aDoc.ref, { processed: "not_used" });
             continue;
