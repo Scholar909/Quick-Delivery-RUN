@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Customer Menu</title>
-  <link rel="stylesheet" href="../css/customers/cust-menu.css" />
+  <link rel="stylesheet" href="../css/customers/cust-menu.css?=v3" />
   <link rel="stylesheet" href="../css/drawer.css">
   <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.8/css/line.css">
   <style>
@@ -24,10 +24,16 @@
 
   <!-- Restaurant Selection -->
   <section class="restaurant-section">
-    <h3>Select a Restaurant</h3>
+    <h2>Select a Restaurant</h2>
     <select id="restaurantSelect">
       <option disabled selected value="">Choose Restaurant</option>
     </select>
+    
+    <h2>Select a Destination</h2>
+    <select id="toLocationSelect">
+      <option disabled selected value="">Choose Location</option>
+    </select>
+    
 
     <!-- Menu List -->
     <section id="food-items">
@@ -171,6 +177,6 @@
   </footer>
 
   <script type="module" src="../js/drawer.js"></script>
-  <script type="module" src="../js/customer/cust-menu.js?=2"></script>
+  <script type="module" src="../js/customer/cust-menu.js?=v9"></script>
 </body>
 </html>
