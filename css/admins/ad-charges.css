@@ -1,238 +1,138 @@
-/* === Reset & Body === */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: 'Segoe UI', sans-serif;
+/* === Reset & Base === */
+* { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',sans-serif; }
+
+body.menu-body {
+  background: linear-gradient(to bottom right,#0f4e75,#000000);
+  min-height:100vh;
+  color:white;
+  padding-bottom:90px;
 }
 
-body {
-  background: linear-gradient(to bottom right, #0f4e75, #000000);
-  min-height: 100vh;
-  color: white;
-  padding-bottom: 80px;
-}
-
-/* === Header === */
-.header {
-  padding: 1.5rem;
-  text-align: center;
-  background-color: rgba(0, 0, 0, 0.2);
+/* header */
+.menu-header {
+  display:flex; align-items:center; gap:1rem;
+  padding:1.5rem; background:rgba(0,0,0,0.18);
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom:1px solid rgba(255,255,255,0.08);
 }
+.menu-header h2 { font-size:1.45rem; font-weight:600; color:white; }
+.icons { margin-left:auto; display:flex; gap:1rem; }
+.icons i { font-size:1.5rem; color:white; cursor:pointer; transition:color .18s; }
+.icons i:hover { color:#ccc; }
 
-.header h2 {
-  font-size: 1.6rem;
-  font-weight: 600;
+/* search input (top) */
+#searchCharges {
+  width:100%;
+  margin-top:1rem;
+  padding:1rem;
+  background: rgba(255,255,255,0.08);
+  border-radius:10px;
+  border:none;
+  color:white;
+  font-size:1rem;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+  backdrop-filter: blur(8px);
+  transition: background-color 0.3s ease;
 }
+#searchCharges::placeholder { color:#ccc; }
+#searchCharges:focus { outline:none; background: rgba(255,255,255,0.12); }
 
-/* === Tabs === */
-.tabs-container {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  margin: 1.5rem 0;
-}
-
-.tab {
-  padding: 0.6rem 1.2rem;
-  border: none;
-  border-radius: 10px;
-  background-color: rgba(255, 255, 255, 0.1);
-  color: white;
-  cursor: pointer;
-  transition: background 0.3s ease;
-}
-
-.tab:hover {
-  background-color: rgba(255, 255, 255, 0.15);
-}
-
-.tab.active {
-  background-color: #0f4e75;
-}
-
-/* === Content === */
-.tab-content {
-  padding: 0 1.5rem;
-}
-
-/* === Form Section === */
-.announce-form {
-  margin-bottom: 1.5rem;
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(12px);
-  border-radius: 15px;
-  padding: 1rem;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-}
-
-.announce-form form {
+/* form-section (visual same as admin menu) */
+.form-section {
+  margin-top: 1.5rem;
   display: flex;
   flex-direction: column;
-}
-
-/* Inputs & Selects */
-.announce-form select,
-.announce-form input {
-  width: 100%;
-  margin-bottom: 1rem;
-  padding: 0.75rem;
-  border: none;
-  border-radius: 10px;
-  background-color: rgba(255, 255, 255, 0.1);
-  color: white;
-  font-size: 1rem;
-  outline: none;
-  transition: background 0.3s ease, transform 0.2s ease;
-}
-
-.announce-form select:focus,
-.announce-form input:focus {
-  background-color: rgba(255, 255, 255, 0.2);
-  transform: scale(1.01);
-}
-
-/* Button */
-.announce-form button {
-  width: 100%;
-  background-color: #0f4e75;
-  color: white;
-  padding: 0.75rem;
-  font-size: 1rem;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: background 0.3s ease, transform 0.2s ease;
-}
-
-.announce-form button:hover {
-  background-color: #0c3b59;
-  transform: scale(1.02);
-}
-
-/* === Cards === */
-.cards-container {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.announcement-card {
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(12px);
+  gap: 1.5rem;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
   border-radius: 15px;
+}
+
+/* inputs/selects/buttons inside form-section share admin-menu look */
+.form-section input,
+.form-section select,
+.form-section button {
+  
+  width: 100%;
   padding: 1rem;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-  position: relative;
-  transition: transform 0.2s ease;
-}
-
-.announcement-card:hover {
-  transform: translateY(-3px);
-}
-
-.announcement-card h4 {
-  font-size: 1.1rem;
-  margin-bottom: 0.3rem;
-  color: #fff;
-}
-
-.announcement-card p {
-  color: #ccc;
-  font-size: 0.95rem;
-  margin-bottom: 0.3rem;
-}
-
-/* === Card Actions === */
-.card-actions {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  display: flex;
-  gap: 0.5rem;
-}
-
-.card-actions button {
-  background-color: #0f4e75;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
   border: none;
   color: white;
-  padding: 0.3rem 0.6rem;
-  border-radius: 8px;
-  font-size: 0.8rem;
-  cursor: pointer;
-  transition: background 0.2s ease, transform 0.1s ease;
+  font-size: 1rem;
+  backdrop-filter: blur(10px);
+  margin-top: 1rem;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  transition: background-color 0.3s ease;
 }
 
-.card-actions button:hover {
-  background-color: #0c3b59;
-  transform: scale(1.05);
-}
+.form-section input::placeholder { color:#ccc; }
+.form-section input:focus,
+.form-section select:focus,
+.form-section button:focus { outline:none; background: rgba(255,255,255,0.1); }
 
-.card-actions .danger {
-  background-color: crimson;
+.form-section button {
+  background: #0f4e75;
+  font-weight:700;
+  cursor:pointer;
 }
+.form-section button:hover { background:#0c3b59; }
 
-.card-actions .danger:hover {
-  background-color: darkred;
+/* charges list */
+.charges-list { margin:0.8rem; display:flex; flex-direction:column; gap:0.9rem; }
+
+.charge-card {
+  background: rgba(255,255,255,0.06);
+  padding:1rem;
+  border-radius:12px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.28);
+  display:flex; flex-direction:column; gap:0.35rem;
 }
+.charge-card h3 { font-size:1.05rem; margin-bottom:0.2rem; }
+.charge-card p { color:#d6d6d6; font-size:0.93rem; }
+.charge-meta { color:#cfcfcf; font-size:0.85rem; }
 
-/* === Empty State === */
-.cards-container:empty::after {
-  content: "No charges have been set yet.";
-  display: block;
-  text-align: center;
-  padding: 2rem 0;
-  color: #aaa;
-  font-style: italic;
+.card-actions { margin-top:0.5rem; display:flex; gap:0.6rem; }
+.btn {
+  padding:0.55rem 0.8rem;
+  border-radius:8px;
+  border:none;
+  cursor:pointer;
+  font-weight:600;
 }
+.btn-danger { background:#b81c1c; color:white; }
+.btn-edit { background:#0f4e75; color:white; }
+.btn:hover { opacity:0.95; }
 
-/* === Footer Navigation === */
+/* small helpers */
+.hidden { display:none; }
+
+/* footer nav */
 .footer-nav {
   position: fixed;
   bottom: 0;
   left: 0;
   width: 100%;
-  background: rgba(255,255,255,0.05);
+  background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(15px);
   display: flex;
   justify-content: space-around;
   padding: 0.7rem 0;
-  border-top: 1px solid rgba(255,255,255,0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .footer-nav a {
   text-decoration: none;
 }
 
-.nav-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  color: #ccc;
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: color 0.2s ease;
-}
+.nav-item { display:flex; flex-direction:column; align-items:center; color:#cfcfcf; font-size:0.82rem; }
+.nav-item i { font-size:1.25rem; margin-bottom:3px; }
+.nav-item.active, .nav-item:hover { color:white; }
 
-.nav-item i {
-  font-size: 1.3rem;
-  margin-bottom: 2px;
-}
-
-.nav-item:hover,
-.nav-item.active {
-  color: white;
-}
-
-/* === Utility Classes === */
-.hidden {
-  display: none;
-}
-
-button[disabled] {
-  opacity: 0.5;
-  cursor: not-allowed;
+/* responsive */
+@media (min-width: 900px) {
+  .form-section { width:720px; margin:1.2rem auto; }
+  .charges-list { width:720px; margin:0.8rem auto; }
 }
