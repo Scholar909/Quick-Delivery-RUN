@@ -1,76 +1,93 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Manage Delivery Charges</title>
-  <link rel="stylesheet" href="../css/admins/ad-charges.css" />
-  <link rel="stylesheet" href="../css/drawer.css">
-  <link href="https://unicons.iconscout.com/release/v4.0.8/css/line.css" rel="stylesheet"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin — Delivery Charges</title>
+
+  <!-- charges page css (matches admin menu visual style) -->
+  <link rel="stylesheet" href="../css/admins/ad-charges.css?=v4" />
+
+  <!-- shared drawer css -->
+  <link rel="stylesheet" href="../css/drawer.css" />
+  <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.8/css/line.css" />
 </head>
-<body>
+<body class="menu-body" data-role="admin">
 
-  <div class="header">
-    <h2>Set Delivery Charges</h2>
-  </div>
-
-  <div class="tabs-container">
-    <button class="tab active">Charges</button>
-  </div>
-
-  <div class="tab-content">
-    <div class="announce-form">
-      <form id="chargeForm">
-        <select id="genderSelect" required>
-          <option value="">Select Gender</option>
-          <option value="male">male</option>
-          <option value="female">female</option>
-        </select>
-
-        <select id="hostelSelect" required>
-          <option value="">Select Hostel</option>
-        </select>
-
-        <select id="restaurantSelect" required>
-          <option value="">Select Restaurant</option>
-        </select>
-
-        <input type="number" id="chargeAmount" placeholder="Enter Charge Amount (₦)" required />
-
-        <button type="submit">Save Charge</button>
-      </form>
+  <!-- Header -->
+  <header class="menu-header">
+    <h2>Customer Charges</h2>
+    <div class="icons">
+      <i class="uil uil-plus" id="add-btn" title="Add charge"></i>
     </div>
+  </header>
 
-    <div class="cards-container" id="chargesList"></div>
+  <!-- Search (styled like admin menu) -->
+  <section class="add-food-section" style="padding:1rem 1.1rem;">
+    <input id="searchCharges" type="text" placeholder="Search charges (restaurant, to-location, gender)..." />
+  </section>
+
+  <!-- Add / Edit Charge Form (hidden by default) -->
+  <section id="addFormSection" class="form-section" aria-hidden="true">
+    <form id="chargeForm" class="menu-form" autocomplete="off">
+      <select id="gender" required>
+        <option value="">-- Select Gender --</option>
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+      </select>
+
+      <select id="fromLocation" required>
+        <option value="">-- From Location (Restaurant) --</option>
+        <!-- filled dynamically -->
+      </select>
+
+      <select id="toLocation">
+        <option value="">-- To Location (choose or leave to type new) --</option>
+        <!-- filled dynamically -->
+      </select>
+
+      <input id="newToLocation" type="text" placeholder="Or enter new To Location"/>
+
+      <input id="chargeAmount" type="number" placeholder="Charge Amount (₦)" required />
+
+      <button id="saveChargeBtn" type="submit">Save Charge</button>
+    </form>
+  </section>
+
+  <!-- Charges List -->
+  <section id="chargesList" class="charges-list" style="padding:0.8rem 0.8rem;">
+    <!-- populated by JS -->
+    <p style="color:#ccc;">Loading charges...</p>
+  </section>
+
+  <!-- Drawer (same as admin) -->
+  <div class="drawer glassy">
+    <div class="drawer-header">
+      <h3>Admin Menu</h3>
+      <i class="uil uil-times close-drawer"></i>
+    </div>
+    <ul class="drawer-links">
+      <li><a href="dashboard.html"><i class="uil uil-apps"></i> Dashboard</a></li>
+      <li><a href="announcements.html"><i class="uil uil-megaphone"></i> Announcement</a></li>
+      <li><a href="orders.html"><i class="uil uil-utensils"></i>All Orders </a></li>
+      <li><a href="assign-orders.html"><i class="uil uil-exchange"></i> Assign Order</a></li>
+      <li><a href="alerts.html"><i class="uil uil-envelope-add"></i> Message</a></li>
+      <li><a href="menu.html"><i class="uil uil-restaurant"></i> Food/Restaurant Menu</a></li>
+      <li><a href="charges.html" class="active"><i class="uil uil-money-bill"></i> Customer Charges</a></li>
+      <li><a href="combo_rec.html"><i class="uil uil-lightbulb-alt"></i> Combo and Recommendations</a></li>
+      <li><a href="complaints.html"><i class="uil uil-exclamation"></i> Complaints</a></li>
+      <li><a href="calendar.html"><i class="uil uil-calendar-alt"></i> Merchant Shift</a></li>
+      <li><a href="map.html"><i class="uil uil-map"></i>Merchants Location</a></li>
+      <li><a href="extra-merch-receipt-restaurant.html"><i class="uil uil-users-alt"></i>Extra Receipt Merchants</a></li>
+      <li><a href="manual-approve-pay.html"><i class="uil uil-check-circle"></i>Manually Approve Payments</a></li>
+      <li><a href="get-token.html"><i class="uil uil-key-skeleton"></i> Merchant Token</a></li>
+    </ul>
+    <div class="logout-section">
+      <a href="../admin-login.html" class="logout-btn"><i class="uil uil-signout"></i> Logout</a>
+    </div>
   </div>
 
-<div class="drawer glassy">
-  <div class="drawer-header">
-    <h3>Admin Menu</h3>
-    <i class="uil uil-times close-drawer"></i>
-  </div>
-  <ul class="drawer-links">
-    <li><a href="dashboard.html"><i class="uil uil-apps"></i> Dashboard</a></li>
-    <li><a href="announcements.html"><i class="uil uil-megaphone"></i> Announcement</a></li>
-    <li><a href="orders.html"><i class="uil uil-utensils"></i>All Orders </a></li>
-    <li><a href="assign-orders.html"><i class="uil uil-exchange"></i> Assign Order</a></li>
-    <li><a href="alerts.html"><i class="uil uil-envelope-add"></i> Message</a></li>
-    <li><a href="menu.html"><i class="uil uil-restaurant"></i> Food/Restaurant Menu</a></li>
-    <li><a href="charges.html"><i class="uil uil-money-bill"></i> Customer Charges</a></li>
-    <li><a href="combo_rec.html"><i class="uil uil-lightbulb-alt"></i> Combo and Recommendations</a></li>
-    <li><a href="complaints.html"><i class="uil uil-exclamation"></i> Complaints</a></li>
-    <li><a href="calendar.html"><i class="uil uil-calendar-alt"></i> Merchant Shift</a></li>
-    <li><a href="map.html"><i class="uil uil-map"></i>Merchants Location</a></li>
-    <li><a href="extra-merch-receipt-restaurant.html"><i class="uil uil-users-alt"></i>Extra Receipt Merchants</a></li>
-    <li><a href="manual-approve-pay.html"><i class="uil uil-check-circle"></i>Manually Approve Payments</a></li>
-    <li><a href="get-token.html"><i class="uil uil-key-skeleton"></i> Merchant Token</a></li>
-  </ul>
-  <div class="logout-section">
-    <a href="../admin-login.html" class="logout-btn"><i class="uil uil-signout"></i> Logout</a>
-  </div>
-</div>
-
-  <!-- Footer Navigation -->
+  <!-- Footer -->
   <footer class="footer-nav">
     <div class="nav-item">
       <i class="uil uil-bars"></i>
@@ -94,7 +111,8 @@
     </div></a>
   </footer>
 
-  <script type="module" src="../js/admin/charges.js?v=4"></script>
-  <script type="module" src="../js/drawer.js"></script>
+  <!-- Scripts -->
+  <script type="module" src="../js/drawer.js?=v2"></script>
+  <script type="module" src="../js/admin/charges.js?=v6"></script>
 </body>
 </html>
