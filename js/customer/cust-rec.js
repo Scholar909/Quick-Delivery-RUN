@@ -113,7 +113,34 @@ document.addEventListener("DOMContentLoaded", () => {
           createdAt: Date.now()
         });
 
-        // redirect to menu page
+        // clear any previous Buy Now memory
+        localStorage.removeItem("fromLocation");
+        localStorage.removeItem("toLocation");
+        
+        try {
+          // 🔹 Fetch customer's room & hostel before redirect
+          const custSnap = await getDoc(doc(db, "customers", currentUser.uid));
+        
+          if (custSnap.exists()) {
+            const custData = custSnap.data();
+            const hostelName = custData.hostel || "Unknown Hostel";
+            const roomNo = custData.roomNumber || "—";
+        
+            // Save real hostel + room to localStorage
+            localStorage.setItem("fromLocation", item.restaurantName);
+            localStorage.setItem("toLocation", `${hostelName} Room ${roomNo}`);
+          } else {
+            // fallback if no customer data found
+            localStorage.setItem("fromLocation", item.restaurantName);
+            localStorage.setItem("toLocation", "My Room");
+          }
+        } catch (err) {
+          console.error("Error fetching customer profile:", err);
+          localStorage.setItem("fromLocation", item.restaurantName);
+          localStorage.setItem("toLocation", "My Room");
+        }
+        
+        // 🔹 Redirect after saving data
         window.location.href = "menu-place-order.html";
       } catch (err) {
         console.error("Error saving Buy Now item:", err);

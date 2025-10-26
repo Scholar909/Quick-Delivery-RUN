@@ -165,21 +165,49 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!item) return;
 
       try {
-        // clear old cart first
-        const cartItemRef = doc(db, "carts", currentUser.uid, "items", id);
-        await setDoc(cartItemRef, {
-          name: item.foodName,
-          price: item.price,
-          qty: 1,
-          restaurantId: item.restaurantId || "", // in case combos/recs differ
-          restaurantName: item.restaurantName || "",
-          category: item.category || "Uncategorized",
-          fromType: type,
-          createdAt: Date.now()
-        });
-
-        // redirect to menu page
-        window.location.href = "../customer/menu-place-order.html";
+      // clear old cart first
+      const cartItemRef = doc(db, "carts", currentUser.uid, "items", id);
+      await setDoc(cartItemRef, {
+        name: item.foodName,
+        price: item.price,
+        qty: 1,
+        restaurantId: item.restaurantId || "",
+        restaurantName: item.restaurantName || "",
+        category: item.category || "Uncategorized",
+        fromType: type,
+        createdAt: Date.now()
+      });
+      
+      // 🧹 Clear previous redirect data
+      localStorage.removeItem("fromLocation");
+      localStorage.removeItem("toLocation");
+      
+      try {
+        // 🔹 Fetch customer's room & hostel before redirect
+        const custSnap = await getDoc(doc(db, "customers", currentUser.uid));
+      
+        if (custSnap.exists()) {
+          const custData = custSnap.data();
+          const hostelName = custData.hostel || "Unknown Hostel";
+          const roomNo = custData.roomNumber || "—";
+      
+          // Save actual room info
+          localStorage.setItem("fromLocation", item.restaurantName);
+          localStorage.setItem("toLocation", `${hostelName} Room ${roomNo}`);
+        } else {
+          // fallback if no customer data
+          localStorage.setItem("fromLocation", item.restaurantName);
+          localStorage.setItem("toLocation", "My Room");
+        }
+      
+      } catch (err) {
+        console.error("Error fetching customer profile:", err);
+        localStorage.setItem("fromLocation", item.restaurantName);
+        localStorage.setItem("toLocation", "My Room");
+      }
+      
+      // 🔹 Redirect after data saved
+      window.location.href = "../customer/menu-place-order.html";
 
       } catch (err) {
         console.error("Error saving Buy Now item:", err);

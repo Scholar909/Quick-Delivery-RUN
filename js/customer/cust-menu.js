@@ -72,6 +72,55 @@ const step2 = document.getElementById("bankStep2");
 const nextBtn = document.getElementById("nextToStep2");
 const cancelStep1 = document.getElementById("cancelStep1");
 const prevBtn = document.getElementById("prevToStep1");
+// Restore locations from Buy Now redirect
+window.addEventListener("DOMContentLoaded", async () => {
+  const fromLoc = localStorage.getItem("fromLocation");
+  const toLoc = localStorage.getItem("toLocation");
+
+  await loadToLocations(); // ensure dropdowns populated first
+
+  // 🟩 Case 1: Came from Buy Now (combo/recommendation)
+  if (fromLoc) {
+    // Preselect restaurant visibly
+    for (const opt of restaurantSelect.options) {
+      if (opt.textContent === fromLoc || opt.value === fromLoc) {
+        restaurantSelect.value = opt.value;
+        selectedRestaurant = opt.value;
+        previousRestaurant = opt.value;
+        break;
+      }
+    }
+
+    // Lock restaurant dropdown (cannot change for this order)
+    restaurantSelect.disabled = true;
+    toLocationSelect.disabled = false;
+
+    // Preselect destination if saved
+    if (toLoc) {
+      for (const opt of toLocationSelect.options) {
+        if (opt.textContent === toLoc || opt.value === toLoc) {
+          toLocationSelect.value = opt.value;
+          previousToLocation = opt.value;
+          break;
+        }
+      }
+    }
+
+    // 🟩 Automatically fetch and apply correct delivery charge right away
+    await updateDeliveryCharge(fromLoc, toLoc || "My Room");
+
+    // Render menu with correct totals
+    renderMenu();
+    updateOrderTable();
+    updateTotal();
+
+    return; // stop here, don’t run normal flow
+  }
+
+  // 🟨 Case 2: Normal open (not from Buy Now)
+  restaurantSelect.disabled = false;
+  renderMenu();
+});
 
 // Charges
 let DELIVERY_CHARGE = 300;
@@ -320,16 +369,24 @@ async function loadToLocations() {
 function checkOrderWindow() {
   const now = new Date();
   const hour = now.getHours();
-  if (hour < 7 || hour >= 24) {
+  const minute = now.getMinutes();
+  const time = hour + minute / 60;
+
+  // Allow only between 8:30am and 9:00pm
+  const open = 8.5; // 8:30am
+  const close = 21.0; // 9:00pm
+
+  if (time < open || time >= close) {
     payNowBtn.disabled = true;
     payNowBtn.style.opacity = "0.5";
-    payNowBtn.textContent = "Checkout Closed (8am–9pm)";
+    payNowBtn.textContent = "Checkout Closed (8:30am–9:00pm)";
   } else {
     payNowBtn.disabled = false;
     payNowBtn.style.opacity = "1";
     payNowBtn.textContent = "Checkout";
   }
 }
+
 setInterval(checkOrderWindow, 60000);
 checkOrderWindow();
 
@@ -431,12 +488,6 @@ const openOrderModal = () => {
 
 const closeOrderModal = async () => {
   orderModal.classList.add('hidden');
-  cart = [];
-  updateOrderButton();
-  renderOrderTable();
-  if (auth.currentUser) {
-  await clearBuyNowCart(auth.currentUser.uid);
-  }
 };
 
 const renderOrderTable = () => {
@@ -494,10 +545,37 @@ orderTableBody.addEventListener('click', (e) => {
 // -------------------------------------------------
 // Event Listeners
 // -------------------------------------------------
-restaurantSelect.addEventListener('change', async () => {
-  selectedRestaurant = restaurantSelect.value;
+let previousRestaurant = "";
 
-  // 🔹 Disable/Enable To-location dropdown depending on selection
+restaurantSelect.addEventListener('change', async (e) => {
+  const newRestaurant = restaurantSelect.value;
+
+  // 🔹 Check if user arrived from Buy Now page
+  const fromBuyNow = localStorage.getItem("fromLocation");
+  
+  // ✅ Only lock if actually redirected (and dropdown is disabled)
+  if (restaurantSelect.disabled && fromBuyNow && fromBuyNow === selectedRestaurant) {
+    alert("This restaurant was preselected from your combo. You cannot change it for this order.");
+    restaurantSelect.value = selectedRestaurant;
+    return;
+  }
+
+  // 🔹 Normal behaviour when not from Buy Now
+  if (cart.length && previousRestaurant && previousRestaurant !== newRestaurant) {
+    const confirmChange = confirm('Changing restaurant clears your cart. Continue?');
+    if (!confirmChange) {
+      // revert visible dropdown
+      restaurantSelect.value = previousRestaurant;
+      return;
+    }
+    cart = [];
+    updateOrderButton();
+  }
+
+  selectedRestaurant = newRestaurant;
+  previousRestaurant = newRestaurant;
+
+  // 🔹 Enable/disable To-location dropdown
   if (!selectedRestaurant) {
     toLocationSelect.disabled = true;
     toLocationSelect.value = "";
@@ -507,17 +585,14 @@ restaurantSelect.addEventListener('change', async () => {
     toLocationSelect.disabled = false;
   }
 
-  // 🔹 If restaurant changed, clear cart
-  if (cart.length) {
-    if (!confirm('Changing restaurant clears your cart. Continue?')) return;
-    cart = [];
-    updateOrderButton();
+  // 🔹 Clear destination only when user changes manually
+  if (!fromBuyNow) {
+    toLocationSelect.value = "";
   }
 
-  // 🔹 Clear toLocation when restaurant changes
-  toLocationSelect.value = "";
   renderMenu();
 
+  // 🔹 Load restaurant info
   if (selectedRestaurant) {
     const restRef = doc(db, "restaurants", selectedRestaurant);
     const restSnap = await getDoc(restRef);
@@ -525,10 +600,10 @@ restaurantSelect.addEventListener('change', async () => {
       currentRestaurantData = restSnap.data();
     }
   }
-  
-  // Fetch dynamic delivery charge
+
+  // 🔹 Fetch delivery charge if not coming from Buy Now
   const user = auth.currentUser;
-  if (user) {
+  if (user && !fromBuyNow) {
     const custSnap = await getDoc(doc(db, "customers", user.uid));
     const custData = custSnap.data();
     const q = query(
@@ -545,8 +620,7 @@ restaurantSelect.addEventListener('change', async () => {
       DELIVERY_CHARGE = 300;
       console.warn("⚠️ No match found — fallback delivery charge:", DELIVERY_CHARGE);
     }
-    
-    // 🔹 Re-render so modal shows the new charge immediately
+
     updateTotal();
     renderOrderTable();
   }
@@ -555,18 +629,72 @@ restaurantSelect.addEventListener('change', async () => {
 // -----------------------------
 // NEW: when To Location changes
 // -----------------------------
-toLocationSelect.addEventListener('change', async () => {
-  const toLoc = toLocationSelect.value;
+
+async function updateDeliveryCharge(fromLocation, toLocation) {
+  try {
+    const user = auth.currentUser;
+    if (!user || !fromLocation || !toLocation) return;
+
+    const custSnap = await getDoc(doc(db, "customers", user.uid));
+    if (!custSnap.exists()) return;
+
+    const custData = custSnap.data();
+    const gender = (custData.gender || "").toLowerCase();
+
+    // If "My Room" selected, use hostel as toLocation
+    const finalToLoc =
+      toLocation === "My Room"
+        ? custData.hostel
+        : toLocation;
+
+    const q = query(
+      collection(db, "deliveryCharges"),
+      where("fromLocation", "==", fromLocation),
+      where("toLocation", "==", finalToLoc),
+      where("gender", "==", gender)
+    );
+
+    const snap = await getDocs(q);
+    if (!snap.empty) {
+      DELIVERY_CHARGE = Number(snap.docs[0].data().charge);
+      console.log("✅ Delivery charge found:", DELIVERY_CHARGE);
+    } else {
+      DELIVERY_CHARGE = 300;
+      console.warn("⚠️ Defaulting to ₦300 (no delivery charge match)");
+    }
+
+    updateTotal();
+    renderOrderTable();
+  } catch (err) {
+    console.error("Error updating delivery charge:", err);
+  }
+}
+
+let previousToLocation = "";
+
+toLocationSelect.addEventListener('change', async (e) => {
+  const newToLoc = toLocationSelect.value;
 
   // 🔹 Prevent using To-location before From-location
   if (!selectedRestaurant) {
     alert("Please choose a restaurant (From Location) first.");
-    toLocationSelect.value = "";
+    toLocationSelect.value = previousToLocation;
     return;
   }
 
+  // 🔹 If cart exists and destination changed, confirm first
+  if (cart.length && previousToLocation && previousToLocation !== newToLoc) {
+    const confirmChange = confirm("Changing your destination may affect delivery charge. Continue?");
+    if (!confirmChange) {
+      toLocationSelect.value = previousToLocation;
+      return;
+    }
+  }
+
+  previousToLocation = newToLoc;
+
   // 🔹 If cleared, reset delivery and menu view
-  if (!toLoc) {
+  if (!newToLoc) {
     DELIVERY_CHARGE = 300;
     updateTotal();
     renderMenu();
@@ -584,7 +712,7 @@ toLocationSelect.addEventListener('change', async () => {
     collection(db, "deliveryCharges"),
     where("gender", "==", gender),
     where("fromLocation", "==", selectedRestaurant),
-    where("toLocation", "==", toLoc)
+    where("toLocation", "==", newToLoc)
   );
 
   const snap = await getDocs(q);
@@ -596,7 +724,6 @@ toLocationSelect.addEventListener('change', async () => {
     console.warn("⚠️ No charge found — defaulting to ₦300");
   }
 
-  // 🔹 Auto-refresh prices and menu
   updateTotal();
   renderMenu();
 });
@@ -1181,3 +1308,8 @@ const syncCartWithAvailability = () => {
 listenToRestaurants();
 listenToFoodItems();
 updateOrderButton();
+
+window.addEventListener("beforeunload", () => {
+  localStorage.removeItem("fromLocation");
+  localStorage.removeItem("toLocation");
+});
