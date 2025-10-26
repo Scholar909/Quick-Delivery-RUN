@@ -50,8 +50,8 @@ body.complaints-body {
 .restaurant-section {
   padding: 1.5rem 1rem;
 }
-.restaurant-section h3 {
-  text-align: center;
+.restaurant-section h2 {
+  text-align: left;
   margin-bottom: 1rem;
   font-size: 1.2rem;
 }
