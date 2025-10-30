@@ -162,7 +162,7 @@ imageInput.addEventListener('change', async () => {
   formData.append("image", file);
 
   try {
-    const res = await fetch(`https://api.imgbb.com/1/upload?key=76b5c9b8204181e4bb53f33eb96b8efb`, {
+    const res = await fetch(`https://api.imgbb.com/1/upload?key=27ab1b13f2070f19b9739869326c775c`, {
       method: "POST",
       body: formData
     });
