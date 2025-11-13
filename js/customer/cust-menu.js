@@ -373,8 +373,8 @@ function checkOrderWindow() {
   const time = hour + minute / 60;
 
   // Allow only between 8:30am and 9:00pm
-  const open = 8.5; // 8:30am
-  const close = 21.0; // 9:00pm
+  const open = 8.0; // 8:30am
+  const close = 21.5; // 9:00pm
 
   if (time < open || time >= close) {
     payNowBtn.disabled = true;
