@@ -64,6 +64,7 @@ const orderRestaurantName = document.getElementById('orderRestaurantName');
 const addPackCheckbox = document.getElementById('addPack');
 const orderTotalElem = document.getElementById('orderTotal');
 const payNowBtn = document.getElementById('payNowBtn');
+const orderDescriptionInput = document.getElementById('orderDescription');
 const bankModal = document.getElementById('bankModal');
 const closeBankModal = document.getElementById('closeBankModal');
 const ivePaidBtn = document.getElementById('ivePaidBtn');
@@ -373,8 +374,8 @@ function checkOrderWindow() {
   const time = hour + minute / 60;
 
   // Allow only between 8:30am and 9:00pm
-  const open = 8.0; // 8:30am
-  const close = 21.5; // 9:00pm
+  const open = 8.0; // 8:00am
+  const close = 21.5; // 9:30pm
 
   if (time < open || time >= close) {
     payNowBtn.disabled = true;
@@ -860,6 +861,7 @@ ivePaidBtn.addEventListener("click", async () => {
     const custAccountNumber = document.getElementById("custAccountNumber")?.value || "";
     const custAccountName = document.getElementById("custAccountName")?.value || "";
     const custNarration = document.getElementById("custNarration")?.value || "";
+    const orderDescription = orderDescriptionInput?.value || "";
 
     const user = auth.currentUser;
     if (!user) return alert("You must be logged in.");
@@ -905,6 +907,7 @@ ivePaidBtn.addEventListener("click", async () => {
       customerAccountNumber: custAccountNumber,
       customerAccountName: custAccountName,
       customerNarration: custNarration,
+      orderDescription: orderDescription,
       countdownStart: serverTimestamp(),
     });
 

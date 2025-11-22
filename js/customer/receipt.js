@@ -132,6 +132,12 @@ function renderReceipt(data, idFromUrl) {
   $('charge').textContent = fmtNaira(delivery);
   $('fee').textContent = fmtNaira(fee);
   $('totalAll').textContent = fmtNaira(totalAll);
+  
+  // 🔥 NEW: Order description
+  $('orderDescription').textContent =
+    data.orderDescription && data.orderDescription.trim() !== ""
+      ? `Description: ${data.orderDescription}`
+      : "Description: —";
 
   $('assignedTime').textContent = fmtTime(data.assignedAt || data.assignedTime);
   $('deliveredTime').textContent = fmtTime(data.deliveredTime);

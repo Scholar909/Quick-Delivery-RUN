@@ -124,6 +124,16 @@ function createOrderCard(order, bucket) {
     <p class="merchant-name">Merchant: ${merchantLabel}</p>
     <p>Date: ${dateStr || '—'}</p>
     ${reasonPreview}
+    ${order.orderDescription ? `
+          <p class="desc-preview" 
+             style="color:#8ab4ff; cursor:pointer; margin-top:6px;">
+             Description: ${
+               order.orderDescription.length > 25 
+                 ? order.orderDescription.substring(0, 25) + "..."
+                 : order.orderDescription
+             }
+          </p>
+        ` : ""}
   `;
 
   // ---------- attach click handlers ----------
@@ -162,6 +172,29 @@ function createOrderCard(order, bucket) {
       overlay.addEventListener('click', () => document.body.removeChild(overlay));
     });
   }
+  
+// View full description
+  const descEl = card.querySelector('.desc-preview');
+  descEl?.addEventListener('click', () => {
+    const overlay = document.createElement('div');
+    Object.assign(overlay.style, {
+      position: "fixed", top: 0, left: 0, width: "100%", height: "100%",
+      background: "rgba(0,0,0,0.6)", display: "flex",
+      justifyContent: "center", alignItems: "center", zIndex: 9999
+    });
+
+    const modal = document.createElement('div');
+    Object.assign(modal.style, {
+      background: "#fff", color: "#000", padding: "1rem",
+      borderRadius: "8px", maxWidth: "400px", textAlign: "center"
+    });
+    modal.textContent = order.orderDescription;
+
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    overlay.addEventListener('click', () => document.body.removeChild(overlay));
+  });
   
   if (bucket === "declined") {
     if (order.paymentStatus === "refund_required") {
