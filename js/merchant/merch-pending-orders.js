@@ -45,31 +45,48 @@ function createOrderCard(order, type = "pending", currentUser) {
   let createdAt = fmtTime(order.createdAt);
 
   let doneBtnHtml = '';
-  if (type === "pending") doneBtnHtml = `<button class="done-btn">Done</button>`;
+  if (type === "pending") doneBtnHtml = `<br><button class="done-btn">Done</button>`;
 
-  // Build reason preview if declined
+  // 🔹 Description preview
+  let descriptionPreview = "";
+  if (order.orderDescription && order.orderDescription.trim() !== "") {
+    const shortDesc =
+      order.orderDescription.length > 20
+        ? order.orderDescription.substring(0, 20) + "..."
+        : order.orderDescription;
+
+    descriptionPreview =
+      `<p class="desc-preview" style="color:#d5e7ff;cursor:pointer;">Desc: ${shortDesc}</p>`;
+  }
+
+  // 🔹 Decline reason preview (declined only)
   let reasonPreview = "";
   if (type === "declined") {
     const reason = order.declines?.[currentUser.uid]?.reason || "No reason provided.";
     const shortReason = reason.length > 20 ? reason.substring(0, 20) + "..." : reason;
-    reasonPreview = `<p class="reason-preview" style="color:#ffaaaa;cursor:pointer;">Reason: ${shortReason}</p>`;
+    reasonPreview =
+      `<p class="reason-preview" style="color:#ffaaaa;cursor:pointer;">Reason: ${shortReason}</p>`;
   }
 
   div.innerHTML = `
     <div class="order-top">
       <h4>Order ID: #${order.paystackRef || order.id}</h4>
     </div>
+
     <div class="order-bottom">
       <p>Total: ₦${Number(total).toLocaleString()}</p>
       <span class="view-btn">${type === "declined" ? "View Receipt" : "Details"}</span>
     </div>
+
     <p>Date: ${createdAt}</p>
     <span class="merchant-name">Merchant: ${merchantText}</span>
+
+    ${descriptionPreview}   <!-- 🔥 Description now shows on ALL tabs -->
     ${doneBtnHtml}
     ${reasonPreview}
   `;
 
-  // ✅ Done button → mark delivered
+  // 🔹 Done button
   const doneBtn = div.querySelector('.done-btn');
   doneBtn?.addEventListener('click', async () => {
     try {
@@ -78,6 +95,7 @@ function createOrderCard(order, type = "pending", currentUser) {
         deliveredTime: serverTimestamp()
       });
       alert("✅ Order marked as delivered");
+
       if (pendingTab.contains(div)) {
         pendingTab.removeChild(div);
         deliveredTab.appendChild(div);
@@ -88,29 +106,32 @@ function createOrderCard(order, type = "pending", currentUser) {
     }
   });
 
-  // View receipt
-  const btn = div.querySelector('.view-btn');
-  btn.addEventListener('click', () => {
+  // 🔹 View receipt
+  const viewBtn = div.querySelector('.view-btn');
+  viewBtn.addEventListener('click', () => {
     window.location.href = `receipt.html?orderId=${order.id}`;
   });
 
-  // Declined reason modal
+  // 🔹 Decline reason modal (declined only)
   if (type === "declined") {
     const reasonEl = div.querySelector('.reason-preview');
     reasonEl?.addEventListener('click', () => {
       const reason = order.declines?.[currentUser.uid]?.reason || "No reason provided.";
-
       const overlay = document.createElement('div');
       Object.assign(overlay.style, {
-        position: "fixed", top: 0, left: 0, width: "100%", height: "100%",
-        background: "rgba(0,0,0,0.6)", display: "flex",
-        justifyContent: "center", alignItems: "center", zIndex: 9999
+        position: "fixed",
+        top: 0, left: 0,
+        width: "100%", height: "100%",
+        background: "rgba(0,0,0,0.6)",
+        display: "flex", justifyContent: "center", alignItems: "center",
+        zIndex: 9999
       });
 
       const modal = document.createElement('div');
       Object.assign(modal.style, {
-        background: "#fff", color: "#000", padding: "1rem",
-        borderRadius: "8px", maxWidth: "400px", textAlign: "center"
+        background: "#fff", color: "#000",
+        padding: "1rem", borderRadius: "8px",
+        maxWidth: "400px", textAlign: "center"
       });
       modal.textContent = reason;
 
@@ -120,6 +141,35 @@ function createOrderCard(order, type = "pending", currentUser) {
       overlay.addEventListener('click', () => document.body.removeChild(overlay));
     });
   }
+
+  // 🔹 Full description modal (ALL tabs)
+  const descEl = div.querySelector('.desc-preview');
+  descEl?.addEventListener('click', () => {
+    const fullDesc = order.orderDescription || "No description provided.";
+
+    const overlay = document.createElement('div');
+    Object.assign(overlay.style, {
+      position: "fixed",
+      top: 0, left: 0,
+      width: "100%", height: "100%",
+      background: "rgba(0,0,0,0.6)",
+      display: "flex", justifyContent: "center", alignItems: "center",
+      zIndex: 9999
+    });
+
+    const modal = document.createElement('div');
+    Object.assign(modal.style, {
+      background: "#fff", color: "#000",
+      padding: "1rem", borderRadius: "8px",
+      maxWidth: "400px", textAlign: "center"
+    });
+    modal.textContent = fullDesc;
+
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    overlay.addEventListener('click', () => document.body.removeChild(overlay));
+  });
 
   return div;
 }

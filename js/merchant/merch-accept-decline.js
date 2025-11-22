@@ -126,6 +126,7 @@ function renderOrderCard(order, user) {
     <div class="order-location">Restaurant: ${order.restaurantName || ''}</div>
     <br>
     <div class="order-summary">Order: ${itemsText}</div>
+    <div class="order-description">Description: ${order.description || "-"}</div>
     <div class="order-total">Total: ₦${order.totalAmount || ''}</div>
     <div class="actions">
       <button class="accept-btn">Accept</button>
@@ -151,7 +152,8 @@ async function acceptOrder(order, user, auto = false) {
     orderStatus: "accepted",
     acceptedAt: serverTimestamp(),
     autoAccepted: auto,
-    assignedMerchantName: user.displayName || "Merchant"
+    assignedMerchantName: user.displayName || "Merchant",
+    description: order.description || ""   // 🔥 NEW
   };
 
   await updateDoc(orderRef, updateData);
@@ -243,13 +245,14 @@ async function notifyReceiptMerchants(orderData, merchantUser, orderRef) {
     }
 
     const header = `📦 New Order Accepted!
-🍴 Restaurant: ${orderData.restaurantName}
-🆔 Order ID: ${orderData.id}
-👤 Accepted by: ${merchantUser.displayName || "Merchant"}
-👤 Customer: ${orderData.customerUsername || "N/A"}
-🏠 Hostel: ${orderData.customerRoomLocation || "N/A"}
-🏠 Room: ${orderData.customerRoom || "N/A"}
-`;
+    🍴 Restaurant: ${orderData.restaurantName}
+    🆔 Order ID: ${orderData.id}
+    👤 Accepted by: ${merchantUser.displayName || "Merchant"}
+    👤 Customer: ${orderData.customerUsername || "N/A"}
+    🏠 Hostel: ${orderData.customerRoomLocation || "N/A"}
+    🏠 Room: ${orderData.customerRoom || "N/A"}
+    📝 Description: ${orderData.description || "-"}
+    `;
 
     const grouped = {};
     let grandTotal = 0;

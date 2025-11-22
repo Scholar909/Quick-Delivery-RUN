@@ -69,10 +69,9 @@ function renderReceipt(data, idFromUrl) {
   $('custName').textContent = data.customerName || '—';
   $('orderId').textContent = data.orderId || idFromUrl || '—';
 
-  const hostel = data.hostel || data.customerRoomLocation || '';
-  const room = data.roomNumber || data.customerRoom || '';
-  $('roomLocation').textContent =
-    hostel || room ? `${hostel}${room ? ' - ' + room : ''}` : '—';
+  // ✅ Use customer's chosen delivery destination (To Location)
+  const toLocation = data.toLocation || data.deliveryLocation || data.location || '';
+  $('roomLocation').textContent = toLocation || '—';
 
   $('merchantUsername').textContent =
     data.assignedMerchantName ||
@@ -133,6 +132,12 @@ function renderReceipt(data, idFromUrl) {
   $('charge').textContent = fmtNaira(delivery);
   $('fee').textContent = fmtNaira(fee);
   $('totalAll').textContent = fmtNaira(totalAll);
+  
+  // 🔥 NEW: Order description
+  $('orderDescription').textContent =
+    data.orderDescription && data.orderDescription.trim() !== ""
+      ? `Description: ${data.orderDescription}`
+      : "Description: —";
 
   $('assignedTime').textContent = fmtTime(data.assignedAt || data.assignedTime);
   $('deliveredTime').textContent = fmtTime(data.deliveredTime);
