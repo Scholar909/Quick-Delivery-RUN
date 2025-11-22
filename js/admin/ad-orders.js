@@ -73,6 +73,18 @@ function createOrderCard(order, type = "pending") {
     </div>
     <p>Date: ${createdAt}</p>
     ${reasonPreview}
+    
+    ${order.orderDescription ? `
+      <p class="desc-preview" 
+         style="color:#8ab4ff; cursor:pointer; margin-top:6px;">
+         Description: ${
+           order.orderDescription.length > 25
+             ? order.orderDescription.substring(0, 25) + "..."
+             : order.orderDescription
+         }
+      </p>
+    ` : ""}
+    
     ${extraStatus}
   `;
 
@@ -109,6 +121,38 @@ function createOrderCard(order, type = "pending") {
       overlay.addEventListener('click', () => document.body.removeChild(overlay));
     });
   }
+  
+  // 🔹 Description full modal
+  const descEl = div.querySelector('.desc-preview');
+  descEl?.addEventListener('click', () => {
+    const fullDesc = order.orderDescription || "No description provided.";
+  
+    const overlay = document.createElement('div');
+    Object.assign(overlay.style, {
+      position: "fixed",
+      top: 0, left: 0,
+      width: "100%", height: "100%",
+      background: "rgba(0,0,0,0.6)",
+      display: "flex", justifyContent: "center", alignItems: "center",
+      zIndex: 9999
+    });
+  
+    const modal = document.createElement('div');
+    Object.assign(modal.style, {
+      background: "#fff",
+      color: "#000",
+      padding: "1rem",
+      borderRadius: "8px",
+      maxWidth: "400px",
+      textAlign: "center"
+    });
+  
+    modal.textContent = fullDesc;
+  
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+    overlay.addEventListener("click", () => document.body.removeChild(overlay));
+  });
 
   return div;
 }
