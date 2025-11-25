@@ -424,7 +424,7 @@ function checkOrderWindow() {
   if (time < open || time >= close) {
     payNowBtn.disabled = true;
     payNowBtn.style.opacity = "0.5";
-    payNowBtn.textContent = "Checkout Closed (8:30am–9:00pm)";
+    payNowBtn.textContent = "Checkout Closed (8:00am–9:30pm)";
   } else {
     payNowBtn.disabled = false;
     payNowBtn.style.opacity = "1";
