@@ -6,7 +6,7 @@ import {
   query,
   where,
   getDocs
-} from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 document.addEventListener("DOMContentLoaded", () => {
   const msgTypeSelect = document.getElementById("msg-type");
