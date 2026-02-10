@@ -7,7 +7,7 @@ import {
   updateDoc,
   query,
   orderBy
-} from 'https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js';
+} from 'https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js';
 
 // DOM elements
 const foodItemsContainer = document.getElementById('food-items');
