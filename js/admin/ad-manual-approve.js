@@ -1,7 +1,7 @@
 import { db } from '../firebase.js';
 import {
   collection, query, where, onSnapshot, updateDoc, doc, runTransaction
-} from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 const pendingList = document.getElementById("pendingTab");
 const refundList = document.getElementById("refundTab");
