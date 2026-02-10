@@ -34,13 +34,13 @@ import { getStorage } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-s
 
 // Firebase config
 const firebaseConfig = {
-  apiKey: "AIzaSyCxEamPirhG2Q-W7bf_UWGf6PgP6vk-5js",
+  apiKey: "AIzaSyA8TO19Ss1Pv_8KJhdG6jOVLHU2t1rLYM4",
   authDomain: "book-run-2.firebaseapp.com",
+  databaseURL: "https://book-run-2-default-rtdb.firebaseio.com",
   projectId: "book-run-2",
-  storageBucket: "book-run-2.appspot.com",
+  storageBucket: "book-run-2.firebasestorage.app",
   messagingSenderId: "1064742306034",
-  appId: "1:1064742306034:web:a2490c88b854ca5652106b",
-  databaseURL: "https://book-run-2-default-rtdb.firebaseio.com/"
+  appId: "1:1064742306034:web:5d73df752242989052106b"
 };
 
 // Initialize Firebase
