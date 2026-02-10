@@ -10,7 +10,7 @@ import {
   updateDoc,
   doc,
 } from "../firebase.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
 
 const auth = getAuth();
 
