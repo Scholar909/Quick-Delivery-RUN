@@ -1,5 +1,5 @@
 // Core Firebase SDK
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 
 // Firebase Auth
 import {
@@ -8,7 +8,7 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
 
 // Firestore
 import {
@@ -27,10 +27,10 @@ import {
   limit,
   serverTimestamp,
   onSnapshot
-} from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 // Firebase Storage (import separately)
-import { getStorage } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-storage.js";
+import { getStorage } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-storage.js";
 
 // Firebase config
 const firebaseConfig = {
