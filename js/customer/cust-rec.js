@@ -4,8 +4,8 @@ import {
   onSnapshot,
   doc,
   setDoc
-} from 'https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js';
-import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js';
+} from 'https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js';
+import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js';
 
 document.addEventListener("DOMContentLoaded", () => {
   const searchInput = document.getElementById("searchAll");
