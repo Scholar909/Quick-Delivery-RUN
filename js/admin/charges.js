@@ -8,7 +8,7 @@ import {
   onSnapshot,
   query,
   where
-} from 'https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js';
+} from 'https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js';
 
 document.addEventListener('DOMContentLoaded',()=>{
   addFormSection.style.display='none';
