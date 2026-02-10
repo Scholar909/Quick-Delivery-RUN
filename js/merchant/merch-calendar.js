@@ -10,9 +10,9 @@ import {
   where,
   orderBy,
   serverTimestamp
-} from 'https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js';
+} from 'https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js';
 
-import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js';
+import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js';
 
 document.addEventListener("DOMContentLoaded", () => {
   const calendarGrid = document.querySelector(".calendar-grid");
