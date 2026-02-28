@@ -896,9 +896,10 @@ document.addEventListener("click", (e) => {
 ivePaidBtn.addEventListener("click", async () => {
   try {
     if (savedOrderId) {
-      alert("Payment is already being processed...");
+      alert("Order already submitted.");
       return;
     }
+
     ivePaidBtn.disabled = true;
 
     const custBankName = document.getElementById("custBankName")?.value || "";
@@ -930,7 +931,6 @@ ivePaidBtn.addEventListener("click", async () => {
       customerPhone: customerData.phone,
       hostel: customerData.hostel,
       roomNumber: customerData.roomNumber,
-      // ✅ If "My Room" selected, combine hostel + room number
       toLocation:
         toLocationSelect.options[toLocationSelect.selectedIndex]?.textContent === "My Room"
           ? `${customerData.hostel} Room ${customerData.roomNumber}`
@@ -943,283 +943,34 @@ ivePaidBtn.addEventListener("click", async () => {
       itemTotal,
       totalAmount: total,
       paymentGateway: "manual_bank",
-      paymentStatus: "pending_confirmation",
-      orderStatus: "pending_assignment",
+
+      // ✅ UPDATED STATUSES
+      paymentStatus: "pending_manual_approval",
+      orderStatus: "pending_manual_approval",
+
       createdAt: new Date(),
       declinedBy: [],
       customerBankName: custBankName,
       customerAccountNumber: custAccountNumber,
       customerAccountName: custAccountName,
       customerNarration: custNarration,
-      orderDescription: orderDescription,
-      countdownStart: serverTimestamp(),
+      orderDescription: orderDescription
     });
 
     savedOrderId = newOrderRef.id;
-    const restOrderIdElem = document.getElementById("restOrderId");
-    if (restOrderIdElem) restOrderIdElem.textContent = savedOrderId;
 
-    showPendingAnimation();
-
-    const normalize = (str) => (str || "").toLowerCase().replace(/\s+/g, " ").trim();
-    const custNorm = normalize(custAccountName);
-    const alertsRef = collection(db, "payment_alerts");
-
-    // ---------------------------
-    // Cancel modal handling
-    // ---------------------------
-    const handleCancelOrder = async () => {
-      const confirmCancel = confirm(
-        "You haven't completed the payment. Closing now will cancel the order. Continue?"
-      );
-      if (!confirmCancel) return false;
-
-      stopCountdown();
-      hidePendingAnimation();
-
-      if (savedOrderId) {
-        const orderRef = doc(db, "orders", savedOrderId);
-        try {
-          const snap = await getDoc(orderRef);
-          if (snap.exists()) {
-            const data = snap.data();
-            await setDoc(doc(db, "trash", "orders", savedOrderId), {
-              ...data,
-              orderStatus: "cancelled",
-              paymentStatus: "cancelled",
-              trashedAt: new Date()
-            });
-            await deleteDoc(orderRef);
-          }
-        } catch (e) {
-          console.error("Failed to cancel order:", e);
-        }
-      }
-
-      savedOrderId = null;
-      return true;
-    };
-
-    // Listen for modal close/cancel button
-    const closeBtns = bankModal.querySelectorAll(".closeModal, .cancelBtn");
-    closeBtns.forEach(btn => {
-      btn.addEventListener("click", async (e) => {
-        e.preventDefault();
-        await handleCancelOrder();
-        bankModal.classList.add("hidden");
-      });
-    });
-
-    // ---------------------------
-    // Existing alert checking & listeners
-    // ---------------------------
-    function showResultAnimation(type, message) {
-      hidePendingAnimation();
-      const overlay = document.createElement("div");
-      Object.assign(overlay.style, {
-        position: "fixed",
-        top: 0,
-        left: 0,
-        width: "100%",
-        height: "100%",
-        background: "rgba(0,0,0,0.6)",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        zIndex: 10000,
-        color: "#fff",
-        flexDirection: "column",
-        fontSize: "1.3rem"
-      });
-    
-      const icon = document.createElement("div");
-      icon.innerHTML = type === "success"
-        ? `<i class="uil uil-check-circle" style="font-size:4rem;color:#0f4e75;"></i>`
-        : `<i class="uil uil-times-circle" style="font-size:4rem;color:#ff4d4f;"></i>`;
-      icon.style.marginBottom = "1rem";
-    
-      const text = document.createElement("div");
-      text.textContent = message;
-    
-      overlay.appendChild(icon);
-      overlay.appendChild(text);
-      document.body.appendChild(overlay);
-    }
-
-    function withinThirtyMinutes(orderStart, alertTime) {
-      if (!orderStart || !alertTime) return false;
-      const alertDate = alertTime instanceof Date ? alertTime : new Date(alertTime);
-      const diff = Math.abs(alertDate.getTime() - orderStart.getTime());
-      return diff <= 30 * 60 * 1000;
-    }
-
-    const orderSnap = await getDoc(doc(db, "orders", savedOrderId));
-    const orderData = orderSnap.data();
-    if (["successful", "refund_required", "refunded"].includes(orderData.paymentStatus)) {
-        // mark alert as duplicate
-        await updateDoc(aDoc.ref, { processed: "duplicate" });
-    }
-    const orderStart = orderData?.countdownStart?.toDate?.() 
-  ? orderData.countdownStart.toDate() 
-  : new Date();
-
-    // Step 1: check old alerts
-    const oldQ = query(alertsRef, where("processed", "==", "false"));
-    const oldSnap = await getDocs(oldQ);
-    for (const aDoc of oldSnap.docs) {
-      const a = aDoc.data();
-      if (a.processed === "true") continue;
-      // extract sender name from sender or fallback to narration
-      let senderRaw = a.sender?.trim();
-      if (!senderRaw || senderRaw === "No sender" || senderRaw === "No sender bank") {
-        senderRaw = a.narration || ""; // fallback to narration
-      }
-      const senderNorm = normalize(senderRaw);
-      const createdAt = a.timestamp?.toDate?.() || new Date(a.timestamp);
-      const amt = parseFloat(a.amount);
-
-      if (senderNorm.replace(/\s+/g,"").includes(custNorm.replace(/\s+/g,"")) || 
-      custNorm.replace(/\s+/g,"").includes(senderNorm.replace(/\s+/g,""))) {
-        if (!withinThirtyMinutes(orderStart, createdAt)) {
-          await updateDoc(aDoc.ref, { processed: "not_used" });
-          continue;
-        }
-        if (Math.abs(amt - total) < 1) {
-          await runTransaction(db, async (transaction) => {
-            transaction.update(doc(db, "payment_alerts", aDoc.id), { processed: "true" });
-            transaction.update(doc(db, "orders", savedOrderId), {
-              paymentStatus: "successful",
-              paymentMatchedAt: new Date(),
-              matchedByAlertId: aDoc.id
-            });
-          });
-          showResultAnimation("success", "Payment Successful!");
-          setTimeout(() => window.location.href = "pending-orders.html", 2500);
-          return;
-        } else {
-          await runTransaction(db, async (transaction) => {
-            transaction.update(doc(db, "payment_alerts", aDoc.id), { processed: "true" });
-            transaction.update(doc(db, "orders", savedOrderId), {
-              paymentStatus: "refund_required",
-              refundCandidateAlertId: aDoc.id,
-              refundReason: `Amount mismatch: expected ₦${total}, got ₦${amt}`,
-              paymentMatchedAt: new Date()
-            });
-          });
-          showResultAnimation("error", "Refund in Progress...");
-          setTimeout(() => window.location.href = "pending-orders.html", 2500);
-          return;
-        }
-      }
-    }
-
-    // Step 2: listen for new alerts
-    const q = query(alertsRef, where("processed", "==", "false"));
-    const unsubAlerts = onSnapshot(q, async (snap) => {
-      for (const aDoc of snap.docs) {
-        const a = aDoc.data();
-        if (a.processed === "true") continue;
-        // extract sender name from sender or fallback to narration
-        let senderRaw = a.sender?.trim();
-        if (!senderRaw || senderRaw === "No sender" || senderRaw === "No sender bank") {
-          senderRaw = a.narration || ""; // fallback to narration
-        }
-        const senderNorm = normalize(senderRaw);
-        const amt = parseFloat(a.amount);
-        const createdAt = a.timestamp?.toDate?.() || new Date(a.timestamp);
-
-        if (senderNorm.replace(/\s+/g,"").includes(custNorm.replace(/\s+/g,"")) || 
-        custNorm.replace(/\s+/g,"").includes(senderNorm.replace(/\s+/g,""))) {
-          if (!withinThirtyMinutes(orderStart, createdAt)) {
-            await updateDoc(aDoc.ref, { processed: "not_used" });
-            continue;
-          }
-          if (Math.abs(amt - total) < 1) {
-            await runTransaction(db, async (transaction) => {
-              transaction.update(doc(db, "payment_alerts", aDoc.id), { processed: "true" });
-              transaction.update(doc(db, "orders", savedOrderId), {
-                paymentStatus: "successful",
-                paymentMatchedAt: new Date(),
-                matchedByAlertId: aDoc.id
-              });
-            });
-            unsubAlerts();
-            showResultAnimation("success", "Payment Successful!");
-            setTimeout(() => window.location.href = "pending-orders.html", 2500);
-            return;
-          } else {
-            await runTransaction(db, async (transaction) => {
-              transaction.update(doc(db, "payment_alerts", aDoc.id), { processed: "true" });
-              transaction.update(doc(db, "orders", savedOrderId), {
-                paymentStatus: "refund_required",
-                refundCandidateAlertId: aDoc.id,
-                refundReason: `Amount mismatch: expected ₦${total}, got ₦${amt}`,
-                paymentMatchedAt: new Date()
-              });
-            });
-            unsubAlerts();
-            showResultAnimation("error", "Refund in Progress...");
-            setTimeout(() => window.location.href = "pending-orders.html", 2500);
-            return;
-          }
-        }
-      }
-    });
-
-    // Step 3: watch order
-    const orderRef = doc(db, "orders", savedOrderId);
-    const unsubOrder = onSnapshot(orderRef, (snap) => {
-      if (!snap.exists()) return;
-      const data = snap.data();
-    
-      // ✅ Success (either from admin or system)
-      if (data.paymentStatus === "successful") {
-        hidePendingAnimation();
-        unsubOrder();
-        unsubAlerts && unsubAlerts();
-        showResultAnimation("success", "Payment Successful!");
-        setTimeout(() => window.location.href = "pending-orders.html", 2500);
-        return;
-      }
-    
-      // ❌ Declined (admin decision)
-      if (data.paymentStatus === "declined") {
-        hidePendingAnimation();
-        unsubOrder();
-        unsubAlerts && unsubAlerts();
-        showResultAnimation(
-          "error",
-          "Payment Declined. If you already made the payment, please contact support or file a complaint."
-        );
-        setTimeout(() => window.location.href = "complaints.html", 5000);
-        return;
-      }
-    
-      // Refunds, expiry, cancellations
-      const hideStatuses = ["refund_required", "refunded", "expired", "cancelled"];
-      if (hideStatuses.includes(data.paymentStatus)) {
-        hidePendingAnimation();
-        unsubOrder();
-        unsubAlerts && unsubAlerts();
-        window.location.href = "pending-orders.html";
-      }
-    });
-
-    // Step 4: timeout after 5 minutes
-    countdownTimeout = setTimeout(async () => {
-      unsubAlerts();
-      await updateDoc(orderRef, { paymentStatus: "manual_required" });
-    }, 5 * 60 * 1000);
-
-    // clear cart & close modal
+    // Clear cart immediately
     cart = [];
     updateOrderButton();
     closeOrderModal();
+    bankModal.classList.add("hidden");
+
+    alert("Order submitted successfully. Waiting for admin approval.");
+    window.location.href = "pending-orders.html";
 
   } catch (err) {
-    console.error("Payment matching error:", err);
-    hidePendingAnimation();
-    alert("Error confirming payment. Try again or contact support.");
+    console.error("Order submission error:", err);
+    alert("Error submitting order. Try again.");
   }
 });
 
