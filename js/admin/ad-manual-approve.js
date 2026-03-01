@@ -92,12 +92,26 @@ function renderPendingCard(order) {
     }
   }
   updateDeclineButton();
-
+  
   declineBtn.addEventListener('click', async () => {
     if (declineBtn.disabled) return;
-    await updateDoc(doc(db, "orders", order.id), { paymentStatus: "declined" });
-    alert("Payment declined.");
-    card.remove();
+  
+    if (!confirm("Move this order to Refunds?")) return;
+  
+    try {
+      await updateDoc(doc(db, "orders", order.id), {
+        paymentStatus: "refund_required",
+        orderStatus: "declined",
+        refundStatus: "pending",
+        declinedAt: new Date()
+      });
+  
+      alert("Order moved to Refunds.");
+      card.remove();
+    } catch (err) {
+      console.error("Decline error:", err);
+      alert("Could not move order to refunds.");
+    }
   });
 
   pendingList.appendChild(card);
@@ -107,10 +121,22 @@ function renderPendingCard(order) {
    REFUNDS
 ------------------------------ */
 function listenRefunds() {
-  const q = query(collection(db, "orders"), where("paymentStatus", "==", "refund_required"));
+  const refundCountElem = document.getElementById("refundCount");
+
+  const q = query(
+    collection(db, "orders"),
+    where("paymentStatus", "==", "refund_required")
+  );
+
   onSnapshot(q, (snapshot) => {
     refundList.innerHTML = '';
-    snapshot.forEach(docSnap => renderRefundCard({ id: docSnap.id, ...docSnap.data() }));
+
+    const count = snapshot.size;
+    if (refundCountElem) refundCountElem.textContent = count;
+
+    snapshot.forEach(docSnap =>
+      renderRefundCard({ id: docSnap.id, ...docSnap.data() })
+    );
   });
 }
 
