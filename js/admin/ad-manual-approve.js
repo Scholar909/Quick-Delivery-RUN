@@ -76,7 +76,7 @@ function renderPendingCard(order) {
 
   // ✅ Decline Button with 10-min cooldown (based on createdAt)
   const declineBtn = card.querySelector('.decline-btn');
-  const cooldownMs = 3 * 60 * 1000;
+  const cooldownMs = 1 * 60 * 1000;
   const readyAt = createdAt.getTime() + cooldownMs;
 
   function updateDeclineButton() {
