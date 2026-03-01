@@ -102,7 +102,9 @@ function createOrderCard(order, bucket) {
   if (bucket === "declined") {
     const reason =
       order.adminDeclineReason ||
-      order.declineReason
+      order.declineReason ||
+      order.paystackReason ||
+      order.gatewayReason ||
       "Pending Refund.";
 
     const shortReason = reason.length > 20 ? reason.substring(0, 20) + "..." : reason;
@@ -144,7 +146,9 @@ function createOrderCard(order, bucket) {
     reasonEl?.addEventListener('click', () => {
       const reason =
         order.adminDeclineReason ||
-        order.declineReason 
+        order.declineReason ||
+        order.paystackReason ||
+        order.gatewayReason ||
         "Pending Refund.";
 
       // modal overlay
