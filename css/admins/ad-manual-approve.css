@@ -83,3 +83,12 @@
 .refund-btn:hover {
   background-color: #777;
 }
+
+.badge {
+  background: red;
+  color: white;
+  border-radius: 50px;
+  padding: 2px 8px;
+  font-size: 12px;
+  margin-left: 6px;
+}
