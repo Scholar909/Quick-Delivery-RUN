@@ -35,11 +35,14 @@ function fmtTime(ts) {
   }
 }
 
+// UPDATED: createOrderCard
 function createOrderCard(order, type = "pending") {
   const div = document.createElement('div');
   div.classList.add('order-card');
 
-  let merchantText = order.assignedMerchantName || order.merchantUsername || '—';
+  // Fix: Show "Waiting for Merchant" instead of just a dash
+  let merchantText = order.assignedMerchantName || order.merchantUsername || '<span style="color: #f2994a; font-weight: bold;">Waiting for Merchant</span>';
+  
   let total = order.totalAmount || 0;
   let createdAt = fmtTime(order.createdAt);
 
@@ -91,7 +94,6 @@ function createOrderCard(order, type = "pending") {
   // ---------- attach click handlers ----------
   const btn = div.querySelector('.view-btn');
   btn.addEventListener('click', () => {
-    // always go to receipt
     window.location.href = `receipt.html?orderId=${order.id}`;
   });
 
@@ -99,56 +101,39 @@ function createOrderCard(order, type = "pending") {
     const reasonEl = div.querySelector('.reason-preview');
     reasonEl?.addEventListener('click', () => {
       const reason = order.adminDeclineReason || order.declineReason || "No reason provided.";
-
-      // modal overlay
       const overlay = document.createElement('div');
       Object.assign(overlay.style, {
         position: "fixed", top: 0, left: 0, width: "100%", height: "100%",
         background: "rgba(0,0,0,0.6)", display: "flex",
         justifyContent: "center", alignItems: "center", zIndex: 9999
       });
-
       const modal = document.createElement('div');
       Object.assign(modal.style, {
         background: "#fff", color: "#000", padding: "1rem",
         borderRadius: "8px", maxWidth: "400px", textAlign: "center"
       });
       modal.textContent = reason;
-
       overlay.appendChild(modal);
       document.body.appendChild(overlay);
-
       overlay.addEventListener('click', () => document.body.removeChild(overlay));
     });
   }
   
-  // 🔹 Description full modal
   const descEl = div.querySelector('.desc-preview');
   descEl?.addEventListener('click', () => {
     const fullDesc = order.orderDescription || "No description provided.";
-  
     const overlay = document.createElement('div');
     Object.assign(overlay.style, {
-      position: "fixed",
-      top: 0, left: 0,
-      width: "100%", height: "100%",
-      background: "rgba(0,0,0,0.6)",
-      display: "flex", justifyContent: "center", alignItems: "center",
-      zIndex: 9999
+      position: "fixed", top: 0, left: 0, width: "100%", height: "100%",
+      background: "rgba(0,0,0,0.6)", display: "flex",
+      justifyContent: "center", alignItems: "center", zIndex: 9999
     });
-  
     const modal = document.createElement('div');
     Object.assign(modal.style, {
-      background: "#fff",
-      color: "#000",
-      padding: "1rem",
-      borderRadius: "8px",
-      maxWidth: "400px",
-      textAlign: "center"
+      background: "#fff", color: "#000", padding: "1rem",
+      borderRadius: "8px", maxWidth: "400px", textAlign: "center"
     });
-  
     modal.textContent = fullDesc;
-  
     overlay.appendChild(modal);
     document.body.appendChild(overlay);
     overlay.addEventListener("click", () => document.body.removeChild(overlay));
@@ -166,14 +151,15 @@ function renderOrders(snapshot, container, type) {
   });
 }
 
-// ---------- listeners ----------
+// UPDATED: listenToOrders
 function listenToOrders() {
-  // Pending: assigned + accepted
+  // Pending: Includes 'pending' which we now set during manual approval
   const qPending = query(
     collection(db, "orders"),
     where("orderStatus", "in", ["pending", "processing", "assigned", "accepted"]),
     orderBy("createdAt", "desc")
   );
+  
   onSnapshot(qPending, (ss) => renderOrders(ss, pendingTab, "pending"));
 
   // Delivered
