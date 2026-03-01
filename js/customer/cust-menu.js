@@ -1209,7 +1209,7 @@ ivePaidBtn.addEventListener("click", async () => {
     countdownTimeout = setTimeout(async () => {
       unsubAlerts();
       await updateDoc(orderRef, { paymentStatus: "manual_required" });
-    }, 5 * 60 * 1000);
+    }, 20 * 1000);
 
     // clear cart & close modal
     cart = [];
