@@ -102,10 +102,8 @@ function createOrderCard(order, bucket) {
   if (bucket === "declined") {
     const reason =
       order.adminDeclineReason ||
-      order.declineReason ||
-      order.paystackReason ||
-      order.gatewayReason ||
-      "No reason provided.";
+      order.declineReason
+      "Pending Refund.";
 
     const shortReason = reason.length > 20 ? reason.substring(0, 20) + "..." : reason;
     reasonPreview = `<p class="reason-preview" style="color:#ffaaaa;cursor:pointer;">Reason: ${shortReason}</p>`;
@@ -146,10 +144,8 @@ function createOrderCard(order, bucket) {
     reasonEl?.addEventListener('click', () => {
       const reason =
         order.adminDeclineReason ||
-        order.declineReason ||
-        order.paystackReason ||
-        order.gatewayReason ||
-        "No reason provided.";
+        order.declineReason 
+        "Pending Refund.";
 
       // modal overlay
       const overlay = document.createElement('div');
