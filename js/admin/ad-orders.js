@@ -41,7 +41,7 @@ function createOrderCard(order, type = "pending") {
   div.classList.add('order-card');
 
   // Fix: Show "Waiting for Merchant" instead of just a dash
-  let merchantText = order.assignedMerchantName || order.merchantUsername || '<span style="color: #f2994a; font-weight: bold;">Waiting for Merchant</span>';
+  let merchantText = order.assignedMerchantName || order.merchantUsername || '<span style="color: #f2994a; font-weight: bold;">-</span>';
   
   let total = order.totalAmount || 0;
   let createdAt = fmtTime(order.createdAt);
