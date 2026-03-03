@@ -156,7 +156,7 @@ function listenToOrders() {
   // Pending: Includes 'pending' which we now set during manual approval
   const qPending = query(
     collection(db, "orders"),
-    where("orderStatus", "in", ["pending", "processing", "assigned", "accepted"]),
+    where("orderStatus", "in", ["pending_assignment", "pending", "processing", "assigned", "accepted"]),
     orderBy("createdAt", "desc")
   );
   
