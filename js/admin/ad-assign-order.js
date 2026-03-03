@@ -236,7 +236,7 @@ async function openMerchantListModal(order) {
     div.addEventListener('click', async () => {
       if (!confirm(`Assign order to ${m.fullname || m.username}?`)) return;
       await updateDoc(doc(db, "orders", order.id), {
-        orderStatus: "pending",
+        orderStatus: "assigned",
         assignedMerchantId: m.id,
         assignedMerchantName: m.fullname || m.username || "",
         assignedMerchantImage: m.profileImage || "",
