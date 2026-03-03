@@ -62,7 +62,7 @@ function renderPendingCard(order) {
 
         transaction.update(orderRef, {
           paymentStatus: "successful",
-          orderStatus: "pending",
+          orderStatus: "pending_assignment",
           paymentMatchedAt: new Date()
         });
       });
