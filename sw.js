@@ -1,4 +1,4 @@
-const CACHE_NAME = "site-cache-v2";
+const CACHE_NAME = "site-cache-v5";
 const BASE_URL = "./";
 const OFFLINE_URL = BASE_URL + "offline.html";
 
